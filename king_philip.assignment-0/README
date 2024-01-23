@@ -1,0 +1,18 @@
+Assignment-0, Knight's touring
+
+How to run:
+	1. make
+	2. ./tour
+
+Description:
+	1.5x5 board is init as 2D array will all values being -1,
+	2.for each square on board run the recursive algo,
+	3.the algo then loops through an array that tries every possilbe move that the knight can move in,
+	4.if the move is valid, an array called result that keeps track of the output wanted gets the number of the square moved to,
+	5.the spot moved to on the board is set to a number other than -1 to signify it has been moved to,
+	6.the recursive function is called again,
+	7.then the spot move to is set back to -1 for backtracking purposes.
+finally the array named result will print out the resulting tour and the original for loop will run for every other spot on the board.
+
+Bugs:
+	none
