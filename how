@@ -1,0 +1,10 @@
+tar cvfz <desired name> <file name>
+giz -9 <tar>
+
+to delete:
+	rm -rf <file>
+
+to unpack:
+	mkdir tmp
+	cd tmp
+	tar xvfz ../<tar.gz file>
