@@ -30,11 +30,6 @@ void initMap(){
 	//to get random rand seed
 	srand ( time(NULL) );
 	int i,j;
-	//random int between 0 and 19 
-	//int r = rand() % 20;
-	//need 2 tall grass, 1 water, and two short grass
-	//exits are random on top and bottom
-	bool seeded = false;
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
@@ -46,6 +41,8 @@ void initMap(){
 
 		}
 	}
+	bool seeded = false;
+	//seeding here 
 	while(!seeded){
 		int x,y;
 		x = rand() % 20;x++;//1-20
@@ -83,17 +80,42 @@ void initMap(){
 		}
 	}
 
+	//actually growing those seeds here
 	bool growing = true;
+	bool foundEmpty = false;
+	int count = 0;
 	while(growing){
 		int i,j;
-		for(i = 1; i < MAPHEIGHT; i++){
-			for(j=1; j < MAPWIDTH; j++){
-				
-			}
-			if(i == MAPHEIGHT -1){
-				growing = false;
-			}
+		//FIX FOR TOMORROW, YOU DIDNT REALIZE THAT THE LOOP WIll FIND
+		//THE LOWER PART AND JUST EXPAND DOWN
+		for(i = 1; i < MAPHEIGHT-1; i++){
+			for(j=1; j < MAPWIDTH-1; j++){
+				if(map[i][j] == "-"){
+					foundEmpty = true;
+				}
+
+				if(map[i][j] != "-"){
+					//check surroundings
+					if(map[i-1][j] == "-"){
+						map[i-1][j] = map[i][j];
+					}
+					if(map[i+1][j]=="-"){
+						map[i+1][j] = map[i][j];
+					}
+					if(map[i][j-1]=="-"){
+						map[i][j-1] = map[i][j];
+					}
+					if(map[i][j+1]== "-"){
+						map[i][j+1] = map[i][j];
+					}
+					continue;
+				}
+
+			}			
 		}
+		count++;
+		if(!foundEmpty){growing=false;}
+		foundEmpty = false;
 	}
 }
 
