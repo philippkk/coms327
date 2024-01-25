@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
@@ -23,7 +24,7 @@ void printMap();
 int main(int argc, char *argv[]){
 	initMap();
 	printMap();
-	return 1;
+	return 0;
 }
 
 void initMap(){
@@ -83,7 +84,18 @@ void initMap(){
 	//actually growing those seeds here
 	bool growing = true;
 	bool foundEmpty = false;
-	int count = 0;
+	char *temp[MAPHEIGHT][MAPWIDTH];
+	memcpy(&temp,&map,sizeof temp);
+	// printf("tempVVVV \n");
+	// int p,q;
+	// for(p = 0; p < MAPHEIGHT; p++){
+	// 	for(q= 0; q < MAPWIDTH; q++){
+	// 		printf(temp[p][q]);
+	// 		if(q == MAPWIDTH -1){
+	// 			printf("\n");
+	// 		}
+	// 	}
+	// }
 	while(growing){
 		int i,j;
 		//FIX FOR TOMORROW, YOU DIDNT REALIZE THAT THE LOOP WIll FIND
@@ -97,23 +109,24 @@ void initMap(){
 				if(map[i][j] != "-"){
 					//check surroundings
 					if(map[i-1][j] == "-"){
-						map[i-1][j] = map[i][j];
+						temp[i-1][j] = map[i][j];
 					}
 					if(map[i+1][j]=="-"){
-						map[i+1][j] = map[i][j];
+						temp[i+1][j] = map[i][j];
 					}
 					if(map[i][j-1]=="-"){
-						map[i][j-1] = map[i][j];
+						temp[i][j-1] = map[i][j];
 					}
 					if(map[i][j+1]== "-"){
-						map[i][j+1] = map[i][j];
+						temp[i][j+1] = map[i][j];
 					}
 					continue;
 				}
 
 			}			
 		}
-		count++;
+	
+		memcpy(&map,&temp,sizeof map);
 		if(!foundEmpty){growing=false;}
 		foundEmpty = false;
 	}
