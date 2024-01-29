@@ -6,6 +6,7 @@
 
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
+#define INFINITY 9999
 
 //% = border, boulder, mountain
 // ^ = tree and forest
@@ -23,6 +24,7 @@ int weightmap[MAPHEIGHT][MAPWIDTH];
 void initMap();
 void printMap();
 void genPaths();
+
 int main(int argc, char *argv[]){
 	srand ( time(NULL) );
 	initMap();
@@ -132,8 +134,8 @@ void initMap(){
 			if(weightmap[i][j] < 0){
 				weightmap[i][j] = 0;
 			}
-			if(weightmap[i][j] > 9){
-				weightmap[i][j] = 9;
+			if(weightmap[i][j] > 8){
+				weightmap[i][j] = 8;
 			}
 			}			
 		}
@@ -160,6 +162,99 @@ void genPaths(){
 	map[d][MAPWIDTH -1] = "d";
 
 
+	//take weight map, start at the exits and use the weights to make it to the next point.
+	bool aconnectb = false;
+	bool cconnectd = false;
+	int x = a;
+	int y = 0;
+	int targetx = b;
+	int targety = MAPHEIGHT - 1;
+	while(!aconnectb){
+		//set up logic
+		if(y <= targety){
+			if(x < targetx && x != targetx){
+				if(abs(targetx-x) >= abs(targety-y)){
+					if(y == 0){y++;}
+					int ran = rand() % 10;
+					if(ran > 7 && y != 0 && x > a + 1){y++;}
+					x++;
+				}else if(weightmap[y][x+1] < weightmap[y][x]){
+					x++;
+				}else if(weightmap[y+1][x+1] < weightmap[y][x]){
+					x++;
+					y++;
+				}else{
+					y++;
+				}
+			}else if (x > targetx && x != targetx){//target to left
+				if(abs(targetx-x) >= abs(targety-y)){
+					if(y == 0){y++;}
+					int ran = rand() % 10;
+					if(ran > 7 && y != 0 && x < a - 1){y++;}
+					x--;
+				}else if(weightmap[y][x-1] < weightmap[y][x]){
+					x--;
+				}else if(weightmap[y+1][x-1] < weightmap[y][x]){
+					x--;
+					y++;
+				}else{
+					y++;
+				}
+			}else{
+				y++;
+			}
+			
+			
+			map[y][x] = "#";
+		}else{
+			aconnectb = true;
+		}
+	}	
+	while(!cconnectd){
+				//set up logic
+		if(y <= targety){
+			if(x < targetx && x != targetx){
+				if(abs(targetx-x) >= abs(targety-y)){
+					if(y == 0){y++;}
+					int ran = rand() % 10;
+					if(ran > 7 && y != 0 && x > a + 1){y++;}
+					x++;
+				}else if(weightmap[y][x+1] < weightmap[y][x]){
+					x++;
+				}else if(weightmap[y+1][x+1] < weightmap[y][x]){
+					x++;
+					y++;
+				}else{
+					y++;
+				}
+			}else if (x > targetx && x != targetx){//target to left
+				if(abs(targetx-x) >= abs(targety-y)){
+					if(y == 0){y++;}
+					int ran = rand() % 10;
+					if(ran > 7 && y != 0 && x < a - 1){y++;}
+					x--;
+				}else if(weightmap[y][x-1] < weightmap[y][x]){
+					x--;
+				}else if(weightmap[y+1][x-1] < weightmap[y][x]){
+					x--;
+					y++;
+				}else{
+					y++;
+				}
+			}else{
+				y++;
+			}
+			
+			
+			map[y][x] = "#";
+		}else{
+			aconnectb = true;
+		}
+	}
+	map[0][a] = "a";
+	map[MAPHEIGHT-1][b] = "b";
+	map[c][0]= "c";
+	map[d][MAPWIDTH -1] = "d";
 }
 void printMap(){
 	int i,j;
@@ -181,3 +276,4 @@ void printMap(){
 		}
 	}
 }
+
