@@ -18,6 +18,7 @@
 // letter = npc
 
 char *map[MAPHEIGHT][MAPWIDTH];
+int weightmap[MAPHEIGHT][MAPWIDTH];
 
 void initMap();
 void printMap();
@@ -37,10 +38,11 @@ void initMap(){
 		for(j= 0; j < MAPWIDTH; j++){
 			if(i == 0 || i == MAPHEIGHT - 1 || j == 0 || j == MAPWIDTH -1){
 				map[i][j] = "%%";
+				weightmap[i][j] = 9;
 			}else{
 				map[i][j] = "-";
+				weightmap[i][j] = 0;
 			}
-
 		}
 	}
 	bool seeded = false;
@@ -82,6 +84,7 @@ void initMap(){
 		}
 	}
 
+	
 	//actually growing those seeds here
 	bool growing = true;
 	bool foundEmpty = false;
@@ -92,6 +95,11 @@ void initMap(){
 		
 		int x,y;	
 		int i,j;
+		int pos = rand() % 10;
+		int weight = rand() % 10;
+		if(pos > 6){
+			weight *= -1;
+		}
 		for(i = 1; i < MAPHEIGHT-1; i++){
 			for(j=1; j < MAPWIDTH-1; j++){
 				x = rand() % 10;//0-9
@@ -104,20 +112,29 @@ void initMap(){
 					if(x > 7){
 						if(map[i-1][j] == "-"){
 							temp[i-1][j] = map[i][j];
+							weightmap[i-1][j] += weight;
 						}
 						if(map[i+1][j]=="-"){
 							temp[i+1][j] = map[i][j];
+							weightmap[i+1][j] += weight;
 						}
 					}else{
 						if(map[i][j-1]=="-"){
 							temp[i][j-1] = map[i][j];
+							weightmap[i][j-1] += weight;
 						}
 						if(map[i][j+1]== "-"){
 							temp[i][j+1] = map[i][j];
+							weightmap[i][j+1] += weight;
 						}
 					}
 				}
-
+			if(weightmap[i][j] < 0){
+				weightmap[i][j] = 0;
+			}
+			if(weightmap[i][j] > 9){
+				weightmap[i][j] = 9;
+			}
 			}			
 		}
 		//copy temp back to map
@@ -125,8 +142,9 @@ void initMap(){
 		if(!foundEmpty){growing=false;}
 		foundEmpty = false;
 	}
-
+	
 	genPaths();
+	
 }
 void genPaths(){
 	int a,b,c,d;// coord of each exit;
@@ -140,12 +158,23 @@ void genPaths(){
 	map[MAPHEIGHT-1][b] = "b";
 	map[c][0]= "c";
 	map[d][MAPWIDTH -1] = "d";
+
+
 }
 void printMap(){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
 			printf(map[i][j]);
+			if(j == MAPWIDTH -1){
+				printf("\n");
+			}
+		}
+	}
+	for(i = 0; i < MAPHEIGHT; i++){
+		for(j= 0; j < MAPWIDTH; j++){
+
+			printf("%1d",weightmap[i][j]);
 			if(j == MAPWIDTH -1){
 				printf("\n");
 			}
