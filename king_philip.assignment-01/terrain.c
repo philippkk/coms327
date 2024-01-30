@@ -250,7 +250,6 @@ void genPaths(){
 				x++;
 			}
 			
-			
 				map[y][x] = "#";
 			
 		}else{
