@@ -24,6 +24,7 @@ int weightmap[MAPHEIGHT][MAPWIDTH];
 void initMap();
 void printMap();
 void genPaths();
+void genBuildings();
 
 int main(int argc, char *argv[]){
 	srand ( time(NULL) );
@@ -144,6 +145,7 @@ void initMap(){
 	}
 	
 	genPaths();
+	genBuildings();
 	
 }
 void genPaths(){
@@ -260,6 +262,74 @@ void genPaths(){
 	map[MAPHEIGHT-1][b] = "#";
 	map[c][0]= "#";
 	map[d][MAPWIDTH -1] = "#";
+}
+void genBuildings(){
+	int x,y;
+	bool mart = false,center = false;
+
+	while(!mart || !center){
+		int spot = 0;
+		x = rand() % 60; x += 10;
+		y = rand() % 12; y += 5;
+		if(map[y][x] == "#"){
+		//check for mart
+			int num = rand() % 4;
+			switch (num)
+			{
+			case 0://check left
+				if(map[y][x-1] != "#" && map[y][x-2] != "#" &&
+				map[y-1][x-1] != "#" && map[y-1][x-2] != "#"){
+					spot = 1;
+				}
+				break;
+			case 1://check right
+				if(map[y][x+1] != "#" && map[y][x+2] != "#" &&
+				map[y-1][x+1] != "#" && map[y-1][x+2] != "#"){
+					spot = 2;
+				}
+				break;
+			case 2://check up
+				if(map[y+1][x] != "#" && map[y+2][x] != "#" &&
+				map[y+1][x+1] != "#" && map[y+2][x+1] != "#"){
+					spot = 3;
+				}
+				break;
+			case 3://check down
+				if(map[y-1][x] != "#" && map[y-2][x] != "#" &&
+				map[y-1][x+1] != "#" && map[y-2][x+1] != "#"){
+					spot = 4;
+				}
+				break;	
+			default:
+				break;
+			}
+
+			if(spot != 0){
+				char *c;
+				if(!mart){
+					c = "M";
+					mart = true;
+				}else{
+					c = "P";
+					center = true;
+				}
+				switch(spot){
+					case 1:
+					map[y][x-1] = c;map[y][x-2] = c;map[y-1][x-1] = c;map[y-1][x-2] = c;
+						break;
+					case 2:
+					map[y][x+1] = c;map[y][x+2] = c;map[y-1][x+1] = c;map[y-1][x+2] = c;
+						break;
+					case 3:
+					map[y+1][x] = c;map[y+2][x] = c;map[y+1][x+1] = c;map[y+2][x+1] = c;
+						break;
+					case 4:
+					map[y-1][x] = c;map[y-2][x] = c;map[y-1][x+1] = c;map[y-2][x+1] = c;
+						break;
+				}
+			}
+		}
+	}
 }
 void printMap(){
 	int i,j;
