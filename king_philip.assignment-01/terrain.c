@@ -85,8 +85,6 @@ void initMap(){
 			seeded= true;
 		}
 	}
-
-	
 	//actually growing those seeds here
 	bool growing = true;
 	bool foundEmpty = false;
@@ -154,14 +152,6 @@ void genPaths(){
 	b = rand() % 70;b+= 5;
 	c = rand() % 12;c+= 4;
 	d = rand() % 12;d+= 4;
-
-	//height width
-	map[0][a] = "a";
-	map[MAPHEIGHT-1][b] = "b";
-	map[c][0]= "c";
-	map[d][MAPWIDTH -1] = "d";
-
-
 	//take weight map, start at the exits and use the weights to make it to the next point.
 	bool aconnectb = false;
 	bool cconnectd = false;
@@ -178,11 +168,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && y != 0 && x > a + 1){y++;}
 					x++;
+					map[y][x-1] = "#";
 				}else if(weightmap[y][x+1] < weightmap[y][x]){
 					x++;
 				}else if(weightmap[y+1][x+1] < weightmap[y][x]){
-					x++;
 					y++;
+					x++;
+					map[y][x-1] = "#";
 				}else{
 					y++;
 				}
@@ -192,11 +184,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && y != 0 && x < a - 1){y++;}
 					x--;
+					map[y][x+1] = "#";
 				}else if(weightmap[y][x-1] < weightmap[y][x]){
 					x--;
 				}else if(weightmap[y+1][x-1] < weightmap[y][x]){
-					x--;
 					y++;
+					x--;
+					map[y][x+1] = "#";
 				}else{
 					y++;
 				}
@@ -224,11 +218,14 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && x != 0 && y > c + 1){x++;}
 					y++;
+					map[y-1][x]= "#";
 				}else if(weightmap[y][x+1] < weightmap[y][x]){
 					x++;
 				}else if(weightmap[y+1][x+1] < weightmap[y][x] && targety != y){
 					x++;
 					y++;
+					map[y-1][x]= "#";
+					
 				}else{
 					x++;
 				}
@@ -238,11 +235,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && x != 0 && y < c + 1){x++;}
 					y--;
+					map[y+1][x]= "#";
 				}else if(weightmap[y][x+1] < weightmap[y][x]){
 					x++;
 				}else if(weightmap[y-1][x+1] < weightmap[y][x] && targety != y){
 					x++;
 					y--;
+					map[y+1][x]= "#";
 				}else{
 					x++;
 				}
@@ -273,14 +272,5 @@ void printMap(){
 			}
 		}
 	}
-	// for(i = 0; i < MAPHEIGHT; i++){
-	// 	for(j= 0; j < MAPWIDTH; j++){
-
-	// 		printf("%1d",weightmap[i][j]);
-	// 		if(j == MAPWIDTH -1){
-	// 			printf("\n");
-	// 		}
-	// 	}
-	// }
 }
 
