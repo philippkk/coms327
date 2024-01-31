@@ -1,1 +1,17 @@
-todo
+How to run:
+	make
+	./terrain
+
+Description:
+	Running ./terrain will print out the map of the game.
+
+	The map in generated using seeds which then grow out if there is room
+	next to them. The whole map is then filled that way.
+
+	The paths are generated from a 2nd weight map that is generated at 
+	the same time as the visual map. The path finds a low weight way to get
+	to its exit.
+
+	The mart and center and generated on a random path tile.
+
+	Running terrain multiple times will result in different maps every time.
