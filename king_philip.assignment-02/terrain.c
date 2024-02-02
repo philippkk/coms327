@@ -38,16 +38,10 @@ int main(int argc, char *argv[]){
 	map *m;
 	initMap();
 	printMap();
-	// for(int i = 0; i < MAPHEIGHT; i++){
-	// 	for(int j = 0; j < MAPWIDTH;j++){
-	// 		maps[0][0]->tiles[i][j] = oldMap[i][j];
-	// 	}
-	// }
 	m->i = 5;
 	maps[0][0] = m;
 	printf(" %d \n",m->i);
 	printf(" %d \n",maps[0][0]->i);
-	//printf(maps[200][200]->tiles[0][0]);
 	return 0;
 }
 
