@@ -17,14 +17,40 @@
 // ~ = water
 // @ = player
 // letter = npc
+enum Tiles                                                                   
+{
+    TREE, 
+    ROCK, 
+    ROAD,
+    LONG,
+	SHORT,
+	WATER,
+	MART,
+	CENTER,
+    TILE_MAX                                                                                                                
+};   
 
+char * const tile_str[] =
+{
+    [TREE]  = "\033[33m^\033[0m",
+	[ROCK] = "\033[35m%%\033[0m",
+	[ROAD] = "\033[37m#\033[0m",
+    [LONG] = "\033[32m:\033[0m",
+	[SHORT] = "\033[32m.\033[0m",
+	[WATER] = "\033[36m~\033[0m",
+	[MART] = "\033[36mM\033[0m",
+	[CENTER] = "\033[31mP\033[0m",
+	
+    /* etc. */  
+};
 typedef struct map{
 	int i;
 	char *tiles[MAPHEIGHT][MAPWIDTH];
 }map;
 
 map *maps[401][401];
-
+int posx=200,posy=200;
+map currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int weightmap[MAPHEIGHT][MAPWIDTH];
 
@@ -35,13 +61,38 @@ void genBuildings();
 
 int main(int argc, char *argv[]){
 	srand ( time(NULL) );
-	map *m;
-	initMap();
-	printMap();
-	m->i = 5;
-	maps[0][0] = m;
-	printf(" %d \n",m->i);
-	printf(" %d \n",maps[0][0]->i);
+	char command[20];
+	//currentMap = *maps[posx][posy];
+
+	while (*command != 'q')
+	{
+		printf("command: %s\n",command);
+
+		if(currentMap.tiles[0][0] == NULL){
+			initMap();
+		}
+		printMap();
+
+		printf("\033[31;44m Enter command: \033[0m");
+		scanf("%s",&command);
+
+		switch (command[20])
+		{
+		case 'n':
+			posy++;
+			if(maps[posy][posx]->tiles[0][0] == NULL){
+				initMap();
+			}
+			break;
+		
+		default:
+			break;
+		}
+	}
+	
+
+
+
 	return 0;
 }
 
@@ -52,7 +103,7 @@ void initMap(){
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
 			if(i == 0 || i == MAPHEIGHT - 1 || j == 0 || j == MAPWIDTH -1){
-				oldMap[i][j] = "%%";
+				oldMap[i][j] = tile_str[ROCK];
 				weightmap[i][j] = 9;
 			}else{
 				oldMap[i][j] = "-";
@@ -70,27 +121,27 @@ void initMap(){
 			continue;
 		}
 		if(tallGrass < 3){
-			oldMap[x][y] = ":";
+			oldMap[x][y] = tile_str[LONG];
 			tallGrass++;
 			continue;
 		}
 		if(shortGrass < 3){
-			oldMap[x][y] = ".";
+			oldMap[x][y] = tile_str[SHORT];
 			shortGrass++;
 			continue;
 		}
 		if(water < 1){
-			oldMap[x][y] = "~";
+			oldMap[x][y] = tile_str[WATER];
 			water++;
 			continue;
 		}
 		if(rock < 1){
-			oldMap[x][y] = "%%";
+			oldMap[x][y] = tile_str[ROCK];
 			rock++;
 			continue;
 		}
 		if(tree < 3){
-			oldMap[x][y] = "^";
+			oldMap[x][y] = tile_str[TREE];
 			tree++;	
 			continue;
 		}
@@ -158,7 +209,13 @@ void initMap(){
 	
 	genPaths();
 	genBuildings();
-	
+	for (i = 0;i < MAPHEIGHT;i++){
+		for(j=0;j <MAPWIDTH;j++){
+			currentMap.tiles[i][j] = oldMap[i][j];
+			
+		}
+	}
+	//*maps[posy][posx] = currentMap;
 }
 void genPaths(){
 	int a,b,c,d;// coord of each exit;
@@ -182,13 +239,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && y != 0 && x > a + 1){y++;}
 					x++;
-					oldMap[y][x-1] = "#";
+					oldMap[y][x-1] = tile_str[ROAD];
 				}else if(weightmap[y][x+1] < weightmap[y][x]){
 					x++;
 				}else if(weightmap[y+1][x+1] < weightmap[y][x]){
 					y++;
 					x++;
-					oldMap[y][x-1] = "#";
+					oldMap[y][x-1] = tile_str[ROAD];
 				}else{
 					y++;
 				}
@@ -198,13 +255,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && y != 0 && x < a - 1){y++;}
 					x--;
-					oldMap[y][x+1] = "#";
+					oldMap[y][x+1] = tile_str[ROAD];
 				}else if(weightmap[y][x-1] < weightmap[y][x]){
 					x--;
 				}else if(weightmap[y+1][x-1] < weightmap[y][x]){
 					y++;
 					x--;
-					oldMap[y][x+1] = "#";
+					oldMap[y][x+1] = tile_str[ROAD];
 				}else{
 					y++;
 				}
@@ -213,7 +270,7 @@ void genPaths(){
 			}
 			
 			
-			oldMap[y][x] = "#";
+			oldMap[y][x] = tile_str[ROAD];
 		}else{
 			aconnectb = true;
 		}
@@ -232,13 +289,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && x != 0 && y > c + 1){x++;}
 					y++;
-					oldMap[y-1][x]= "#";
+					oldMap[y-1][x]= tile_str[ROAD];
 				}else if(weightmap[y][x+1] < weightmap[y][x]){
 					x++;
 				}else if(weightmap[y+1][x+1] < weightmap[y][x] && targety != y){
 					x++;
 					y++;
-					oldMap[y-1][x]= "#";
+					oldMap[y-1][x]= tile_str[ROAD];
 					
 				}else{
 					x++;
@@ -249,13 +306,13 @@ void genPaths(){
 					int ran = rand() % 10;
 					if(ran > 7 && x != 0 && y < c + 1){x++;}
 					y--;
-					oldMap[y+1][x]= "#";
+					oldMap[y+1][x]= tile_str[ROAD];
 				}else if(weightmap[y][x+1] < weightmap[y][x]){
 					x++;
 				}else if(weightmap[y-1][x+1] < weightmap[y][x] && targety != y){
 					x++;
 					y--;
-					oldMap[y+1][x]= "#";
+					oldMap[y+1][x]= tile_str[ROAD];
 				}else{
 					x++;
 				}
@@ -264,16 +321,16 @@ void genPaths(){
 				x++;
 			}
 			
-				oldMap[y][x] = "#";
+				oldMap[y][x] = tile_str[ROAD];
 			
 		}else{
 			cconnectd = true;
 		}
 	}
-	oldMap[0][a] = "#";
-	oldMap[MAPHEIGHT-1][b] = "#";
-	oldMap[c][0]= "#";
-	oldMap[d][MAPWIDTH -1] = "#";
+	oldMap[0][a] = tile_str[ROAD];
+	oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
+	oldMap[c][0]= tile_str[ROAD];
+	oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
 }
 void genBuildings(){
 	int x,y;
@@ -283,32 +340,32 @@ void genBuildings(){
 		int spot = 0;
 		x = rand() % 60; x += 10;
 		y = rand() % 12; y += 5;
-		if(oldMap[y][x] == "#"){
+		if(oldMap[y][x] == tile_str[ROAD]){
 		//check for mart
 			int num = rand() % 4;
 			switch (num)
 			{
 			case 0://check left
-				if(oldMap[y][x-1] != "#" && oldMap[y][x-2] != "#" &&
-				oldMap[y-1][x-1] != "#" && oldMap[y-1][x-2] != "#"){
+				if(oldMap[y][x-1] != tile_str[ROAD] && oldMap[y][x-2] != tile_str[ROAD] &&
+				oldMap[y-1][x-1] != tile_str[ROAD] && oldMap[y-1][x-2] != tile_str[ROAD]){
 					spot = 1;
 				}
 				break;
 			case 1://check right
-				if(oldMap[y][x+1] != "#" && oldMap[y][x+2] != "#" &&
-				oldMap[y-1][x+1] != "#" && oldMap[y-1][x+2] != "#"){
+				if(oldMap[y][x+1] != tile_str[ROAD] && oldMap[y][x+2] != tile_str[ROAD] &&
+				oldMap[y-1][x+1] != tile_str[ROAD] && oldMap[y-1][x+2] != tile_str[ROAD]){
 					spot = 2;
 				}
 				break;
 			case 2://check up
-				if(oldMap[y+1][x] != "#" && oldMap[y+2][x] != "#" &&
-				oldMap[y+1][x+1] != "#" && oldMap[y+2][x+1] != "#"){
+				if(oldMap[y+1][x] != tile_str[ROAD] && oldMap[y+2][x] != tile_str[ROAD] &&
+				oldMap[y+1][x+1] != tile_str[ROAD] && oldMap[y+2][x+1] != tile_str[ROAD]){
 					spot = 3;
 				}
 				break;
 			case 3://check down
-				if(oldMap[y-1][x] != "#" && oldMap[y-2][x] != "#" &&
-				oldMap[y-1][x+1] != "#" && oldMap[y-2][x+1] != "#"){
+				if(oldMap[y-1][x] != tile_str[ROAD] && oldMap[y-2][x] != tile_str[ROAD] &&
+				oldMap[y-1][x+1] != tile_str[ROAD] && oldMap[y-2][x+1] != tile_str[ROAD]){
 					spot = 4;
 				}
 				break;	
@@ -319,10 +376,10 @@ void genBuildings(){
 			if(spot != 0){
 				char *c;
 				if(!mart){
-					c = "M";
+					c = tile_str[MART];
 					mart = true;
 				}else{
-					c = "P";
+					c = tile_str[CENTER];
 					center = true;
 				}
 				switch(spot){
@@ -347,11 +404,13 @@ void printMap(){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
-			printf(oldMap[i][j]);
+			printf(currentMap.tiles[i][j]);
 			if(j == MAPWIDTH -1){
 				printf("\n");
 			}
 		}
 	}
+	printf("\033[0mCurrent Map Pos= ");
+	printf("%d %d\n",posx,posy);
 }
 
