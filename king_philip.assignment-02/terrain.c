@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-
+#include <ctype.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
 #define INFINITY 9999
@@ -19,15 +19,7 @@
 // letter = npc
 enum Tiles                                                                   
 {
-    TREE, 
-    ROCK, 
-    ROAD,
-    LONG,
-	SHORT,
-	WATER,
-	MART,
-	CENTER,
-    TILE_MAX                                                                                                                
+    TREE,  ROCK,  ROAD, LONG,SHORT,WATER,MART,CENTER, TILE_MAX                                                                                                                
 };   
 
 char * const tile_str[] =
@@ -40,17 +32,30 @@ char * const tile_str[] =
 	[WATER] = "\033[36m~\033[0m",
 	[MART] = "\033[36mM\033[0m",
 	[CENTER] = "\033[31mP\033[0m",
-	
-    /* etc. */  
 };
+
+enum Commands{
+	EMPTY,
+	N,
+	E,
+	S,
+	W,
+	FLY
+};
+char * const command_str[]={
+	[EMPTY] = "",
+	[N] = "N",
+	[S] = "S"
+};
+
 typedef struct map{
-	int i;
+	bool generated;
 	char *tiles[MAPHEIGHT][MAPWIDTH];
 }map;
 
 map *maps[401][401];
 int posx=200,posy=200;
-map currentMap;
+map *currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int weightmap[MAPHEIGHT][MAPWIDTH];
 
@@ -58,35 +63,56 @@ void initMap();
 void printMap();
 void genPaths();
 void genBuildings();
+map* createMap();
+void copyMap(map* destination, const map* source);
+void freeMap(map* mapToFree) ;
 
 int main(int argc, char *argv[]){
-	srand ( time(NULL) );
 	char command[20];
 	//currentMap = *maps[posx][posy];
-
-	while (*command != 'q')
+	while (*command != 'Q')
 	{
+		if(maps[posy][posx] == NULL){
+			maps[posy][posx] = createMap();
+		}
+		currentMap = createMap();
 		printf("command: %s\n",command);
 
-		if(currentMap.tiles[0][0] == NULL){
+		if(!maps[posy][posx]->generated){
+			printf("first init");
 			initMap();
 		}
-		printMap();
+
+
 
 		printf("\033[31;44m Enter command: \033[0m");
 		scanf("%s",&command);
+		char *s = command;
+		 while (*s) {
+    		*s = toupper((unsigned char) *s);
+   		 	s++;
+  		}
 
-		switch (command[20])
-		{
-		case 'n':
-			posy++;
-			if(maps[posy][posx]->tiles[0][0] == NULL){
-				initMap();
+		if(strcmp(command,command_str[EMPTY])){
+			if(!strcmp(command,command_str[N])){
+				posy++;	
+				if(maps[posy][posx]==NULL){
+					maps[posy][posx] = createMap();
+					initMap();
+				}else{
+					printf("\nFOUND MAP\n");
+					printMap(maps[posy][posx]);
+				}
+			}else if(!strcmp(command,command_str[S])){
+				posy--;
+				if(maps[posy][posx] == NULL){
+					maps[posy][posx] = createMap();
+					initMap();
+				}else{
+					printf("\nFOUND MAP\n");
+					printMap(maps[posy][posx]);
+				}
 			}
-			break;
-		
-		default:
-			break;
 		}
 	}
 	
@@ -97,7 +123,9 @@ int main(int argc, char *argv[]){
 }
 
 void initMap(){
+	printf("INIT\n");
 	//to get random rand seed
+	srand ( time(NULL) );
 	int i,j;
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
 	for(i = 0; i < MAPHEIGHT; i++){
@@ -209,13 +237,14 @@ void initMap(){
 	
 	genPaths();
 	genBuildings();
+	
 	for (i = 0;i < MAPHEIGHT;i++){
 		for(j=0;j <MAPWIDTH;j++){
-			currentMap.tiles[i][j] = oldMap[i][j];
-			
+			currentMap->tiles[i][j] = oldMap[i][j];
 		}
-	}
-	//*maps[posy][posx] = currentMap;
+	}  
+	copyMap(maps[posy][posx],currentMap);
+	printMap(currentMap);
 }
 void genPaths(){
 	int a,b,c,d;// coord of each exit;
@@ -400,11 +429,11 @@ void genBuildings(){
 		}
 	}
 }
-void printMap(){
+void printMap(map *Map){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
-			printf(currentMap.tiles[i][j]);
+			printf(Map->tiles[i][j]);
 			if(j == MAPWIDTH -1){
 				printf("\n");
 			}
@@ -412,5 +441,31 @@ void printMap(){
 	}
 	printf("\033[0mCurrent Map Pos= ");
 	printf("%d %d\n",posx,posy);
+}
+
+
+map* createMap() {
+    map* newMap = malloc(sizeof(map));
+    newMap->generated = false;
+    
+    // Initialize tiles to NULL or specific values as needed
+    for (int i = 0; i < MAPHEIGHT; ++i) {
+        for (int j = 0; j < MAPWIDTH; ++j) {
+            newMap->tiles[i][j] = NULL;
+        }
+    }
+
+    return newMap;
+}
+
+void copyMap(map* destination, const map* source) {
+    destination->generated = true;
+    
+    // Copy tiles array
+    for (int i = 0; i < MAPHEIGHT; ++i) {
+        for (int j = 0; j < MAPWIDTH; ++j) {
+            destination->tiles[i][j] = strdup(source->tiles[i][j]);
+        }
+    }
 }
 
