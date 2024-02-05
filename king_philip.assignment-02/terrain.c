@@ -53,6 +53,10 @@ char * const command_str[]={
 
 typedef struct map{
 	bool generated;
+	int gateAx;//top
+	int gateBx;//bottom
+	int gateCy;//left
+	int gateDy;//right
 	char *tiles[MAPHEIGHT][MAPWIDTH];
 }map;
 
@@ -62,9 +66,9 @@ map *currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int weightmap[MAPHEIGHT][MAPWIDTH];
 
-void initMap();
+void initMap(int a, int b, int c, int d);
 void printMap();
-void genPaths();
+void genPaths(int a, int b, int c, int d);
 void genBuildings();
 void loadMap();
 map* createMap();
@@ -83,7 +87,7 @@ int main(int argc, char *argv[]){
 		printf("command: %s\n",command);
 		if(!maps[posy][posx]->generated){
 			printf("first init");
-			initMap();
+			initMap(99,99,99,99);
 		}
 
 
@@ -118,14 +122,18 @@ int main(int argc, char *argv[]){
 }
 void loadMap(){\
 	if(maps[posy][posx] == NULL){
-		maps[posy][posx] = createMap();
-		initMap();
+		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
+		maps[posy][posx] = createMap();	
+		int a=99,b=99,c=99,d=99;
+
+
+		initMap(a,b,c,d);
 	}else{
 		printf("\nFOUND MAP\n");
 		printMap(maps[posy][posx]);
 	}
 }
-void initMap(){
+void initMap(int a,int b,int c, int d){
 	printf("INIT\n");
 	//to get random rand seed
 	srand ( time(NULL) );
@@ -238,7 +246,7 @@ void initMap(){
 		foundEmpty = false;
 	}
 	
-	genPaths();
+	genPaths(a,b,c,d);
 	genBuildings();
 	
 	for (i = 0;i < MAPHEIGHT;i++){
@@ -249,12 +257,20 @@ void initMap(){
 	copyMap(maps[posy][posx],currentMap);
 	printMap(currentMap);
 }
-void genPaths(){
+void genPaths(int new_a, int new_b, int new_c, int new_d){
 	int a,b,c,d;// coord of each exit;
-	a = rand() % 70;a+= 5;
-	b = rand() % 70;b+= 5;
-	c = rand() % 12;c+= 4;
-	d = rand() % 12;d+= 4;
+	if(new_a == 99){
+		a = rand() % 70;a+= 5;
+	}else{a = new_a;}
+	if(new_b == 99){
+		b = rand() % 70;b+= 5;
+	}else{b = new_b;}
+	if(new_c == 99){
+		c = rand() % 12;c+= 4;
+	}else{c=new_c;}
+	if(new_d == 99){
+		d = rand() % 12;d+= 4;
+	}else{d=new_d;}
 	//take weight oldMap, start at the exits and use the weights to make it to the next point.
 	bool aconnectb = false;
 	bool cconnectd = false;
@@ -363,6 +379,10 @@ void genPaths(){
 	oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
 	oldMap[c][0]= tile_str[ROAD];
 	oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+	currentMap->gateAx=a;
+	currentMap->gateBx=b;
+	currentMap->gateCy=c;
+	currentMap->gateDy=d;
 }
 void genBuildings(){
 	int x,y;
@@ -463,12 +483,16 @@ map* createMap() {
 
 void copyMap(map* destination, const map* source) {
     destination->generated = true;
-    
+	destination->gateAx=source->gateAx;
+	destination->gateBx=source->gateBx;
+	destination->gateCy=source->gateCy;
+	destination->gateDy=source->gateDy;
     // Copy tiles array
     for (int i = 0; i < MAPHEIGHT; ++i) {
         for (int j = 0; j < MAPWIDTH; ++j) {
             destination->tiles[i][j] = strdup(source->tiles[i][j]);
         }
     }
+
 }
 
