@@ -1,0 +1,40 @@
+Tue, 23 Jan 2024 13:20:18 -0600 - added files
+
+Tue, 23 Jan 2024 13:35:57 -0600 - new things
+
+Tue, 23 Jan 2024 13:39:54 -0600 - moved stuff
+
+Tue, 23 Jan 2024 23:31:19 -0600 - started project and got the map displaying as well as seeded with the required areas
+
+Wed, 24 Jan 2024 00:17:11 -0600 - started grow algo, but made a mistake to have the seeds grow infinite up and down
+
+Thu, 25 Jan 2024 13:02:45 -0600 - got the bug fixed now the growing works! will make a tweak to it though as well as add roads and mart
+
+Mon, 29 Jan 2024 13:16:33 -0600 - finished gen and parameters working on path now
+
+Mon, 29 Jan 2024 13:51:46 -0600 - generated weight map to use, now to connect the exits
+
+Mon, 29 Jan 2024 15:36:08 -0600 - got top path to connect to bottom path!
+
+Mon, 29 Jan 2024 17:57:30 -0600 - finished path! now time to make pokemart and center to finish
+
+Tue, 30 Jan 2024 12:47:00 -0600 - tweaked path gen
+
+Tue, 30 Jan 2024 12:50:19 -0600 - more tweaks
+
+Tue, 30 Jan 2024 13:23:00 -0600 - finished marts so the assignment is done
+
+Wed, 31 Jan 2024 13:41:44 -0600 - started assignment 2
+
+Wed, 31 Jan 2024 16:25:51 -0600 - had a fistfight with structs and a 2d array of structs but i got it
+
+Thu, 1 Feb 2024 22:03:28 -0600 - added 418 homework
+
+Thu, 1 Feb 2024 22:08:04 -0600 - added 418 for real
+
+Fri, 2 Feb 2024 16:43:06 -0600 - last of the do not add messaged
+
+Fri, 2 Feb 2024 21:17:45 -0600 - added colors to the map as well as command input system
+
+Fri, 2 Feb 2024 23:20:04 -0600 - added north and south, had a fist fight with pointers and segfaults
+

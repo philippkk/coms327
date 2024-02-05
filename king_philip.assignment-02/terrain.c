@@ -45,7 +45,10 @@ enum Commands{
 char * const command_str[]={
 	[EMPTY] = "",
 	[N] = "N",
-	[S] = "S"
+	[S] = "S",
+	[E] = "E",
+	[W] = "W",
+	[FLY] = "F"
 };
 
 typedef struct map{
@@ -63,6 +66,7 @@ void initMap();
 void printMap();
 void genPaths();
 void genBuildings();
+void loadMap();
 map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
@@ -77,12 +81,10 @@ int main(int argc, char *argv[]){
 		}
 		currentMap = createMap();
 		printf("command: %s\n",command);
-
 		if(!maps[posy][posx]->generated){
 			printf("first init");
 			initMap();
 		}
-
 
 
 		printf("\033[31;44m Enter command: \033[0m");
@@ -96,32 +98,33 @@ int main(int argc, char *argv[]){
 		if(strcmp(command,command_str[EMPTY])){
 			if(!strcmp(command,command_str[N])){
 				posy++;	
-				if(maps[posy][posx]==NULL){
-					maps[posy][posx] = createMap();
-					initMap();
-				}else{
-					printf("\nFOUND MAP\n");
-					printMap(maps[posy][posx]);
-				}
+				loadMap();
 			}else if(!strcmp(command,command_str[S])){
 				posy--;
-				if(maps[posy][posx] == NULL){
-					maps[posy][posx] = createMap();
-					initMap();
-				}else{
-					printf("\nFOUND MAP\n");
-					printMap(maps[posy][posx]);
-				}
+				loadMap();
+			}else if(!strcmp(command,command_str[E])){
+				posx++;
+				loadMap();
+			}else if(!strcmp(command,command_str[W])){
+				posx--;
+				loadMap();
 			}
+
 		}
 	}
 	
 
-
-
 	return 0;
 }
-
+void loadMap(){\
+	if(maps[posy][posx] == NULL){
+		maps[posy][posx] = createMap();
+		initMap();
+	}else{
+		printf("\nFOUND MAP\n");
+		printMap(maps[posy][posx]);
+	}
+}
 void initMap(){
 	printf("INIT\n");
 	//to get random rand seed
