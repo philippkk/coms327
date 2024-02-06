@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
 				}
 				char * pch;
 				int counter = 0;
-				pch = strtok (command," ,.-");
+				pch = strtok (command," ,.");
 				while (pch != NULL)
 				{
 					int i;
@@ -146,7 +146,7 @@ int main(int argc, char *argv[]){
 						y = atoi(pch);
 					}
 
-					pch = strtok (NULL, " ,.-");
+					pch = strtok (NULL, " ,.");
 					counter++;
 				}
 				//should be good to fly now
