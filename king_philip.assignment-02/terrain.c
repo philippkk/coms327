@@ -40,7 +40,8 @@ enum Commands{
 	E,
 	S,
 	W,
-	FLY
+	FLY,
+	Q
 };
 char * const command_str[]={
 	[EMPTY] = "",
@@ -48,7 +49,8 @@ char * const command_str[]={
 	[S] = "S",
 	[E] = "E",
 	[W] = "W",
-	[FLY] = "F"
+	[FLY] = "F",
+	[Q] = "Q"
 };
 
 typedef struct map{
@@ -84,23 +86,27 @@ int main(int argc, char *argv[]){
 			maps[posy][posx] = createMap();
 		}
 		currentMap = createMap();
-		printf("command: %s\n",command);
+		//printf("command: %s\n",command);
 		if(!maps[posy][posx]->generated){
-			printf("first init");
+			//printf("first init");
 			initMap(99,99,99,99);
 		}
 
 
-		printf("\033[31;44m Enter command: \033[0m");
-		scanf("%s",command);
+		printf("\033[96m Enter command: \033[0m");
+		//scanf("%s",command);
+		fgets(command,20,stdin);
 		char *s = command;
 		 while (*s) {
     		*s = toupper((unsigned char) *s);
    		 	s++;
   		}
+		s[strlen(s)-1] = '\0'; //get rid of newline from the fgets()
 
 		if(strcmp(command,command_str[EMPTY])){
-			if(!strcmp(command,command_str[N])){
+			if(!strcmp(command,command_str[Q])){
+				break;
+			}else if(!strcmp(command,command_str[N])){
 				posy++;	
 				loadMap();
 			}else if(!strcmp(command,command_str[S])){
@@ -112,6 +118,8 @@ int main(int argc, char *argv[]){
 			}else if(!strcmp(command,command_str[W])){
 				posx--;
 				loadMap();
+			}else{
+				printf("unknown command! %s \n",command);
 			}
 
 		}
@@ -123,18 +131,38 @@ int main(int argc, char *argv[]){
 void loadMap(){\
 	if(maps[posy][posx] == NULL){
 		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
-		maps[posy][posx] = createMap();	
 		int a=99,b=99,c=99,d=99;
+		if(maps[posy-1][posx] != NULL){
+			if (maps[posy-1][posx]->gateAx != 99){
+				b = maps[posy-1][posx]->gateAx;
+			}
+		}
+		if(maps[posy+1][posx] != NULL){
+			if (maps[posy+1][posx]->gateBx != 99){
+				a = maps[posy+1][posx]->gateBx;
+			}		
+		}
+		if(maps[posy][posx+1]){
+			if (maps[posy][posx+1]->gateCy != 99){
+				d = maps[posy][posx+1]->gateCy;
+			}
+		}
+		if(maps[posy][posx-1]){
+			if (maps[posy][posx-1]->gateDy != 99){
+				c = maps[posy][posx-1]->gateDy;
+			}
+		}
 
+		maps[posy][posx] = createMap();	
 
 		initMap(a,b,c,d);
 	}else{
-		printf("\nFOUND MAP\n");
+		//printf("\nFOUND MAP\n");
 		printMap(maps[posy][posx]);
 	}
 }
 void initMap(int a,int b,int c, int d){
-	printf("INIT\n");
+	//printf("INIT\n");
 	//to get random rand seed
 	srand ( time(NULL) );
 	int i,j;
