@@ -168,24 +168,33 @@ void loadMap(){\
 	if(maps[posy][posx] == NULL){
 		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
 		int a=99,b=99,c=99,d=99;
-		if(maps[posy-1][posx] != NULL){
-			if (maps[posy-1][posx]->gateBx != 99){
-				a= maps[posy-1][posx]->gateBx;
+
+		if(posy > 0){
+			if(maps[posy-1][posx] != NULL){
+				if (maps[posy-1][posx]->gateBx != 99){
+					a= maps[posy-1][posx]->gateBx;
+				}
 			}
 		}
-		if(maps[posy+1][posx] != NULL){
-			if (maps[posy+1][posx]->gateAx != 99){
-				b = maps[posy+1][posx]->gateAx;
-			}		
-		}
-		if(maps[posy][posx+1]){
-			if (maps[posy][posx+1]->gateCy != 99){
-				d = maps[posy][posx+1]->gateCy;
+		if(posy < 400){
+			if(maps[posy+1][posx] != NULL){
+				if (maps[posy+1][posx]->gateAx != 99){
+					b = maps[posy+1][posx]->gateAx;
+				}		
 			}
 		}
-		if(maps[posy][posx-1]){
-			if (maps[posy][posx-1]->gateDy != 99){
-				c = maps[posy][posx-1]->gateDy;
+		if(posx < 400){
+			if(maps[posy][posx+1] != NULL){
+				if (maps[posy][posx+1]->gateCy != 99){
+					d = maps[posy][posx+1]->gateCy;
+				}
+			}
+		}
+		if(posx > 0){
+			if(maps[posy][posx-1]!=NULL){
+				if (maps[posy][posx-1]->gateDy != 99){
+					c = maps[posy][posx-1]->gateDy;
+				}
 			}
 		}
 
@@ -321,8 +330,58 @@ void initMap(int a,int b,int c, int d){
 	copyMap(maps[posy][posx],currentMap);
 	printMap(currentMap);
 }
+void findPath(int x ,int y, int targetx, int targety){
+	if(targety > y){
+		int startx = x;
+		while (targety > y){
+			//target is down main move is y++while(!aconnectb){
+			//set up logic
+			if(x <= targetx){
+				if(x < targetx && x != targetx){
+					if(abs(targetx-x) >= abs(targety-y)){
+						if(y == 0){y++;}
+						int ran = rand() % 10;
+						if(ran > 7 && y != 0 && x > startx + 1){y++;}
+						x++;
+						oldMap[y][x-1] = tile_str[ROAD];
+					}else if(weightmap[y][x+1] < weightmap[y][x]){
+						x++;
+					}else if(weightmap[y+1][x+1] < weightmap[y][x]){
+						y++;
+						x++;
+						oldMap[y][x-1] = tile_str[ROAD];
+					}else{
+						y++;
+					}
+				}else if (x > targetx && x != targetx){//target to left
+					if(abs(targetx-x) >= abs(targety-y)){
+						if(y == 0){y++;}
+						int ran = rand() % 10;
+						if(ran > 7 && y != 0 && x < startx - 1){y++;}
+						x--;
+						oldMap[y][x+1] = tile_str[ROAD];
+					}else if(weightmap[y][x-1] < weightmap[y][x]){
+						x--;
+					}else if(weightmap[y+1][x-1] < weightmap[y][x]){
+						y++;
+						x--;
+						oldMap[y][x+1] = tile_str[ROAD];
+					}else{
+						y++;
+					}
+				}else{
+					y++;
+				}			
+				oldMap[y][x] = tile_str[ROAD];
+			}
+		}	
+	}else{
+		//target is up main move is x++ 
+	}
+}
 void genPaths(int new_a, int new_b, int new_c, int new_d){
 	int a,b,c,d;// coord of each exit;
+
 	if(new_a == 99){
 		a = rand() % 70;a+= 5;
 	}else{a = new_a;}
@@ -335,63 +394,110 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 	if(new_d == 99){
 		d = rand() % 12;d+= 4;
 	}else{d=new_d;}
+
 	//take weight oldMap, start at the exits and use the weights to make it to the next point.
 	bool aconnectb = false;
 	bool cconnectd = false;
+
 	int x = a;
 	int y = 0;
 	int targetx = b;
 	int targety = MAPHEIGHT - 1;
-	while(!aconnectb){
-		//set up logic
-		if(y <= targety){
-			if(x < targetx && x != targetx){
-				if(abs(targetx-x) >= abs(targety-y)){
-					if(y == 0){y++;}
-					int ran = rand() % 10;
-					if(ran > 7 && y != 0 && x > a + 1){y++;}
-					x++;
-					oldMap[y][x-1] = tile_str[ROAD];
-				}else if(weightmap[y][x+1] < weightmap[y][x]){
-					x++;
-				}else if(weightmap[y+1][x+1] < weightmap[y][x]){
-					y++;
-					x++;
-					oldMap[y][x-1] = tile_str[ROAD];
-				}else{
-					y++;
-				}
-			}else if (x > targetx && x != targetx){//target to left
-				if(abs(targetx-x) >= abs(targety-y)){
-					if(y == 0){y++;}
-					int ran = rand() % 10;
-					if(ran > 7 && y != 0 && x < a - 1){y++;}
-					x--;
-					oldMap[y][x+1] = tile_str[ROAD];
-				}else if(weightmap[y][x-1] < weightmap[y][x]){
-					x--;
-				}else if(weightmap[y+1][x-1] < weightmap[y][x]){
-					y++;
-					x--;
-					oldMap[y][x+1] = tile_str[ROAD];
-				}else{
-					y++;
-				}
-			}else{
-				y++;
-			}
-			
-			
-			oldMap[y][x] = tile_str[ROAD];
-		}else{
-			aconnectb = true;
+	//edge check
+	if(posx == 400){
+		//bottom right
+		if(posy == 400){
+			//dont gen b or d
+			//bool cconnecta = false;
+			x = 0;y = c;
+			targetx = a; targety = 0;
+			findPath(x,y,targetx,targety);
 		}
-	}	
-	 x = 0;
-	 y = c;
-	 targetx = MAPWIDTH -2;
-	 targety = d;
-	while(!cconnectd){
+		//top right
+		if(posy == 0){
+			//dont get a or d
+			//bool cconnectb = false;
+		}
+		//just right dont gen d
+		//aconnectb = false;
+		//bool cconnecta = false;
+	}else if(posx == 0){
+		//bottom left
+		if(posy == 400){
+			//dont gen b or c
+		//	bool aconnectd = false;
+			x = a; y = 0;
+			targetx =MAPWIDTH -2; targety = d;
+			findPath(x,y,targetx,targety);
+			printf("aaa");
+		}
+		//bottom left
+		else if(posy == 0){
+			//dont gen a or c
+	//		bool bconnectd = false;
+		}else{
+			//just left dont gen c
+			//aconnectb = false;
+			//bool aconnectd = false;
+			x = a; y = 0;
+			targetx =MAPWIDTH -2; targety = d;
+			findPath(x,y,targetx,targety);
+		}
+
+
+	}else if(posy == 0){
+		//top dont gen a
+	}else if(posy == 400){
+		//bottom dont gen b
+	}else{
+		while(!aconnectb){
+			//set up logic
+			if(y <= targety){
+				if(x < targetx && x != targetx){
+					if(abs(targetx-x) >= abs(targety-y)){
+						if(y == 0){y++;}
+						int ran = rand() % 10;
+						if(ran > 7 && y != 0 && x > a + 1){y++;}
+						x++;
+						oldMap[y][x-1] = tile_str[ROAD];
+					}else if(weightmap[y][x+1] < weightmap[y][x]){
+						x++;
+					}else if(weightmap[y+1][x+1] < weightmap[y][x]){
+						y++;
+						x++;
+						oldMap[y][x-1] = tile_str[ROAD];
+					}else{
+						y++;
+					}
+				}else if (x > targetx && x != targetx){//target to left
+					if(abs(targetx-x) >= abs(targety-y)){
+						if(y == 0){y++;}
+						int ran = rand() % 10;
+						if(ran > 7 && y != 0 && x < a - 1){y++;}
+						x--;
+						oldMap[y][x+1] = tile_str[ROAD];
+					}else if(weightmap[y][x-1] < weightmap[y][x]){
+						x--;
+					}else if(weightmap[y+1][x-1] < weightmap[y][x]){
+						y++;
+						x--;
+						oldMap[y][x+1] = tile_str[ROAD];
+					}else{
+						y++;
+					}
+				}else{
+					y++;
+				}			
+				oldMap[y][x] = tile_str[ROAD];
+			}else{
+				aconnectb = true;
+			}
+		}	
+		x = 0;
+		y = c;
+		targetx = MAPWIDTH -2;
+		targety = d;
+		while(!cconnectd){
 				//set up logic
 		if(x <= targetx){
 			//target is down
@@ -438,6 +544,7 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 		}else{
 			cconnectd = true;
 		}
+		}
 	}
 	oldMap[0][a] = tile_str[ROAD];
 	oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
@@ -448,15 +555,19 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 	currentMap->gateCy=c;
 	currentMap->gateDy=d;
 }
+
+
 void genBuildings(){
 	int x,y;
+	int martx = 1000;
+	int marty = 1000;
 	bool mart = false,center = false;
 
 	while(!mart || !center){
 		int spot = 0;
 		x = rand() % 60; x += 10;
 		y = rand() % 12; y += 5;
-		if(oldMap[y][x] == tile_str[ROAD]){
+		if(oldMap[y][x] == tile_str[ROAD] && x != martx && y != marty){
 		//check for mart
 			int num = rand() % 4;
 			switch (num)
@@ -494,6 +605,8 @@ void genBuildings(){
 				if(!mart){
 					c = tile_str[MART];
 					mart = true;
+					martx = x;
+					marty = y;
 				}else{
 					c = tile_str[CENTER];
 					center = true;
