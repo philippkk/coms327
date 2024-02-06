@@ -108,10 +108,10 @@ int main(int argc, char *argv[]){
 			if(!strcmp(command,command_str[Q])){
 				break;
 			}else if(!strcmp(command,command_str[N])){
-				posy++;	
+				posy--;	
 				loadMap();
 			}else if(!strcmp(command,command_str[S])){
-				posy--;
+				posy++;
 				loadMap();
 			}else if(!strcmp(command,command_str[E])){
 				posx++;
@@ -169,13 +169,13 @@ void loadMap(){\
 		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
 		int a=99,b=99,c=99,d=99;
 		if(maps[posy-1][posx] != NULL){
-			if (maps[posy-1][posx]->gateAx != 99){
-				b = maps[posy-1][posx]->gateAx;
+			if (maps[posy-1][posx]->gateBx != 99){
+				a= maps[posy-1][posx]->gateBx;
 			}
 		}
 		if(maps[posy+1][posx] != NULL){
-			if (maps[posy+1][posx]->gateBx != 99){
-				a = maps[posy+1][posx]->gateBx;
+			if (maps[posy+1][posx]->gateAx != 99){
+				b = maps[posy+1][posx]->gateAx;
 			}		
 		}
 		if(maps[posy][posx+1]){
