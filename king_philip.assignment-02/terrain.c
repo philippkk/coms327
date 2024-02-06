@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
 
 
 		printf("\033[31;44m Enter command: \033[0m");
-		scanf("%s",&command);
+		scanf("%s",command);
 		char *s = command;
 		 while (*s) {
     		*s = toupper((unsigned char) *s);
@@ -156,7 +156,7 @@ void initMap(int a,int b,int c, int d){
 		int x,y;
 		x = rand() % 20;x++;//1-20
 		y = rand() % 79;y++;//1-79
-		if(oldMap[x][y] != "-"){
+		if(*oldMap[x][y] != '-'){
 			continue;
 		}
 		if(tallGrass < 3){
@@ -196,7 +196,7 @@ void initMap(int a,int b,int c, int d){
 	memcpy(&temp,&oldMap,sizeof temp);
 	while(growing){
 		
-		int x,y;	
+		int x;	
 		int i,j;
 		int pos = rand() % 10;
 		int weight = rand() % 10;
@@ -206,27 +206,27 @@ void initMap(int a,int b,int c, int d){
 		for(i = 1; i < MAPHEIGHT-1; i++){
 			for(j=1; j < MAPWIDTH-1; j++){
 				x = rand() % 10;//0-9
-				if(oldMap[i][j] == "-"){
+				if(*oldMap[i][j] == '-'){
 					foundEmpty = true;
 				}
 
-				if(oldMap[i][j] != "-"){
+				if(*oldMap[i][j] != '-'){
 					//check surroundings
 					if(x > 7){
-						if(oldMap[i-1][j] == "-"){
+						if(*oldMap[i-1][j] == '-'){
 							temp[i-1][j] = oldMap[i][j];
 							weightmap[i-1][j] += weight;
 						}
-						if(oldMap[i+1][j]=="-"){
+						if(*oldMap[i+1][j]=='-'){
 							temp[i+1][j] = oldMap[i][j];
 							weightmap[i+1][j] += weight;
 						}
 					}else{
-						if(oldMap[i][j-1]=="-"){
+						if(*oldMap[i][j-1]=='-'){
 							temp[i][j-1] = oldMap[i][j];
 							weightmap[i][j-1] += weight;
 						}
-						if(oldMap[i][j+1]== "-"){
+						if(*oldMap[i][j+1]== '-'){
 							temp[i][j+1] = oldMap[i][j];
 							weightmap[i][j+1] += weight;
 						}
