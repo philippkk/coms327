@@ -81,7 +81,9 @@ int main(int argc, char *argv[]){
 	char command[20];
 	//currentMap = *maps[posx][posy];
 	while (*command != 'Q')
-	{
+	{	
+
+	    srand ( time(NULL) );
 		if(maps[posy][posx] == NULL){
 			maps[posy][posx] = createMap();
 		}
@@ -121,7 +123,8 @@ int main(int argc, char *argv[]){
 				loadMap();
 			}else if(!strcmp(strtok(copyStr, " "),command_str[FLY])){
 				int i,x,y;
-				for (i = 0; command[i] != '\0'; ++i);
+				for (i = 0; command[i] != '\0'; ++i)
+					;
 				if(i > 11){
 					printf("INVALID FLY!!!!\n");
 					continue;
@@ -164,8 +167,11 @@ int main(int argc, char *argv[]){
 
 	return 0;
 }
-void loadMap(){\
+void loadMap(){
+		//printf("(%d,%d)pre\n",posx-200,posy-200);
+		//printf("(%d,%d)pre real:\n",posx,posy);
 	if(maps[posy][posx] == NULL){
+		//printf("in loadmap");
 		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
 		int a=99,b=99,c=99,d=99;
 
@@ -199,7 +205,7 @@ void loadMap(){\
 		}
 
 		maps[posy][posx] = createMap();	
-
+		
 		initMap(a,b,c,d);
 	}else{
 		//printf("\nFOUND MAP\n");
@@ -209,7 +215,7 @@ void loadMap(){\
 void initMap(int a,int b,int c, int d){
 	//printf("INIT\n");
 	//to get random rand seed
-	srand ( time(NULL) );
+
 	int i,j;
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
 	for(i = 0; i < MAPHEIGHT; i++){
@@ -221,12 +227,18 @@ void initMap(int a,int b,int c, int d){
 				oldMap[i][j] = "-";
 				weightmap[i][j] = 0;
 			}
+			//printf("(%d,%d)",i,j);
+			// if(j > 70){
+			// 	printf("j: %d",j);
+			// }
 		}
 	}
+	//printf("after loop");
 	bool seeded = false;
 	//seeding here 
 	while(!seeded){
 		int x,y;
+		//printf("seed");
 		x = rand() % 20;x++;//1-20
 		y = rand() % 79;y++;//1-79
 		if(*oldMap[x][y] != '-'){
@@ -268,7 +280,6 @@ void initMap(int a,int b,int c, int d){
 	//copy oldMap to a tempa array to do growing calcs
 	memcpy(&temp,&oldMap,sizeof temp);
 	while(growing){
-		
 		int x;	
 		int i,j;
 		int pos = rand() % 10;
@@ -319,7 +330,9 @@ void initMap(int a,int b,int c, int d){
 		foundEmpty = false;
 	}
 	
+	//printf("before path a%d b%d c%d d%d \n",a,b,c,d);
 	genPaths(a,b,c,d);
+	//printf("\nafter path\n");
 	genBuildings();
 	
 	for (i = 0;i < MAPHEIGHT;i++){
@@ -331,57 +344,112 @@ void initMap(int a,int b,int c, int d){
 	printMap(currentMap);
 }
 void findPath(int x ,int y, int targetx, int targety){
-	if(targety > y){
-		int startx = x;
-		while (targety > y){
-			//target is down main move is y++while(!aconnectb){
-			//set up logic
-			if(x <= targetx){
-				if(x < targetx && x != targetx){
-					if(abs(targetx-x) >= abs(targety-y)){
-						if(y == 0){y++;}
-						int ran = rand() % 10;
-						if(ran > 7 && y != 0 && x > startx + 1){y++;}
-						x++;
-						oldMap[y][x-1] = tile_str[ROAD];
-					}else if(weightmap[y][x+1] < weightmap[y][x]){
-						x++;
-					}else if(weightmap[y+1][x+1] < weightmap[y][x]){
-						y++;
-						x++;
-						oldMap[y][x-1] = tile_str[ROAD];
-					}else{
-						y++;
-					}
-				}else if (x > targetx && x != targetx){//target to left
-					if(abs(targetx-x) >= abs(targety-y)){
-						if(y == 0){y++;}
-						int ran = rand() % 10;
-						if(ran > 7 && y != 0 && x < startx - 1){y++;}
-						x--;
-						oldMap[y][x+1] = tile_str[ROAD];
-					}else if(weightmap[y][x-1] < weightmap[y][x]){
-						x--;
-					}else if(weightmap[y+1][x-1] < weightmap[y][x]){
-						y++;
-						x--;
-						oldMap[y][x+1] = tile_str[ROAD];
-					}else{
-						y++;
-					}
-				}else{
+	int counter = 0;
+	bool atod = false;
+	bool ctob = false;
+	bool ctoa = false;
+	bool btod = false;
+	while(x != targetx || y != targety){
+		//c to b left to down
+		//c to a left to up
+		//a to d up to right
+		//b to d down to rigght
+		if(x == 0){//c
+			if (targety == 1){
+				ctoa = true;
+				printf("ctoa\n");
+			}else if(targety == MAPHEIGHT -1){
+				ctob = true;
+			}
+			x++;
+			oldMap[y][x] = tile_str[ROAD];
+			continue;
+		}
+		if(y == 0){//a
+			atod = true;
+			y++;
+			oldMap[y][x] = tile_str[ROAD];
+			continue;;
+		}
+		if(y == MAPHEIGHT -1){//b
+			//only b to d
+			btod = true;
+			y--;
+			oldMap[y][x] = tile_str[ROAD];
+			continue;;
+		}	
+
+		if(atod){
+			if(targety > y){
+				if(weightmap[y+1][x] < weightmap[y][x]+3){
+					y++;;
+				}else if(x == targetx){
 					y++;
-				}			
+				}
 				oldMap[y][x] = tile_str[ROAD];
 			}
-		}	
-	}else{
-		//target is up main move is x++ 
+			if(targetx > x){
+				x++;
+				oldMap[y][x] = tile_str[ROAD];
+			}
+		}
+		if(btod){
+				if(targety < y){
+				if(weightmap[y-1][x] < weightmap[y][x] + 3){
+					y--;;
+				}else if(x == targetx){
+					y--;
+				}
+				oldMap[y][x] = tile_str[ROAD];
+			}
+			if(targetx > x){
+				x++;
+				oldMap[y][x] = tile_str[ROAD];
+			}
+		}
+		if(ctoa){
+			//need to focus x++ and y--
+			if(targetx > x){
+				if(weightmap[y][x+1] < weightmap[y][x] + 3){
+					x++;;
+				}else if(y == targety){
+					x++;
+				}
+				oldMap[y][x] = tile_str[ROAD];
+			}
+			if(targety < y){
+				y--;
+				oldMap[y][x] = tile_str[ROAD];
+			}
+		}
+		if(ctob){
+			//need to focus x++ and y++
+			if(targetx > x){
+				if(weightmap[y][x+1] < weightmap[y][x] + 3){
+					x++;;
+				}else if(y == targety){
+					x++;
+				}
+				oldMap[y][x] = tile_str[ROAD];
+			}
+			if(targety > y){
+				y++;
+				oldMap[y][x] = tile_str[ROAD];
+			}
+		}
+		counter ++;
+		if(counter == 5000){
+			x = targetx;
+			y = targety;
+			oldMap[8][35] = tile_str[ROAD];
+			oldMap[12][45] = tile_str[ROAD];
+			printf("force out");
+		}
 	}
 }
 void genPaths(int new_a, int new_b, int new_c, int new_d){
 	int a,b,c,d;// coord of each exit;
-
+	//printf("in path");
 	if(new_a == 99){
 		a = rand() % 70;a+= 5;
 	}else{a = new_a;}
@@ -410,38 +478,87 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 			//dont gen b or d
 			//bool cconnecta = false;
 			x = 0;y = c;
-			targetx = a; targety = 0;
+			targetx = a; targety = 1;
 			findPath(x,y,targetx,targety);
+			oldMap[0][a] = tile_str[ROAD];
+			oldMap[c][0]= tile_str[ROAD];
+			currentMap->gateAx=a;
+			currentMap->gateBx=99;
+			currentMap->gateCy=c;
+			currentMap->gateDy=99;
 		}
 		//top right
-		if(posy == 0){
+		else if(posy == 0){
+
 			//dont get a or d
 			//bool cconnectb = false;
+				oldMap[0][a] = tile_str[ROAD];
+	oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
+	oldMap[c][0]= tile_str[ROAD];
+	oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+	currentMap->gateAx=a;
+	currentMap->gateBx=b;
+	currentMap->gateCy=c;
+	currentMap->gateDy=d;
+		}else{
+				oldMap[0][a] = tile_str[ROAD];
+	oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
+	oldMap[c][0]= tile_str[ROAD];
+	oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+	currentMap->gateAx=a;
+	currentMap->gateBx=b;
+	currentMap->gateCy=c;
+	currentMap->gateDy=d;
 		}
 		//just right dont gen d
 		//aconnectb = false;
 		//bool cconnecta = false;
 	}else if(posx == 0){
-		//bottom left
+		//printf("\nx = 0\n");
+		//bottom left			printf("WOOOW\n");
 		if(posy == 400){
 			//dont gen b or c
-		//	bool aconnectd = false;
+			//	bool aconnectd = false;
 			x = a; y = 0;
-			targetx =MAPWIDTH -2; targety = d;
+			targetx = MAPWIDTH -2; targety = d;
 			findPath(x,y,targetx,targety);
-			printf("aaa");
+			oldMap[0][a] = tile_str[ROAD];
+			oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+			currentMap->gateAx=a;
+			currentMap->gateBx=99;
+			currentMap->gateCy=99;
+			currentMap->gateDy=d;
 		}
-		//bottom left
+		//top left
 		else if(posy == 0){
 			//dont gen a or c
 	//		bool bconnectd = false;
+			x = b; y = MAPHEIGHT -1;	
+			targetx =MAPWIDTH -2; targety = d;
+			findPath(x,y,targetx,targety);
+			oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
+			oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+			currentMap->gateAx=99;
+			currentMap->gateBx=b;
+			currentMap->gateCy=99;
+			currentMap->gateDy=d;
 		}else{
 			//just left dont gen c
 			//aconnectb = false;
-			//bool aconnectd = false;
+			//bool aconnectd = false;			printf("WOOOW\n");
 			x = a; y = 0;
 			targetx =MAPWIDTH -2; targety = d;
 			findPath(x,y,targetx,targety);
+			//now b to d
+			x = b; y = MAPHEIGHT -1;
+			findPath(x,y,targetx,targety);
+			oldMap[0][a] = tile_str[ROAD];
+			oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
+			oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+			currentMap->gateAx=a;
+			currentMap->gateBx=b;
+			currentMap->gateCy=99;
+			currentMap->gateDy=d;
 		}
 
 
@@ -545,7 +662,6 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 			cconnectd = true;
 		}
 		}
-	}
 	oldMap[0][a] = tile_str[ROAD];
 	oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
 	oldMap[c][0]= tile_str[ROAD];
@@ -554,6 +670,10 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 	currentMap->gateBx=b;
 	currentMap->gateCy=c;
 	currentMap->gateDy=d;
+	}
+
+
+
 }
 
 
@@ -564,10 +684,11 @@ void genBuildings(){
 	bool mart = false,center = false;
 
 	while(!mart || !center){
+		//printf("building loop %d %d\n",mart,center);
 		int spot = 0;
-		x = rand() % 60; x += 10;
-		y = rand() % 12; y += 5;
-		if(oldMap[y][x] == tile_str[ROAD] && x != martx && y != marty){
+		x = rand() % 75; x += 2;
+		y = rand() % 16; y += 2;
+		if(oldMap[y][x] == tile_str[ROAD] && x != martx +1 && y != marty +1&& x != martx -1 && y != marty -1){
 		//check for mart
 			int num = rand() % 4;
 			switch (num)
@@ -641,6 +762,7 @@ void printMap(map *Map){
 	}
 	printf("\033[0mCurrent Map Pos = ");
 	printf("(%d,%d)\n",posx-200,posy-200);
+//	printf("(%d,%d)\n",posx,posy);
 }
 
 
