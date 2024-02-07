@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
-#define INFINITY 9999
 
 //% = border, boulder, mountain
 // ^ = tree and forest
@@ -171,7 +171,7 @@ void loadMap(){
 		//printf("(%d,%d)pre\n",posx-200,posy-200);
 		//printf("(%d,%d)pre real:\n",posx,posy);
 	if(maps[posy][posx] == NULL){
-		printf("in loadmap");
+		//printf("in loadmap");
 		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
 		int a=99,b=99,c=99,d=99;
 
@@ -213,7 +213,7 @@ void loadMap(){
 	}
 }
 void initMap(int a,int b,int c, int d){
-	printf("INIT\n");
+	//printf("INIT\n");
 	//to get random rand seed
 
 	int i,j;
@@ -330,9 +330,9 @@ void initMap(int a,int b,int c, int d){
 		foundEmpty = false;
 	}
 	
-	printf("before path a%d b%d c%d d%d \n",a,b,c,d);
+	//printf("before path a%d b%d c%d d%d \n",a,b,c,d);
 	genPaths(a,b,c,d);
-	printf("\nafter path\n");
+	//printf("\nafter path\n");
 	genBuildings();
 	
 	for (i = 0;i < MAPHEIGHT;i++){
@@ -442,7 +442,7 @@ void findPath(int x ,int y, int targetx, int targety){
 			y = targety;
 			oldMap[8][35] = tile_str[ROAD];
 			oldMap[12][45] = tile_str[ROAD];
-			printf("force out");
+			//printf("force out");
 		}
 	}
 }
@@ -701,9 +701,6 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 	currentMap->gateCy=c;
 	currentMap->gateDy=d;
 	}
-
-
-
 }
 
 
@@ -713,8 +710,21 @@ void genBuildings(){
 	int marty = 1000;
 	bool mart = false,center = false;
 
+	double distance = sqrt(pow(posx-200,2)+ pow(posy-200,2));
+	double martchance = ((-25 * distance)/200)+50;
+	double chance = rand() % 100;
+	printf("Distance: %f chance: %f rand: %f\n",distance,martchance,chance);
+	if(chance > martchance){
+		printf("no mart");
+		mart = true;
+	}
+	chance = rand() % 100;
+	if(chance > martchance){
+		printf("no center\n");
+		center = true;
+	}
 	while(!mart || !center){
-		printf("building loop %d %d\n",mart,center);
+		//printf("building loop %d %d\n",mart,center);
 		int spot = 0;
 		x = rand() % 76; x += 1;
 		y = rand() % 17; y += 2;
