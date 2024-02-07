@@ -566,9 +566,36 @@ void genPaths(int new_a, int new_b, int new_c, int new_d){
 
 
 	}else if(posy == 0){
-		//top dont gen a
+		//top dont gen a	ctob btod
+		x = 0;y=c;
+		targetx =b; targety = MAPHEIGHT -2;
+		findPath(x,y,targetx,targety);
+		x = b; y = MAPHEIGHT -1;	
+		targetx =MAPWIDTH -2; targety = d;
+		findPath(x,y,targetx,targety);
+		oldMap[MAPHEIGHT-1][b] = tile_str[ROAD];
+		oldMap[c][0]= tile_str[ROAD];
+		oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+		currentMap->gateAx=99;
+		currentMap->gateBx=b;
+		currentMap->gateCy=c;
+		currentMap->gateDy=d;
+
 	}else if(posy == 400){
-		//bottom dont gen b
+		//bottom dont gen b ctoa atod
+		x = a; y = 0;
+		targetx = MAPWIDTH -2; targety = d;
+		findPath(x,y,targetx,targety);
+		x = 0;y = c;
+		targetx = a; targety = 1;
+		findPath(x,y,targetx,targety);
+		oldMap[0][a] = tile_str[ROAD];
+		oldMap[c][0]= tile_str[ROAD];
+		oldMap[d][MAPWIDTH -1] = tile_str[ROAD];
+		currentMap->gateAx=a;
+		currentMap->gateBx=99;
+		currentMap->gateCy=c;
+		currentMap->gateDy=d;
 	}else{
 		while(!aconnectb){
 			//set up logic
