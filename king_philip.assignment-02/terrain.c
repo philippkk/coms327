@@ -110,22 +110,27 @@ int main(int argc, char *argv[]){
 			if(!strcmp(command,command_str[Q])){
 				break;
 			}else if(!strcmp(command,command_str[N])){
-				posy--;	
+				if(posy < 400){
+					posy--;	
+				}
 				loadMap();
 			}else if(!strcmp(command,command_str[S])){
-				posy++;
+				if(posy>0)
+					posy++;
 				loadMap();
 			}else if(!strcmp(command,command_str[E])){
-				posx++;
+				if(posx<400)
+					posx++;
 				loadMap();
 			}else if(!strcmp(command,command_str[W])){
-				posx--;
+				if(posx>0)
+					posx--;
 				loadMap();
 			}else if(!strcmp(strtok(copyStr, " "),command_str[FLY])){
 				int i,x,y;
 				for (i = 0; command[i] != '\0'; ++i)
 					;
-				if(i > 11){
+				if(i > 11|| i < 3){
 					printf("INVALID FLY!!!!\n");
 					continue;
 				}
@@ -713,14 +718,14 @@ void genBuildings(){
 	double distance = sqrt(pow(posx-200,2)+ pow(posy-200,2));
 	double martchance = ((-25 * distance)/200)+50;
 	double chance = rand() % 100;
-	printf("Distance: %f chance: %f rand: %f\n",distance,martchance,chance);
+	//printf("Distance: %f chance: %f rand: %f\n",distance,martchance,chance);
 	if(chance > martchance){
-		printf("no mart");
+		//printf("no mart");
 		mart = true;
 	}
 	chance = rand() % 100;
 	if(chance > martchance){
-		printf("no center\n");
+		//printf("no center\n");
 		center = true;
 	}
 	while(!mart || !center){
