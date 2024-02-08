@@ -1,6 +1,9 @@
 How to run:
-	make
-	./terrain
+	$ make
+	$ ./terrain
+
+How to clean:
+	$ make clean
 
 Description:
 	Running ./terrain will run the game

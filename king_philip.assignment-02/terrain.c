@@ -110,7 +110,7 @@ int main(int argc, char *argv[]){
 			if(!strcmp(command,command_str[Q])){
 				break;
 			}else if(!strcmp(command,command_str[N])){
-				if(posy < 400){
+				if(posy < 401){
 					posy--;	
 				}
 				loadMap();
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]){
 					posy++;
 				loadMap();
 			}else if(!strcmp(command,command_str[E])){
-				if(posx<400)
+				if(posx<401)
 					posx++;
 				loadMap();
 			}else if(!strcmp(command,command_str[W])){
