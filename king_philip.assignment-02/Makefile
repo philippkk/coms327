@@ -13,13 +13,13 @@
 
 
 terrain: terrain.o stack.o
-	gcc terrain.o stack.o -o terrain -lm
+	gcc terrain.o stack.o -o terrain 
 
 terrain.o: terrain.c
-	gcc -Wall -Werror -g terrain.c -c -lm
+	gcc -Wall -Werror -g terrain.c -c 
 
 stack.o: stack.c stack.h
-	gcc -Wall -Werror -g stack.c -c -lm
+	gcc -Wall -Werror -g stack.c -c
 
 clean:
 	rm -f *.o stack terrain *~ core

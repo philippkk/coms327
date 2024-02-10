@@ -30,7 +30,7 @@ enum Tiles
 char * const tile_str[] =
 {
     [TREE]  = "\033[43;37m^\033[0m",
-	[ROCK] = "\033[45;37m%%\033[0m",
+	[ROCK] = "\033[45;37m%\033[0m",
 	[ROAD] = "\033[40;37m#\033[0m",
     [LONG] = "\033[42;37m:\033[0m",
 	[SHORT] = "\033[42;37m.\033[0m",
@@ -74,7 +74,7 @@ char *oldMap[MAPHEIGHT][MAPWIDTH];
 int weightmap[MAPHEIGHT][MAPWIDTH];
 
 void initMap(int a, int b, int c, int d);
-void printMap();
+void printMap(map *Map);
 void genPaths(int a, int b, int c, int d);
 void genBuildings();
 void loadMap();
@@ -219,7 +219,7 @@ void loadMap(){
 		initMap(a,b,c,d);
 	}else{
 		//printf("\nFOUND MAP\n");
-		printMap(maps[posy][posx]);
+		printMap( maps[posy][posx]);
 	}
 }
 void initMap(int a,int b,int c, int d){
@@ -804,7 +804,7 @@ void printMap(map *Map){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
-			printf(Map->tiles[i][j]);
+			printf("%s",Map->tiles[i][j]);
 			if(j == MAPWIDTH -1){
 				printf("\n");
 			}
