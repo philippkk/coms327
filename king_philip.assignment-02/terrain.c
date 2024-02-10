@@ -8,6 +8,11 @@
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
 
+//CHANGE WEIGHTS TO BE TILE DEPENDENT INSTEAD OF RANDOM IDIOT
+
+
+
+
 //% = border, boulder, mountain
 // ^ = tree and forest
 // # = road
