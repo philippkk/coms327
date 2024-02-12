@@ -73,6 +73,13 @@ typedef struct map{
 	char *tiles[MAPHEIGHT][MAPWIDTH];
 }map;
 
+typedef struct path {
+  heap_node_t *hn;
+  uint8_t pos[2];
+  uint8_t from[2];
+  int32_t cost;
+} path_t;
+
 map *maps[401][401];
 int posx=200,posy=200;
 map *currentMap;
@@ -87,6 +94,7 @@ void loadMap();
 map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
+void calcCost();
 
 int main(int argc, char *argv[]){
 	char command[20];
@@ -105,7 +113,7 @@ int main(int argc, char *argv[]){
 			initMap(99,99,99,99);
 		}
 
-
+		calcCost();
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
 		fgets(command,20,stdin);
@@ -855,3 +863,39 @@ void copyMap(map* destination, const map* source) {
 
 }
 
+static int32_t path_cmp(const void *key, const void *with) {
+  return ((path_t *) key)->cost - ((path_t *) with)->cost;
+}
+
+void calcCost(){
+  static path_t path[MAPHEIGHT][MAPWIDTH];
+  static uint32_t initialized = 0;
+  heap_t h;
+  uint32_t x, y;
+
+  if (!initialized) {
+    for (y = 0; y < MAPHEIGHT; y++) {
+      for (x = 0; x < MAPWIDTH; x++) {
+        path[y][x].pos[1] = y;
+        path[y][x].pos[0] = x;
+      }
+    }
+    initialized = 1;
+  }
+  
+  for (y = 0; y < MAPHEIGHT; y++) {
+    for (x = 0; x < MAPWIDTH; x++) {
+      path[y][x].cost = 214700000;
+    }
+  }
+
+  heap_init(&h, path_cmp, NULL);
+
+  for (y = 1; y < MAPHEIGHT - 1; y++) {
+    for (x = 1; x < MAPWIDTH - 1; x++) {
+      path[y][x].hn = heap_insert(&h, &path[y][x]);
+    }
+  }
+
+ 
+}
