@@ -357,7 +357,19 @@ void initMap(int a,int b,int c, int d){
 	genPaths(a,b,c,d);
 	//printf("\nafter path\n");
 	genBuildings();
-	
+	//temp player thing here
+	bool genPlayer = false;
+	while(!genPlayer){
+		int playerx = rand() % 70; playerx+=5;
+		int playery = rand() % 15; playery+=2;
+
+		if(oldMap[playery][playerx] == tile_str[ROAD]){
+			oldMap[playery][playerx] = "@";
+			genPlayer = true;
+		}
+	}
+
+
 	for (i = 0;i < MAPHEIGHT;i++){
 		for(j=0;j <MAPWIDTH;j++){
 			currentMap->tiles[i][j] = oldMap[i][j];
