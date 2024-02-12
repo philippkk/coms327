@@ -1,0 +1,23 @@
+How to run:
+	$ make
+	$ ./terrain
+
+How to clean:
+	$ make clean
+
+Description:
+	Running ./terrain will run the game
+	
+	General commands,
+		n, move north, posy will go down
+		s, move south, posy will go up
+		e, move east, posx will go up
+		w, move west, posx will go down
+		f {x}{y}, fly to x,y. will move to pos x,y, pos ranges from -200 to 200
+		q, quit, exit the game
+
+	logic: paths are generated using a weight map to find a somewhat organic path.
+	buldings have a decreasing chance to spawn as we go farther from the center of the map
+	all paths will connect to eachother, and on the edge cases the non edge paths and gates will be the only ones to spawn.
+		ie. top right corner of map will only have left and down gate which will connect.
+	All tiles are colored for style.
