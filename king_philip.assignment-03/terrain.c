@@ -133,7 +133,6 @@ int main(int argc, char *argv[]){
 			//printf("first init");
 			initMap(99,99,99,99);
 		}
-
 		calcCost(0);
 		calcCost(1);
 		printf("\033[96mEnter command: \033[0m");
@@ -251,11 +250,11 @@ void loadMap(){
 		}
 
 		maps[posy][posx] = createMap();	
-		
 		initMap(a,b,c,d);
 	}else{
 		//printf("\nFOUND MAP\n");
 		printMap( maps[posy][posx]);
+		currentMap = maps[posy][posx];
 	}
 
 
@@ -974,14 +973,14 @@ int getTileCost(char *tile,int type){
 		return INT16_MAX;
 		}
 	}
-
+	//printf("oop %s %d\n",tile,type);
 	return 0;
 }
 
 
 void calcCost(int type){
-  static path_t path[MAPHEIGHT][MAPWIDTH],*p;
-  static uint32_t initialized = 0;
+  path_t path[MAPHEIGHT][MAPWIDTH],*p;
+  uint32_t initialized = 0;
   heap_t h;
   uint32_t x, y;
 
@@ -1017,53 +1016,53 @@ if (!initialized) {
 				case 0:
 				break;
 			}
-			alt = p->cost + getTileCost(oldMap[p->pos[1]-1][p->pos[0]],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]-1][p->pos[0]],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]].cost){
 				path[p->pos[1]-1][p->pos[0]].cost = alt;
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]].hn);
 			}
 			//upright
-			alt = p->cost + getTileCost(oldMap[p->pos[1]-1][p->pos[0]+1],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]-1][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]+1].cost){
 				path[p->pos[1]-1][p->pos[0]+1].cost = alt;
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]+1].hn);
 			}
 		//right
-			alt = p->cost + getTileCost(oldMap[p->pos[1]][p->pos[0]+1],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]][p->pos[0]+1].cost){
 				path[p->pos[1]][p->pos[0]+1].cost = alt;
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]+1].hn);
 			}
 			//rightdown
-			alt = p->cost + getTileCost(oldMap[p->pos[1]+1][p->pos[0]+1],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]+1][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]+1][p->pos[0]+1].cost){
 				path[p->pos[1]+1][p->pos[0]+1].cost = alt;
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]+1].hn);
 			}
 		//down
-			alt = p->cost + getTileCost(oldMap[p->pos[1]+1][p->pos[0]],type);	
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]+1][p->pos[0]],type);	
 			if(alt < path[p->pos[1]+1][p->pos[0]].cost){
 				path[p->pos[1]+1][p->pos[0]].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]].hn);
 			}
 			//down left
-			alt = p->cost + getTileCost(oldMap[p->pos[1]+1][p->pos[0]-1],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]+1][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]+1][p->pos[0]-1].cost){
 				path[p->pos[1]+1][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]-1].hn);
 			}
 		// //left
-			alt = p->cost + getTileCost(oldMap[p->pos[1]][p->pos[0]-1],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]][p->pos[0]-1].cost){
 				path[p->pos[1]][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]-1].hn);
 			}
 			//left up
-			alt = p->cost + getTileCost(oldMap[p->pos[1]-1][p->pos[0]-1],type);
+			alt = p->cost + getTileCost(maps[posy][posx]->tiles[p->pos[1]-1][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]-1].cost){
 				path[p->pos[1]-1][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]-1].hn);
