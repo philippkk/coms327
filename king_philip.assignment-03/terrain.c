@@ -23,12 +23,12 @@
 // ~ = water
 // @ = player
 // letter = npc
-enum Tiles                                                                   
+typedef enum Tiles                                                                   
 {
     TREE,  ROCK,  ROAD, LONG,SHORT,WATER,MART,CENTER, TILE_MAX                                                                                                                
-};   
+}tiles;   
 
-char * const tile_str[] =
+ char * const tile_str[] =
 {
     [TREE]  = "\033[43;37m^\033[0m", //weight 15 
 	[ROCK] = "\033[45;37m%\033[0m", //weight is 20
@@ -58,11 +58,32 @@ char * const command_str[]={
 	[FLY] = "F",
 	[Q] = "Q"
 };
+int hiker_c[]={
+	[ROAD] = 10,
+	[MART] = 50,
+	[CENTER] = 50,
+	[LONG] = 15,
+	[SHORT] = 10,
+	[ROCK] = 15,
+	[TREE] = 15,
+	[WATER] = INT16_MAX
+};
+int rival_c[]={
+	[ROAD] = 10,
+	[MART] = 50,
+	[CENTER] = 50,
+	[LONG] = 20,
+	[SHORT] = 10,
+	[ROCK] = 15,
+	[TREE] = INT16_MAX,
+	[WATER] = INT16_MAX,
+
+};
 
 typedef struct player{
 	int posX;
 	int posY;
-}player;
+}player_c;
 
 typedef struct map{
 	bool generated;
@@ -94,8 +115,8 @@ void loadMap();
 map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
-void calcCost();
-
+void calcCost(int type);//0 = hiker 1 = rival
+player_c player;
 int main(int argc, char *argv[]){
 	char command[20];
 	//currentMap = *maps[posx][posy];
@@ -113,7 +134,7 @@ int main(int argc, char *argv[]){
 			initMap(99,99,99,99);
 		}
 
-		calcCost();
+		calcCost(0);
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
 		fgets(command,20,stdin);
@@ -235,6 +256,8 @@ void loadMap(){
 		//printf("\nFOUND MAP\n");
 		printMap( maps[posy][posx]);
 	}
+
+
 }
 void initMap(int a,int b,int c, int d){
 	//printf("INIT\n");
@@ -360,12 +383,16 @@ void initMap(int a,int b,int c, int d){
 	//temp player thing here
 	bool genPlayer = false;
 	while(!genPlayer){
-		int playerx = rand() % 70; playerx+=5;
-		int playery = rand() % 15; playery+=2;
+		int playerX = rand() % 70; playerX+=5;
+		int playerY = rand() % 15; playerY+=2;
 
-		if(oldMap[playery][playerx] == tile_str[ROAD]){
-			oldMap[playery][playerx] = "@";
+		if(oldMap[playerY][playerX] == tile_str[ROAD]){
+			oldMap[playerY][playerX] = "@";
 			genPlayer = true;
+			player.posX = playerX;
+			player.posY = playerY;
+			printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
+
 		}
 	}
 
@@ -835,14 +862,15 @@ void printMap(map *Map){
 			}
 		}
 	}
-	for(i = 0; i < MAPHEIGHT; i++){
-		for(j= 0; j < MAPWIDTH; j++){
-			printf("%2d ",(int)heightmap[i][j] % 100);
-			if(j == MAPWIDTH -1){
-				printf("\n");
-			}
-		}
-	}printf("\033[0mCurrent Map Pos = ");
+	// for(i = 0; i < MAPHEIGHT; i++){
+	// 	for(j= 0; j < MAPWIDTH; j++){
+	// 		printf("%2d ",(int)heightmap[i][j] % 100);
+	// 		if(j == MAPWIDTH -1){
+	// 			printf("\n");
+	// 		}
+	// 	}
+	// }
+	printf("\033[0mCurrent Map Pos = ");
 	printf("(%d,%d)\n",posx-200,posy-200);
 //	printf("(%d,%d)\n",posx,posy);
 }
@@ -879,35 +907,117 @@ static int32_t path_cmp(const void *key, const void *with) {
   return ((path_t *) key)->cost - ((path_t *) with)->cost;
 }
 
-void calcCost(){
-  static path_t path[MAPHEIGHT][MAPWIDTH];
+
+int getHikerCost(char *tile){
+	if(!strcmp(tile,tile_str[ROAD])){
+		//printf("r");
+		return 10;
+	}
+		if(!strcmp(tile,tile_str[MART])){
+		//printf("m");
+		return 50;
+	}
+		if(!strcmp(tile,tile_str[CENTER])){
+		//	printf("c");
+		return 50;
+	}
+		if(!strcmp(tile,tile_str[LONG])){
+		//	printf("l");
+		return 15;
+	}
+		if(!strcmp(tile,tile_str[SHORT])){
+		//	printf("s");
+		return 10;
+	}
+		if(!strcmp(tile,tile_str[ROCK])){
+		//	printf("r");
+		return 15;
+	}
+		if(!strcmp(tile,tile_str[TREE])){
+		//	printf("t");
+		return 15;
+	}
+		if(!strcmp(tile,tile_str[WATER])){
+		return INT16_MAX;
+	}
+	return 0;
+}
+
+void calcCost(int type){
+  static path_t path[MAPHEIGHT][MAPWIDTH],*p;
   static uint32_t initialized = 0;
   heap_t h;
   uint32_t x, y;
 
-  if (!initialized) {
-    for (y = 0; y < MAPHEIGHT; y++) {
-      for (x = 0; x < MAPWIDTH; x++) {
-        path[y][x].pos[1] = y;
-        path[y][x].pos[0] = x;
-      }
-    }
-    initialized = 1;
-  }
-  
-  for (y = 0; y < MAPHEIGHT; y++) {
-    for (x = 0; x < MAPWIDTH; x++) {
-      path[y][x].cost = 214700000;
-    }
-  }
+if (!initialized) {
+  	for (y = 0; y < MAPHEIGHT; y++) {
+  		for (x = 0; x < MAPWIDTH; x++) {
+  	    	path[y][x].pos[1] = y;
+  	    	path[y][x].pos[0] = x;
+			path[y][x].cost = INT16_MAX;
+  	    }
+  	  }
+  	  initialized = 1;
+	}	
+	path[player.posY][player.posX].cost = 0;
+	
+	heap_init(&h, path_cmp, NULL);
 
-  heap_init(&h, path_cmp, NULL);
+	for (y = 1; y < MAPHEIGHT - 1; y++) {
+	    for (x = 1; x < MAPWIDTH - 1; x++) {
+    	  	path[y][x].hn = heap_insert(&h, &path[y][x]);
+			}
+	}
 
-  for (y = 1; y < MAPHEIGHT - 1; y++) {
-    for (x = 1; x < MAPWIDTH - 1; x++) {
-      path[y][x].hn = heap_insert(&h, &path[y][x]);
-    }
-  }
+	 while ((p = heap_remove_min(&h))) {
+  		p->hn = NULL;
+		//printf("P COST : %d y: %d x: %d\n",p->cost,p->pos[1], p->pos[0]);
+		int alt;
 
- 
+		if(p->pos[1] > 1 && p->pos[1] < 19 && p->pos[0] > 1 && p->pos[0] < 78){
+			//up
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]-1][p->pos[0]]);
+			if(alt < path[p->pos[1]-1][p->pos[0]].cost){
+				path[p->pos[1]-1][p->pos[0]].cost = alt;
+				//printf("beep 1 %d \n",alt);
+				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]].hn);
+			}
+		//right
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]][p->pos[0]+1]);
+			if(alt < path[p->pos[1]][p->pos[0]+1].cost){
+				path[p->pos[1]][p->pos[0]+1].cost = alt;
+			//	printf("beep 2 \n");
+				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]+1].hn);
+			}
+		//down
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]]);
+			if(alt < path[p->pos[1]+1][p->pos[0]].cost){
+				path[p->pos[1]+1][p->pos[0]].cost = alt;
+				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]].hn);
+			}
+		// //left
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]][p->pos[0]-1]);
+			if(alt < path[p->pos[1]][p->pos[0]-1].cost){
+				path[p->pos[1]][p->pos[0]-1].cost = alt;
+				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]-1].hn);
+			}
+		}
+	}
+	int i,j;
+	printf("\n");
+	for(i = 0; i < MAPHEIGHT; i++){
+		for(j= 0; j < MAPWIDTH; j++){
+			if(j == player.posX && i == player.posY){
+				printf("\033[41;37m%02d\033[0m ",path[i][j].cost%100);
+			}else if(path[i][j].cost == INT16_MAX){
+				printf("   ");
+
+			}else{
+				printf("%02d ",path[i][j].cost%100);
+			}
+			if(j == MAPWIDTH -1){
+				printf("\n");
+			}
+		}
+	}
 }
