@@ -58,27 +58,27 @@ char * const command_str[]={
 	[FLY] = "F",
 	[Q] = "Q"
 };
-int hiker_c[]={
-	[ROAD] = 10,
-	[MART] = 50,
-	[CENTER] = 50,
-	[LONG] = 15,
-	[SHORT] = 10,
-	[ROCK] = 15,
-	[TREE] = 15,
-	[WATER] = INT16_MAX
-};
-int rival_c[]={
-	[ROAD] = 10,
-	[MART] = 50,
-	[CENTER] = 50,
-	[LONG] = 20,
-	[SHORT] = 10,
-	[ROCK] = 15,
-	[TREE] = INT16_MAX,
-	[WATER] = INT16_MAX,
+// int hiker_c[]={
+// 	[ROAD] = 10,
+// 	[MART] = 50,
+// 	[CENTER] = 50,
+// 	[LONG] = 15,
+// 	[SHORT] = 10,
+// 	[ROCK] = 15,
+// 	[TREE] = 15,
+// 	[WATER] = INT16_MAX
+// };
+// int rival_c[]={
+// 	[ROAD] = 10,
+// 	[MART] = 50,
+// 	[CENTER] = 50,
+// 	[LONG] = 20,
+// 	[SHORT] = 10,
+// 	[ROCK] = 15,
+// 	[TREE] = INT16_MAX,
+// 	[WATER] = INT16_MAX,
 
-};
+// };
 
 typedef struct player{
 	int posX;
@@ -135,6 +135,7 @@ int main(int argc, char *argv[]){
 		}
 
 		calcCost(0);
+		calcCost(1);
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
 		fgets(command,20,stdin);
@@ -908,40 +909,75 @@ static int32_t path_cmp(const void *key, const void *with) {
 }
 
 
-int getHikerCost(char *tile){
-	if(!strcmp(tile,tile_str[ROAD])){
+int getTileCost(char *tile,int type){
+	if(type == 0){
+		if(!strcmp(tile,tile_str[ROAD])){
+			//printf("r");
+			return 10;
+		}
+			if(!strcmp(tile,tile_str[MART])){
+			//printf("m");
+			return 50;
+		}
+			if(!strcmp(tile,tile_str[CENTER])){
+			//	printf("c");
+			return 50;
+		}
+			if(!strcmp(tile,tile_str[LONG])){
+			//	printf("l");
+			return 15;
+		}
+			if(!strcmp(tile,tile_str[SHORT])){
+			//	printf("s");
+			return 10;
+		}
+			if(!strcmp(tile,tile_str[ROCK])){
+			//	printf("r");
+			return 15;
+		}
+			if(!strcmp(tile,tile_str[TREE])){
+			//	printf("t");
+			return 15;
+		}
+			if(!strcmp(tile,tile_str[WATER])){
+			return INT16_MAX;
+		}
+	}else{
+		if(!strcmp(tile,tile_str[ROAD])){
 		//printf("r");
 		return 10;
-	}
+		}
 		if(!strcmp(tile,tile_str[MART])){
 		//printf("m");
 		return 50;
-	}
+		}
 		if(!strcmp(tile,tile_str[CENTER])){
 		//	printf("c");
 		return 50;
-	}
+		}
 		if(!strcmp(tile,tile_str[LONG])){
 		//	printf("l");
-		return 15;
-	}
+		return 20;
+		}
 		if(!strcmp(tile,tile_str[SHORT])){
 		//	printf("s");
 		return 10;
-	}
+		}
 		if(!strcmp(tile,tile_str[ROCK])){
 		//	printf("r");
 		return 15;
-	}
+		}
 		if(!strcmp(tile,tile_str[TREE])){
-		//	printf("t");
-		return 15;
-	}
+		return INT16_MAX;
+		}
 		if(!strcmp(tile,tile_str[WATER])){
 		return INT16_MAX;
+		}
 	}
+
 	return 0;
 }
+
 
 void calcCost(int type){
   static path_t path[MAPHEIGHT][MAPWIDTH],*p;
@@ -949,6 +985,7 @@ void calcCost(int type){
   heap_t h;
   uint32_t x, y;
 
+	printf("%d\n",type);
 if (!initialized) {
   	for (y = 0; y < MAPHEIGHT; y++) {
   		for (x = 0; x < MAPWIDTH; x++) {
@@ -976,53 +1013,57 @@ if (!initialized) {
 
 		if(p->pos[1] > 1 && p->pos[1] < 19 && p->pos[0] > 1 && p->pos[0] < 78){
 			//up
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]-1][p->pos[0]]);
+			switch (type){
+				case 0:
+				break;
+			}
+			alt = p->cost + getTileCost(oldMap[p->pos[1]-1][p->pos[0]],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]].cost){
 				path[p->pos[1]-1][p->pos[0]].cost = alt;
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]].hn);
 			}
 			//upright
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]-1][p->pos[0]+1]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]-1][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]+1].cost){
 				path[p->pos[1]-1][p->pos[0]+1].cost = alt;
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]+1].hn);
 			}
 		//right
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]][p->pos[0]+1]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]][p->pos[0]+1].cost){
 				path[p->pos[1]][p->pos[0]+1].cost = alt;
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]+1].hn);
 			}
 			//rightdown
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]+1]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]+1][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]+1][p->pos[0]+1].cost){
 				path[p->pos[1]+1][p->pos[0]+1].cost = alt;
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]+1].hn);
 			}
 		//down
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]+1][p->pos[0]],type);	
 			if(alt < path[p->pos[1]+1][p->pos[0]].cost){
 				path[p->pos[1]+1][p->pos[0]].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]].hn);
 			}
 			//down left
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]-1]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]+1][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]+1][p->pos[0]-1].cost){
 				path[p->pos[1]+1][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]-1].hn);
 			}
 		// //left
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]][p->pos[0]-1]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]][p->pos[0]-1].cost){
 				path[p->pos[1]][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]-1].hn);
 			}
 			//left up
-			alt = p->cost + getHikerCost(oldMap[p->pos[1]-1][p->pos[0]-1]);
+			alt = p->cost + getTileCost(oldMap[p->pos[1]-1][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]-1].cost){
 				path[p->pos[1]-1][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]-1].hn);
@@ -1035,7 +1076,7 @@ if (!initialized) {
 		for(j= 0; j < MAPWIDTH; j++){
 			if(j == player.posX && i == player.posY){
 				printf("\033[41;37m%02d\033[0m ",path[i][j].cost%100);
-			}else if(path[i][j].cost == INT16_MAX){
+			}else if(path[i][j].cost >= INT16_MAX){
 				printf("   ");
 
 			}else{
