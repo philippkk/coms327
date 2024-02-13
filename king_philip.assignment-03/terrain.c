@@ -982,6 +982,13 @@ if (!initialized) {
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]].hn);
 			}
+			//upright
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]-1][p->pos[0]+1]);
+			if(alt < path[p->pos[1]-1][p->pos[0]+1].cost){
+				path[p->pos[1]-1][p->pos[0]+1].cost = alt;
+				//printf("beep 1 %d \n",alt);
+				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]+1].hn);
+			}
 		//right
 			alt = p->cost + getHikerCost(oldMap[p->pos[1]][p->pos[0]+1]);
 			if(alt < path[p->pos[1]][p->pos[0]+1].cost){
@@ -989,17 +996,36 @@ if (!initialized) {
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]+1].hn);
 			}
+			//rightdown
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]+1]);
+			if(alt < path[p->pos[1]+1][p->pos[0]+1].cost){
+				path[p->pos[1]+1][p->pos[0]+1].cost = alt;
+			//	printf("beep 2 \n");
+				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]+1].hn);
+			}
 		//down
 			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]]);
 			if(alt < path[p->pos[1]+1][p->pos[0]].cost){
 				path[p->pos[1]+1][p->pos[0]].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]].hn);
 			}
+			//down left
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]+1][p->pos[0]-1]);
+			if(alt < path[p->pos[1]+1][p->pos[0]-1].cost){
+				path[p->pos[1]+1][p->pos[0]-1].cost = alt;
+				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]-1].hn);
+			}
 		// //left
 			alt = p->cost + getHikerCost(oldMap[p->pos[1]][p->pos[0]-1]);
 			if(alt < path[p->pos[1]][p->pos[0]-1].cost){
 				path[p->pos[1]][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]-1].hn);
+			}
+			//left up
+			alt = p->cost + getHikerCost(oldMap[p->pos[1]-1][p->pos[0]-1]);
+			if(alt < path[p->pos[1]-1][p->pos[0]-1].cost){
+				path[p->pos[1]-1][p->pos[0]-1].cost = alt;
+				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]-1].hn);
 			}
 		}
 	}
