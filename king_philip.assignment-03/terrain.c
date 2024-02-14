@@ -135,6 +135,7 @@ int main(int argc, char *argv[]){
 		}
 		calcCost(0);
 		calcCost(1);
+		break;
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
 		fgets(command,20,stdin);
@@ -391,7 +392,7 @@ void initMap(int a,int b,int c, int d){
 			genPlayer = true;
 			player.posX = playerX;
 			player.posY = playerY;
-			printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
+			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
 
 		}
 	}
@@ -870,8 +871,8 @@ void printMap(map *Map){
 	// 		}
 	// 	}
 	// }
-	printf("\033[0mCurrent Map Pos = ");
-	printf("(%d,%d)\n",posx-200,posy-200);
+	//printf("\033[0mCurrent Map Pos = ");
+	//printf("(%d,%d)\n",posx-200,posy-200);
 //	printf("(%d,%d)\n",posx,posy);
 }
 
@@ -979,22 +980,22 @@ int getTileCost(char *tile,int type){
 
 
 void calcCost(int type){
-  path_t path[MAPHEIGHT][MAPWIDTH],*p;
-  uint32_t initialized = 0;
-  heap_t h;
-  uint32_t x, y;
+	path_t path[MAPHEIGHT][MAPWIDTH],*p;	
+  	uint32_t initialized = 0;
+	heap_t h;
+	uint32_t x, y;
 
-	printf("%d\n",type);
-if (!initialized) {
-  	for (y = 0; y < MAPHEIGHT; y++) {
-  		for (x = 0; x < MAPWIDTH; x++) {
-  	    	path[y][x].pos[1] = y;
-  	    	path[y][x].pos[0] = x;
-			path[y][x].cost = INT16_MAX;
-  	    }
-  	  }
-  	  initialized = 1;
-	}	
+	//printf("%d\n",type);
+	if (!initialized) {
+		for (y = 0; y < MAPHEIGHT; y++) {
+			for (x = 0; x < MAPWIDTH; x++) {
+				path[y][x].pos[1] = y;
+				path[y][x].pos[0] = x;
+				path[y][x].cost = INT16_MAX;
+			}
+		}
+		initialized = 1;
+		}	
 	path[player.posY][player.posX].cost = 0;
 	
 	heap_init(&h, path_cmp, NULL);
