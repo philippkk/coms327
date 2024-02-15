@@ -9,8 +9,18 @@
 #define MAPHEIGHT 21
 #include "heap.h"
 
-//CHANGE WEIGHTS TO BE TILE DEPENDENT INSTEAD OF RANDOM
+//MAKE THE COST MAPS PART OF GLOBAL MAPS STRUCT not local
+//character struct local to map
+/*
+symbol
+pos
+next turn- cost of terrain next move would be - keep adding it do not replace
+sequence num- used for tie breaker, order inserted into queue
 
+desicrete event sim	
+	event queue
+	need new compare
+*/
 
 
 

@@ -7,14 +7,12 @@ How to clean:
 
 Description:
 	Running ./terrain will run the game
+
+	The map will print first, next the cost to get to the player from every tile for the hiker
+	then the price for the rivial
+
+	The player will be the spot with the red background (or just colored depending on what youre running this on)
 	
-	General commands,
-		n, move north, posy will go down
-		s, move south, posy will go up
-		e, move east, posx will go up
-		w, move west, posx will go down
-		f {x}{y}, fly to x,y. will move to pos x,y, pos ranges from -200 to 200
-		q, quit, exit the game
 
 	logic: paths are generated using a weight map to find a somewhat organic path.
 	buldings have a decreasing chance to spawn as we go farther from the center of the map

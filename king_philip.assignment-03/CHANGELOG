@@ -51,3 +51,29 @@ Wed, 7 Feb 2024 13:02:23 -0600 - finished all path edge cases now for buildings
 Wed, 7 Feb 2024 13:36:27 -0600 - finished the chance for buldings, that means im done !
 
 Wed, 7 Feb 2024 13:50:49 -0600 - last changes for some bugs
+
+Sat, 10 Feb 2024 16:24:36 -0600 - project 3
+
+Sat, 10 Feb 2024 16:27:11 -0600 - linux to mac test
+
+Sat, 10 Feb 2024 16:45:28 -0600 - on mac os now hopefully it works
+
+Sat, 10 Feb 2024 16:50:29 -0600 - Create .DS_Store
+
+Sat, 10 Feb 2024 16:51:21 -0600 - changed some tile stuff
+
+Sun, 11 Feb 2024 19:19:03 -0600 - started weighting the map
+
+Mon, 12 Feb 2024 13:23:02 -0600 - got heap set up i hope:
+
+Mon, 12 Feb 2024 13:28:48 -0600 - added player on a road
+
+Mon, 12 Feb 2024 21:05:52 -0600 - just went turbo mode and got the hikers pathing working git pushgit push just need to fix weird corner case and then do the rival
+
+Mon, 12 Feb 2024 21:18:55 -0600 - fixed it and ive never felt better, i was only checking 4 directions instead of 8
+
+Tue, 13 Feb 2024 12:50:26 -0600 - working on rival rn, running into weird bug where the trees are being teated the same as the grass
+
+Tue, 13 Feb 2024 13:08:59 -0600 - fixed it, i feel like something else is wrong but if it isnt im done
+
+Tue, 13 Feb 2024 22:57:12 -0600 - finished assigment 3

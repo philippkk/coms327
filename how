@@ -1,4 +1,5 @@
 tar cvfz <desired name> <file name>
+
 giz -9 <tar>
 
 git log --pretty="%cD - %s%n" --reverse
