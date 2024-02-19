@@ -1,0 +1,21 @@
+How to run:
+	$ make
+	$ ./terrain
+
+How to clean:
+	$ make clean
+
+Description:
+	Running ./terrain will run the game
+
+	The map will print first, next the cost to get to the player from every tile for the hiker
+	then the price for the rivial
+
+	The player will be the spot with the red background (or just colored depending on what youre running this on)
+	
+
+	logic: paths are generated using a weight map to find a somewhat organic path.
+	buldings have a decreasing chance to spawn as we go farther from the center of the map
+	all paths will connect to eachother, and on the edge cases the non edge paths and gates will be the only ones to spawn.
+		ie. top right corner of map will only have left and down gate which will connect.
+	All tiles are colored for style.
