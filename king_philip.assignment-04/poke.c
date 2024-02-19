@@ -35,19 +35,29 @@ typedef enum Tiles
 {
     TREE,  ROCK,  ROAD, LONG,SHORT,WATER,MART,CENTER, TILE_MAX                                                                                                                
 }tiles;   
-
  char * const tile_str[] =
 {
-    [TREE]  = "\033[43;37m^\033[0m", //weight 15 
-	[ROCK] = "\033[45;37m%\033[0m", //weight is 20
-	[ROAD] = "\033[40;37m#\033[0m", //weight is 0
-    [LONG] = "\033[42;37m:\033[0m", //weight is 10
-	[SHORT] = "\033[42;37m.\033[0m", //weight is 5
-	[WATER] = "\033[46;37m~\033[0m", //weight is 25
-	[MART] = "\033[46;37mM\033[0m", //weight is 100
-	[CENTER] = "\033[41;37mP\033[0m", //weight is 100
+    [TREE]  = "\033[43;37m^\033[0m", 
+	[ROCK] = "\033[45;37m%\033[0m", 
+	[ROAD] = "\033[40;37m#\033[0m", 
+    [LONG] = "\033[42;37m:\033[0m", 
+	[SHORT] = "\033[42;37m.\033[0m", 
+	[WATER] = "\033[46;37m~\033[0m", 
+	[MART] = "\033[46;37mM\033[0m", 
+	[CENTER] = "\033[41;37mP\033[0m",
 };
-
+typedef enum Characters{
+	PLAYER, HIKER, RIVIAL, PACER, WANDERER, SENTRIES, EXPLORERS
+}characters;
+char * const character_str[]={
+	[PLAYER] = "@",
+	[HIKER] = "h",
+	[RIVIAL] = "r",
+	[PACER] = "p",
+	[WANDERER] = "w",
+	[SENTRIES] = "s",
+	[EXPLORERS] = "e"
+};
 enum Commands{
 	EMPTY,
 	N,
