@@ -94,8 +94,8 @@ typedef struct map{
 	int gateDy;//right
 	char *tiles[MAPHEIGHT][MAPWIDTH];
 	character_c *chars[MAPHEIGHT][MAPWIDTH];
-	int *hikerMap[MAPHEIGHT][MAPWIDTH];
-	int *rivalMap[MAPHEIGHT][MAPWIDTH];
+	int hikerMap[MAPHEIGHT][MAPWIDTH];
+	int rivalMap[MAPHEIGHT][MAPWIDTH];
 	//int *otherCostMap[MAPHEIGHT][MAPWIDTH]; same as rivial for the time being
 }map;
 typedef struct globe{
@@ -127,7 +127,7 @@ void loadMap();
 map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
-void calcCost(int type);//0 = hiker 1 = rival
+void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC();
 int main(int argc, char *argv[]){
 	char command[20];
@@ -427,9 +427,9 @@ void initMap(int a,int b,int c, int d){
 			currentMap->tiles[i][j] = oldMap[i][j];
 		}
 	} 
-
-	copyMap(globe.maps[posy][posx],currentMap);
+	calcCost(0,currentMap);calcCost(1,currentMap);
 	printMap(currentMap);
+	copyMap(globe.maps[posy][posx],currentMap);
 }
 void findPath(int x ,int y, int targetx, int targety){
 	int counter = 0;
@@ -890,9 +890,39 @@ void printMap(map *Map){
 			}
 		}
 	}
+	for(i = 0; i < MAPHEIGHT; i++){
+		for(j= 0; j < MAPWIDTH; j++){			
+			if(j == globe.playerX && i == globe.playerY){
+				printf("\033[41;37m%02d\033[0m",Map->hikerMap[i][j]%100);
+			}else if(Map->hikerMap[i][j] >= INT16_MAX){
+				printf("   ");
+
+			}else{
+				printf("%02d ",Map->hikerMap[i][j]%100);
+			}
+			if(j == MAPWIDTH -1){
+				printf("\n");
+			}
+		}
+	}
+	for(i = 0; i < MAPHEIGHT; i++){
+		for(j= 0; j < MAPWIDTH; j++){			
+			if(j == globe.playerX && i == globe.playerY){
+				printf("\033[41;37m%02d\033[0m",Map->rivalMap[i][j]%100);
+			}else if(Map->rivalMap[i][j] >= INT16_MAX){
+				printf("   ");
+
+			}else{
+				printf("%02d ",Map->rivalMap[i][j]%100);
+			}
+			if(j == MAPWIDTH -1){
+				printf("\n");
+			}
+		}
+	}
 	//printf("\033[0mCurrent Map Pos = ");
 	//printf("(%d,%d)\n",posx-200,posy-200);
-//	printf("(%d,%d)\n",posx,posy);
+	//printf("(%d,%d)\n",posx,posy);
 }
 
 map* createMap() {
@@ -1029,7 +1059,7 @@ int getTileCost(char *tile,int type){
 	return 0;
 }
 
-void calcCost(int type){
+void calcCost(int type, map *Map){
 	path_t path[MAPHEIGHT][MAPWIDTH],*p;	
   	uint32_t initialized = 0;
 	heap_t h;
@@ -1063,53 +1093,53 @@ void calcCost(int type){
 
 		if(p->pos[1] > 1 && p->pos[1] < 19 && p->pos[0] > 1 && p->pos[0] < 78){
 			//up
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]-1][p->pos[0]],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]-1][p->pos[0]],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]].cost){
 				path[p->pos[1]-1][p->pos[0]].cost = alt;
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]].hn);
 			}
 			//upright
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]-1][p->pos[0]+1],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]-1][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]+1].cost){
 				path[p->pos[1]-1][p->pos[0]+1].cost = alt;
 				//printf("beep 1 %d \n",alt);
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]+1].hn);
 			}
 		//right
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]][p->pos[0]+1],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]][p->pos[0]+1].cost){
 				path[p->pos[1]][p->pos[0]+1].cost = alt;
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]+1].hn);
 			}
 			//rightdown
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]+1][p->pos[0]+1],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]+1][p->pos[0]+1],type);
 			if(alt < path[p->pos[1]+1][p->pos[0]+1].cost){
 				path[p->pos[1]+1][p->pos[0]+1].cost = alt;
 			//	printf("beep 2 \n");
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]+1].hn);
 			}
 		//down
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]+1][p->pos[0]],type);	
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]+1][p->pos[0]],type);	
 			if(alt < path[p->pos[1]+1][p->pos[0]].cost){
 				path[p->pos[1]+1][p->pos[0]].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]].hn);
 			}
 			//down left
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]+1][p->pos[0]-1],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]+1][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]+1][p->pos[0]-1].cost){
 				path[p->pos[1]+1][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]+1][p->pos[0]-1].hn);
 			}
 		// //left
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]][p->pos[0]-1],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]][p->pos[0]-1].cost){
 				path[p->pos[1]][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]][p->pos[0]-1].hn);
 			}
 			//left up
-			alt = p->cost + getTileCost(globe.maps[posy][posx]->tiles[p->pos[1]-1][p->pos[0]-1],type);
+			alt = p->cost + getTileCost(Map->tiles[p->pos[1]-1][p->pos[0]-1],type);
 			if(alt < path[p->pos[1]-1][p->pos[0]-1].cost){
 				path[p->pos[1]-1][p->pos[0]-1].cost = alt;
 				heap_decrease_key_no_replace(&h,path[p->pos[1]-1][p->pos[0]-1].hn);
@@ -1117,24 +1147,13 @@ void calcCost(int type){
 		}
 	}
 	int i,j;
-	printf("\n");
+	//printf("\n");
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
 			if(type == 0){
-				
+				Map->hikerMap[i][j] = path[i][j].cost;
 			}else{
-
-			}
-			if(j == globe.playerX && i == globe.playerY){
-				printf("\033[41;37m%02d\033[0m",path[i][j].cost%100);
-			}else if(path[i][j].cost >= INT16_MAX){
-				printf("   ");
-
-			}else{
-				printf("%02d ",path[i][j].cost%100);
-			}
-			if(j == MAPWIDTH -1){
-				printf("\n");
+				Map->rivalMap[i][j] = path[i][j].cost;
 			}
 		}
 	}
