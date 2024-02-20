@@ -37,11 +37,11 @@ typedef enum Tiles
 }tiles;   
  char * const tile_str[] =
 {
-    [TREE]  = "\033[43;37m^\033[0m", 
+    [TREE]  = "\033[42;37m^\033[0m", 
 	[ROCK] = "\033[45;37m%\033[0m", 
 	[ROAD] = "\033[40;37m#\033[0m", 
-    [LONG] = "\033[42;37m:\033[0m", 
-	[SHORT] = "\033[42;37m.\033[0m", 
+    [LONG] = "\033[102;37m:\033[0m", 
+	[SHORT] = "\033[102;37m.\033[0m", 
 	[WATER] = "\033[46;37m~\033[0m", 
 	[MART] = "\033[46;37mM\033[0m", 
 	[CENTER] = "\033[41;37mP\033[0m",
@@ -50,13 +50,13 @@ typedef enum Characters{
 	PLAYER, HIKER, RIVIAL, PACER, WANDERER, SENTRIES, EXPLORERS
 }characters;
 char * const character_str[]={
-	[PLAYER] = "@",
-	[HIKER] = "h",
-	[RIVIAL] = "r",
-	[PACER] = "p",
-	[WANDERER] = "w",
-	[SENTRIES] = "s",
-	[EXPLORERS] = "e"
+	[PLAYER] = "\033[044m@\033[0m",
+	[HIKER] = "\033[44mh\033[0m",
+	[RIVIAL] = "\033[44mr\033[0m",
+	[PACER] = "\033[44mp\033[0m",
+	[WANDERER] = "\033[44mw\033[0m",
+	[SENTRIES] = "\033[44ms\033[0m",
+	[EXPLORERS] = "\033[44me\033[0m"
 };
 enum Commands{
 	EMPTY,
@@ -65,7 +65,8 @@ enum Commands{
 	S,
 	W,
 	FLY,
-	Q
+	Q,
+	NUMTRAINERS
 };
 char * const command_str[]={
 	[EMPTY] = "",
@@ -74,7 +75,8 @@ char * const command_str[]={
 	[E] = "E",
 	[W] = "W",
 	[FLY] = "F",
-	[Q] = "Q"
+	[Q] = "Q",
+	[NUMTRAINERS] = "--numtrainers"
 };
 // int hiker_c[]={
 // 	[ROAD] = 10,
@@ -102,9 +104,6 @@ typedef struct player{
 	int posX;
 	int posY;
 }player_c;
-typedef struct char_map{
-	char *chars[MAPHEIGHT][MAPWIDTH];
-}char_map;
 typedef struct map{
 	bool generated;
 	int gateAx;//top
@@ -112,7 +111,7 @@ typedef struct map{
 	int gateCy;//left
 	int gateDy;//right
 	char *tiles[MAPHEIGHT][MAPWIDTH];
-	char_map chars;
+	char *chars[MAPHEIGHT][MAPWIDTH];
 }map;
 typedef struct globe{
 	map *maps[401][401];
@@ -145,6 +144,22 @@ void calcCost(int type);//0 = hiker 1 = rival
 
 int main(int argc, char *argv[]){
 	char command[20];
+	bool numTrainerSwitch = false;
+	int numTrainers = 10;
+	for (int i = 1; i < argc; i++) {
+        printf("%s\n", argv[i]);
+		if(!strcmp(argv[i],command_str[NUMTRAINERS])){
+			printf("found num trainers\n");
+			numTrainerSwitch = true;
+			if(i < argc){
+				if(!isdigit(strtol(argv[i+1],NULL,10))){
+					printf("@#!@#@!#@!#!@\n");
+					numTrainers = strtol(argv[i+1],NULL,10);
+				}
+			}
+		}
+    }
+	printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
 	while (*command != 'Q')
 	{	
 	    srand ( time(NULL) );
@@ -159,7 +174,7 @@ int main(int argc, char *argv[]){
 		}
 		calcCost(0);
 		calcCost(1);
-		break;
+		//break;
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
 		fgets(command,20,stdin);
@@ -410,7 +425,8 @@ void initMap(int a,int b,int c, int d){
 		int playerY = rand() % 15; playerY+=2;
 
 		if(oldMap[playerY][playerX] == tile_str[ROAD]){
-			oldMap[playerY][playerX] = "@";
+			currentMap->chars[playerY][playerX] = character_str[PLAYER];
+			//oldMap[playerY][playerX] = character_str[PLAYER];
 			genPlayer = true;
 			player.posX = playerX;
 			player.posY = playerY;
@@ -807,7 +823,7 @@ void genBuildings(){
 	while(!mart || !center){
 		//printf("building loop %d %d\n",mart,center);
 		int spot = 0;
-		x = rand() % 76; x += 1;
+		x = rand() % 76; x += 2;
 		y = rand() % 17; y += 2;
 		if(oldMap[y][x] == tile_str[ROAD] && x != martx +1 && y != marty +1&& x != martx -1 && y != marty -1 && x != martx && y != marty){
 		//check for mart
@@ -875,7 +891,11 @@ void printMap(map *Map){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
-			printf("%s",Map->tiles[i][j]);
+			if(Map->chars[i][j]!= NULL){
+				printf("%s",Map->chars[i][j]);
+			}else{
+				printf("%s",Map->tiles[i][j]);
+			}
 			if(j == MAPWIDTH -1){
 				printf("\n");
 			}
