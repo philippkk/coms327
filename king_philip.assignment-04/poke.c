@@ -16,7 +16,6 @@ symbol
 pos
 next turn- cost of terrain next move would be - keep adding it do not replace
 sequence num- used for tie breaker, order inserted into queue
-
 desicrete event sim	
 	event queue
 	need new compare
@@ -78,32 +77,15 @@ char * const command_str[]={
 	[Q] = "Q",
 	[NUMTRAINERS] = "--numtrainers"
 };
-// int hiker_c[]={
-// 	[ROAD] = 10,
-// 	[MART] = 50,
-// 	[CENTER] = 50,
-// 	[LONG] = 15,
-// 	[SHORT] = 10,
-// 	[ROCK] = 15,
-// 	[TREE] = 15,
-// 	[WATER] = INT16_MAX
-// };
-// int rival_c[]={
-// 	[ROAD] = 10,
-// 	[MART] = 50,
-// 	[CENTER] = 50,
-// 	[LONG] = 20,
-// 	[SHORT] = 10,
-// 	[ROCK] = 15,
-// 	[TREE] = INT16_MAX,
-// 	[WATER] = INT16_MAX,
 
-// };
-
-typedef struct player{
+typedef struct character{
+	heap_node_t *hn;
 	int posX;
 	int posY;
-}player_c;
+	char *symbol;
+	bool tileLocked;
+	char tile;
+}character_c;
 typedef struct map{
 	bool generated;
 	int gateAx;//top
@@ -111,10 +93,15 @@ typedef struct map{
 	int gateCy;//left
 	int gateDy;//right
 	char *tiles[MAPHEIGHT][MAPWIDTH];
-	char *chars[MAPHEIGHT][MAPWIDTH];
+	character_c *chars[MAPHEIGHT][MAPWIDTH];
+	int *hikerMap[MAPHEIGHT][MAPWIDTH];
+	int *rivalMap[MAPHEIGHT][MAPWIDTH];
+	//int *otherCostMap[MAPHEIGHT][MAPWIDTH]; same as rivial for the time being
 }map;
 typedef struct globe{
 	map *maps[401][401];
+	int playerX;
+	int playerY;
 }globe_m;
 
 
@@ -127,11 +114,11 @@ typedef struct path {
 
 globe_m globe;
 int posx=200,posy=200;
+int playerx, playery;
 map *currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int heightmap[MAPHEIGHT][MAPWIDTH];
-player_c player;
-
+character_c player;
 void initMap(int a, int b, int c, int d);
 void printMap(map *Map);
 void genPaths(int a, int b, int c, int d);
@@ -141,19 +128,16 @@ map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
 void calcCost(int type);//0 = hiker 1 = rival
-
+void handleNPC();
 int main(int argc, char *argv[]){
 	char command[20];
 	bool numTrainerSwitch = false;
 	int numTrainers = 10;
 	for (int i = 1; i < argc; i++) {
-        printf("%s\n", argv[i]);
 		if(!strcmp(argv[i],command_str[NUMTRAINERS])){
-			printf("found num trainers\n");
 			numTrainerSwitch = true;
 			if(i < argc){
 				if(!isdigit(strtol(argv[i+1],NULL,10))){
-					printf("@#!@#@!#@!#!@\n");
 					numTrainers = strtol(argv[i+1],NULL,10);
 				}
 			}
@@ -165,15 +149,15 @@ int main(int argc, char *argv[]){
 	    srand ( time(NULL) );
 		if(globe.maps[posy][posx] == NULL){
 			globe.maps[posy][posx] = createMap();
+			currentMap = createMap();
 		}
-		currentMap = createMap();
 		//printf("command: %s\n",command);
 		if(!globe.maps[posy][posx]->generated){
 			//printf("first init");
 			initMap(99,99,99,99);
 		}
-		calcCost(0);
-		calcCost(1);
+		//calcCost(0);
+		//calcCost(1);
 		//break;
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
@@ -187,6 +171,7 @@ int main(int argc, char *argv[]){
 		char copyStr[20];
 		strcpy(copyStr,command);
 		if(strcmp(command,command_str[EMPTY])){
+			//globe.maps[posy][posx] = currentMap;
 			if(!strcmp(command,command_str[Q])){
 				break;
 			}else if(!strcmp(command,command_str[N])){
@@ -251,7 +236,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 void loadMap(){
-		//printf("(%d,%d)pre\n",posx-200,posy-200);
+	//printf("(%d,%d)pre\n",posx-200,posy-200);
 		//printf("(%d,%d)pre real:\n",posx,posy);
 	if(globe.maps[posy][posx] == NULL){
 		//printf("in loadmap");
@@ -300,7 +285,7 @@ void loadMap(){
 void initMap(int a,int b,int c, int d){
 	//printf("INIT\n");
 	//to get random rand seed
-
+	currentMap = createMap();
 	int i,j;
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
 	for(i = 0; i < MAPHEIGHT; i++){
@@ -425,11 +410,14 @@ void initMap(int a,int b,int c, int d){
 		int playerY = rand() % 15; playerY+=2;
 
 		if(oldMap[playerY][playerX] == tile_str[ROAD]){
-			currentMap->chars[playerY][playerX] = character_str[PLAYER];
-			//oldMap[playerY][playerX] = character_str[PLAYER];
-			genPlayer = true;
+			player.symbol = character_str[PLAYER];
 			player.posX = playerX;
 			player.posY = playerY;
+			globe.playerX = playerX;
+			globe.playerY = playerY;
+			currentMap->chars[playerY][playerX] = &player;
+			//oldMap[playerY][playerX] = character_str[PLAYER];
+			genPlayer = true;
 			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
 
 		}
@@ -438,7 +426,8 @@ void initMap(int a,int b,int c, int d){
 		for(j=0;j <MAPWIDTH;j++){
 			currentMap->tiles[i][j] = oldMap[i][j];
 		}
-	}  
+	} 
+
 	copyMap(globe.maps[posy][posx],currentMap);
 	printMap(currentMap);
 }
@@ -824,7 +813,7 @@ void genBuildings(){
 		//printf("building loop %d %d\n",mart,center);
 		int spot = 0;
 		x = rand() % 76; x += 2;
-		y = rand() % 17; y += 2;
+		y = rand() % 17; y += 3;
 		if(oldMap[y][x] == tile_str[ROAD] && x != martx +1 && y != marty +1&& x != martx -1 && y != marty -1 && x != martx && y != marty){
 		//check for mart
 			int num = rand() % 4;
@@ -891,8 +880,8 @@ void printMap(map *Map){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
-			if(Map->chars[i][j]!= NULL){
-				printf("%s",Map->chars[i][j]);
+			if(Map->chars[i][j] != NULL){
+				printf("%s",Map->chars[i][j]->symbol);
 			}else{
 				printf("%s",Map->tiles[i][j]);
 			}
@@ -928,6 +917,9 @@ void copyMap(map* destination, const map* source) {
     for (int i = 0; i < MAPHEIGHT; ++i) {
         for (int j = 0; j < MAPWIDTH; ++j) {
             destination->tiles[i][j] = strdup(source->tiles[i][j]);
+			destination->chars[i][j] = source->chars[i][j];
+			destination->hikerMap[i][j] = source->hikerMap[i][j];
+			destination->rivalMap[i][j] = source->rivalMap[i][j];
         }
     }
 
@@ -936,7 +928,6 @@ void copyMap(map* destination, const map* source) {
 static int32_t path_cmp(const void *key, const void *with) {
   return ((path_t *) key)->cost - ((path_t *) with)->cost;
 }
-
 
 int getTileCost(char *tile,int type){
 	if(type == 0){
@@ -970,6 +961,37 @@ int getTileCost(char *tile,int type){
 		}
 			if(!strcmp(tile,tile_str[WATER])){
 			return INT16_MAX;
+		}
+	}else if(type == 1){
+		if(!strcmp(tile,tile_str[ROAD])){
+		//printf("r");
+		return 10;
+		}
+		if(!strcmp(tile,tile_str[MART])){
+		//printf("m");
+		return 50;
+		}
+		if(!strcmp(tile,tile_str[CENTER])){
+		//	printf("c");
+		return 50;
+		}
+		if(!strcmp(tile,tile_str[LONG])){
+		//	printf("l");
+		return 20;
+		}
+		if(!strcmp(tile,tile_str[SHORT])){
+		//	printf("s");
+		return 10;
+		}
+		if(!strcmp(tile,tile_str[ROCK])){
+		//	printf("r");
+		return 15;
+		}
+		if(!strcmp(tile,tile_str[TREE])){
+		return INT16_MAX;
+		}
+		if(!strcmp(tile,tile_str[WATER])){
+		return INT16_MAX;
 		}
 	}else{
 		if(!strcmp(tile,tile_str[ROAD])){
@@ -1024,7 +1046,7 @@ void calcCost(int type){
 		}
 		initialized = 1;
 		}	
-	path[player.posY][player.posX].cost = 0;
+	path[globe.playerY][globe.playerX].cost = 0;
 	
 	heap_init(&h, path_cmp, NULL);
 
@@ -1098,8 +1120,13 @@ void calcCost(int type){
 	printf("\n");
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
-			if(j == player.posX && i == player.posY){
-				printf("\033[41;37m%02d\033[0m ",path[i][j].cost%100);
+			if(type == 0){
+				
+			}else{
+
+			}
+			if(j == globe.playerX && i == globe.playerY){
+				printf("\033[41;37m%02d\033[0m",path[i][j].cost%100);
 			}else if(path[i][j].cost >= INT16_MAX){
 				printf("   ");
 
@@ -1111,4 +1138,9 @@ void calcCost(int type){
 			}
 		}
 	}
+}
+
+void handleNPC(){
+
+
 }
