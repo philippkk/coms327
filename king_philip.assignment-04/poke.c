@@ -50,13 +50,13 @@ typedef enum Characters{
 	PLAYER, HIKER, RIVIAL, PACER, WANDERER, SENTRIES, EXPLORERS
 }characters;
 char * const character_str[]={
-	[PLAYER] = "\033[044m@\033[0m",
-	[HIKER] = "\033[44mh\033[0m",
-	[RIVIAL] = "\033[44mr\033[0m",
-	[PACER] = "\033[44mp\033[0m",
-	[WANDERER] = "\033[44mw\033[0m",
-	[SENTRIES] = "\033[44ms\033[0m",
-	[EXPLORERS] = "\033[44me\033[0m"
+	[PLAYER] = "\033[044;05m@\033[0m",
+	[HIKER] = "\033[44;05mh\033[0m",
+	[RIVIAL] = "\033[44;05mr\033[0m",
+	[PACER] = "\033[44;05mp\033[0m",
+	[WANDERER] = "\033[44;05mw\033[0m",
+	[SENTRIES] = "\033[44;05ms\033[0m",
+	[EXPLORERS] = "\033[44;05me\033[0m"
 };
 enum Commands{
 	EMPTY,
@@ -123,6 +123,7 @@ map *currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int heightmap[MAPHEIGHT][MAPWIDTH];
 character_c player;
+character_c hiker;
 int numTrainers = 10;
 
 //messy function defs
@@ -150,10 +151,10 @@ int main(int argc, char *argv[]){
 		}
     }
 	printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
-	int count = 0;
+	int gameTime = 0;
 	while (*command != 'Q')
 	{	
-		printf("COUNT %d\n",count++);
+		printf("TIME: %d\n",gameTime++);
 	    srand ( time(NULL) );
 		if(globe.maps[posy][posx] == NULL){
 			globe.maps[posy][posx] = createMap();
@@ -287,6 +288,7 @@ void loadMap(){
 		initMap(a,b,c,d);
 	}else{
 		//printf("\nFOUND MAP\n");
+		handleNPC();
 		printMap( globe.maps[posy][posx]);
 		currentMap = globe.maps[posy][posx];
 	}
@@ -1197,4 +1199,39 @@ void placeNPC(){		// weights of amount
 	maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers);
 
 	//mod currentMap char sheet
+
+	bool generated = false;
+	int uhOhTimer = 0;
+	while(!generated){
+		if(uhOhTimer++ > 100){
+			generated = true;
+		}
+		int x = rand() % 76; x += 2;
+		int y = rand() % 17; y += 3;
+		printf("x: %d y: %d\n",x,y);
+		if(numHiker < maxHiker){
+			if(currentMap->chars[y][x] == NULL){
+				hiker.symbol = character_str[HIKER];
+				hiker.posX = x;
+				hiker.posY = y;
+				currentMap->chars[y][x]= &hiker;
+			}
+			numHiker++;
+		}
+		if(numRival < maxRival){
+
+		}
+		if(numPacer < maxPacer){
+
+		}
+		if(numWanderer < maxWanderer){
+
+		}
+		if(numSentries < maxSenteries){
+
+		}
+		if(numExplorers < maxExplorers){
+			
+		}
+	}
 }
