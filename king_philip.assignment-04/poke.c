@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <unistd.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
 #include "heap.h"
@@ -149,8 +150,10 @@ int main(int argc, char *argv[]){
 		}
     }
 	printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
+	int count = 0;
 	while (*command != 'Q')
 	{	
+		printf("COUNT %d\n",count++);
 	    srand ( time(NULL) );
 		if(globe.maps[posy][posx] == NULL){
 			globe.maps[posy][posx] = createMap();
@@ -163,10 +166,13 @@ int main(int argc, char *argv[]){
 		}
 		//calcCost(0);
 		//calcCost(1);
+		loadMap();
+		usleep(250000);
+		continue;
 		//break;
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
-		fgets(command,20,stdin);
+		//fgets(command,20,stdin);
 		char *s = command;
 		 while (*s) {
     		*s = toupper((unsigned char) *s);
@@ -432,8 +438,8 @@ void initMap(int a,int b,int c, int d){
 			currentMap->tiles[i][j] = oldMap[i][j];
 		}
 	} 
-	placeNPC();
 	calcCost(0,currentMap);calcCost(1,currentMap);
+	placeNPC();
 	printMap(currentMap);
 	copyMap(globe.maps[posy][posx],currentMap);
 }
@@ -1188,7 +1194,7 @@ void placeNPC(){		// weights of amount
 	}
 	printf("num npc, %d, %d, %d, %d ,%d ,%d, total: %d\n",numHiker,numRival,numPacer,numWanderer,numSentries,numExplorers,total);
 	printf("max npc, %d, %d, %d, %d ,%d ,%d, total: %d \n",maxHiker,maxRival,maxPacer,maxWanderer,maxSenteries,maxExplorers,
-	maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers
-	);
+	maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers);
 
+	//mod currentMap char sheet
 }
