@@ -85,6 +85,8 @@ typedef struct character{
 	char *symbol;
 	bool tileLocked;
 	char tile;
+	int nextTurn;
+	int sequenceNum;
 }character_c;
 typedef struct map{
 	bool generated;
@@ -112,6 +114,7 @@ typedef struct path {
   int32_t cost;
 } path_t;
 
+//messy global vars
 globe_m globe;
 int posx=200,posy=200;
 int playerx, playery;
@@ -119,6 +122,9 @@ map *currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int heightmap[MAPHEIGHT][MAPWIDTH];
 character_c player;
+int numTrainers = 10;
+
+//messy function defs
 void initMap(int a, int b, int c, int d);
 void printMap(map *Map);
 void genPaths(int a, int b, int c, int d);
@@ -129,17 +135,16 @@ void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC();
+void placeNPC();
+
 int main(int argc, char *argv[]){
 	char command[20];
 	bool numTrainerSwitch = false;
-	int numTrainers = 10;
 	for (int i = 1; i < argc; i++) {
 		if(!strcmp(argv[i],command_str[NUMTRAINERS])){
 			numTrainerSwitch = true;
 			if(i < argc){
-				if(!isdigit(strtol(argv[i+1],NULL,10))){
-					numTrainers = strtol(argv[i+1],NULL,10);
-				}
+				numTrainers = atoi(argv[i+1]);
 			}
 		}
     }
@@ -427,6 +432,7 @@ void initMap(int a,int b,int c, int d){
 			currentMap->tiles[i][j] = oldMap[i][j];
 		}
 	} 
+	placeNPC();
 	calcCost(0,currentMap);calcCost(1,currentMap);
 	printMap(currentMap);
 	copyMap(globe.maps[posy][posx],currentMap);
@@ -878,7 +884,7 @@ void genBuildings(){
 }
 void printMap(map *Map){
 	int i,j;
-	for(i = 0; i < MAPHEIGHT; i++){
+	for(i = 0; i < MAPHEIGHT; i++)
 		for(j= 0; j < MAPWIDTH; j++){
 			if(Map->chars[i][j] != NULL){
 				printf("%s",Map->chars[i][j]->symbol);
@@ -889,7 +895,7 @@ void printMap(map *Map){
 				printf("\n");
 			}
 		}
-	}
+	
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){			
 			if(j == globe.playerX && i == globe.playerY){
@@ -924,7 +930,6 @@ void printMap(map *Map){
 	//printf("(%d,%d)\n",posx-200,posy-200);
 	//printf("(%d,%d)\n",posx,posy);
 }
-
 map* createMap() {
     map* newMap = malloc(sizeof(map));
     newMap->generated = false;
@@ -1161,5 +1166,29 @@ void calcCost(int type, map *Map){
 
 void handleNPC(){
 
+
+}
+
+void placeNPC(){		// weights of amount
+	int numHiker=0, maxHiker = round(numTrainers * 0.15),			//25
+	 numRival=0,	maxRival = round(numTrainers * 0.18), 			//25
+	 numPacer=0,	maxPacer = round(numTrainers * 0.08), 			//10
+	 numWanderer=0,	maxWanderer = round(numTrainers * 0.13), 		//10
+	 numSentries=0,	maxSenteries = round(numTrainers * 0.08), 		//10
+	 numExplorers=0,maxExplorers = round(numTrainers * 0.17), 		//20
+	 total=0, totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
+
+	if(numTrainers == 2){
+		maxHiker = 1;
+		maxRival = 1;
+		totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
+	}else if(totalMax < numTrainers){
+		maxHiker += numTrainers - totalMax;
+		totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
+	}
+	printf("num npc, %d, %d, %d, %d ,%d ,%d, total: %d\n",numHiker,numRival,numPacer,numWanderer,numSentries,numExplorers,total);
+	printf("max npc, %d, %d, %d, %d ,%d ,%d, total: %d \n",maxHiker,maxRival,maxPacer,maxWanderer,maxSenteries,maxExplorers,
+	maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers
+	);
 
 }
