@@ -47,12 +47,12 @@ typedef enum Tiles
 	[CENTER] = "\033[41;37mP\033[0m",
 };
 typedef enum Characters{
-	PLAYER, HIKER, RIVIAL, PACER, WANDERER, SENTRIES, EXPLORERS
+	PLAYER, HIKER, RIVAL, PACER, WANDERER, SENTRIES, EXPLORERS
 }characters;
 char * const character_str[]={
 	[PLAYER] = "\033[044;05m@\033[0m",
 	[HIKER] = "\033[44;05mh\033[0m",
-	[RIVIAL] = "\033[44;05mr\033[0m",
+	[RIVAL] = "\033[44;05mr\033[0m",
 	[PACER] = "\033[44;05mp\033[0m",
 	[WANDERER] = "\033[44;05mw\033[0m",
 	[SENTRIES] = "\033[44;05ms\033[0m",
@@ -124,6 +124,11 @@ char *oldMap[MAPHEIGHT][MAPWIDTH];
 int heightmap[MAPHEIGHT][MAPWIDTH];
 character_c player;
 character_c hiker;
+character_c rival;
+character_c pacer;
+character_c wanderer;
+character_c sentery;
+character_c explorer;
 int numTrainers = 10;
 
 //messy function defs
@@ -903,7 +908,6 @@ void printMap(map *Map){
 				printf("\n");
 			}
 		}
-	
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){			
 			if(j == globe.playerX && i == globe.playerY){
@@ -1186,6 +1190,9 @@ void placeNPC(){		// weights of amount
 	 numExplorers=0,maxExplorers = round(numTrainers * 0.17), 		//20
 	 total=0, totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
 
+	/*
+		CHANGE WEIGHTS  I DONT LIKE IT ANYMORE
+	*/
 	if(numTrainers == 2){
 		maxHiker = 1;
 		maxRival = 1;
@@ -1201,37 +1208,81 @@ void placeNPC(){		// weights of amount
 	//mod currentMap char sheet
 
 	bool generated = false;
-	int uhOhTimer = 0;
+	//int uhOhTimer = 0;
 	while(!generated){
-		if(uhOhTimer++ > 100){
+		if(numHiker == maxHiker &&
+		numRival == maxRival &&
+		numPacer == maxPacer &&
+		numSentries == maxSenteries &&
+		numExplorers == maxExplorers &&
+		numWanderer == maxWanderer){
 			generated = true;
 		}
 		int x = rand() % 76; x += 2;
 		int y = rand() % 17; y += 3;
 		printf("x: %d y: %d\n",x,y);
 		if(numHiker < maxHiker){
+			/*
+			map check for tile ofc
+			*/
 			if(currentMap->chars[y][x] == NULL){
 				hiker.symbol = character_str[HIKER];
 				hiker.posX = x;
 				hiker.posY = y;
 				currentMap->chars[y][x]= &hiker;
+				numHiker++;
+
 			}
-			numHiker++;
 		}
 		if(numRival < maxRival){
-
+				if(currentMap->chars[y][x] == NULL){
+				rival.symbol = character_str[RIVAL];
+				rival.posX = x;
+				rival.posY = y;
+				currentMap->chars[y][x]= &rival;
+				numRival++;
+			}
+			
 		}
 		if(numPacer < maxPacer){
-
+			if(currentMap->chars[y][x] == NULL){
+				pacer.symbol = character_str[PACER];
+				pacer.posX = x;
+				pacer.posY = y;
+				currentMap->chars[y][x]= &pacer;
+				numPacer++;
+			}
+			
 		}
 		if(numWanderer < maxWanderer){
-
+			if(currentMap->chars[y][x] == NULL){
+				wanderer.symbol = character_str[WANDERER];
+				wanderer.posX = x;
+				wanderer.posY = y;
+				currentMap->chars[y][x]= &wanderer;
+				numWanderer++;
+			}
+			
 		}
 		if(numSentries < maxSenteries){
-
+			if(currentMap->chars[y][x] == NULL){
+				sentery.symbol = character_str[SENTRIES];
+				sentery.posX = x;
+				sentery.posY = y;
+				currentMap->chars[y][x]= &sentery;
+				numSentries++;
+			}
+			
 		}
 		if(numExplorers < maxExplorers){
-			
+			if(currentMap->chars[y][x] == NULL){
+				explorer.symbol = character_str[EXPLORERS];
+				explorer.posX = x;
+				explorer.posY = y;
+				currentMap->chars[y][x]= &explorer;
+				numExplorers++;		
+			}
+				
 		}
 	}
 }
