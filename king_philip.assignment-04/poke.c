@@ -1193,12 +1193,12 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 	//currentChar = *c;
 		if(c != NULL){
 			printf("FOUND INSERT\n");
-			// printf("symbol:%s\n",c->symbol);
-			// printf("x:%d\n",c->posX);
-			// printf("y:%d\n",c->posY);
-			// printf("next x:%d\n",c->nextX);
-			// printf("next y:%d\n",c->nextY);
-			// printf("next turn:%d\n",c->nextTurn);
+			printf("symbol:%s\n",c->symbol);
+			printf("x:%d\n",c->posX);
+			printf("y:%d\n",c->posY);
+			printf("next x:%d\n",c->nextX);
+			printf("next y:%d\n",c->nextY);
+			printf("next turn:%d\n",c->nextTurn);
 
 			// hiker.symbol = chars[c->posY][c->posX]->symbol;
 			// hiker.posX = chars[c->posY][c->posX]->posX;
@@ -1286,17 +1286,16 @@ void placeNPC(){		// weights of amount
 				}
 				hiker.nextTurn = y;
 				numHiker++;
-				character_c tempHiker;
-				memcpy(&tempHiker,&hiker,sizeof(hiker));
-				currentMap->chars[y][x] = tempHiker;
+				currentMap->chars[y][x] = hiker;
 				printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
-				//currentMap->chars[y][x]->symbol = character_str[HIKER];
+				// currentMap->chars[y][x]->symbol = character_str[HIKER];
 				// currentMap->chars[y][x]->nextTurn = hiker.nextTurn;
 				// currentMap->chars[y][x]->posX = hiker.posX;
 				// currentMap->chars[y][x]->posY = hiker.posY;
 				// currentMap->chars[y][x]->nextX = hiker.nextX;
 				// currentMap->chars[y][x]->nextY = hiker.nextY;
-				//currentMap->chars[y][x]->hn = heap_insert(&charHeap,&currentMap->chars[y][x]);
+				currentMap->chars[y][x].hn = 
+				heap_insert(&charHeap,&currentMap->chars[y][x]);
 				
 			}
 		}
