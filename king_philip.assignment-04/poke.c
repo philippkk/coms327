@@ -141,7 +141,7 @@ map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
-void handleNPC();
+void handleNPC(character_c *chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
 
 int main(int argc, char *argv[]){
@@ -293,7 +293,7 @@ void loadMap(){
 		initMap(a,b,c,d);
 	}else{
 		//printf("\nFOUND MAP\n");
-		handleNPC();
+		handleNPC(currentMap->chars);
 		printMap( globe.maps[posy][posx]);
 		currentMap = globe.maps[posy][posx];
 	}
@@ -1176,8 +1176,14 @@ void calcCost(int type, map *Map){
 	}
 }
 
-void handleNPC(){
 
+static int32_t char_cmp(const void *key, const void *with) {
+  return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
+}
+
+void handleNPC(character_c *chars[MAPHEIGHT][MAPWIDTH]){
+	heap_t h;
+	heap_init(&h,char_cmp,NULL);
 
 }
 
@@ -1221,10 +1227,11 @@ void placeNPC(){		// weights of amount
 		int x = rand() % 76; x += 2;
 		int y = rand() % 17; y += 3;
 		printf("x: %d y: %d\n",x,y);
+		if(!strcmp(currentMap->tiles[y][x],tile_str[TREE]) 
+		|| !strcmp(currentMap->tiles[y][x],tile_str[WATER])){
+			continue;
+		}
 		if(numHiker < maxHiker){
-			/*
-			map check for tile ofc
-			*/
 			if(currentMap->chars[y][x] == NULL){
 				hiker.symbol = character_str[HIKER];
 				hiker.posX = x;
@@ -1259,6 +1266,8 @@ void placeNPC(){		// weights of amount
 				wanderer.symbol = character_str[WANDERER];
 				wanderer.posX = x;
 				wanderer.posY = y;
+				wanderer.tileLocked = true;
+				wanderer.tile = *currentMap->tiles[y][x];
 				currentMap->chars[y][x]= &wanderer;
 				numWanderer++;
 			}
@@ -1271,8 +1280,7 @@ void placeNPC(){		// weights of amount
 				sentery.posY = y;
 				currentMap->chars[y][x]= &sentery;
 				numSentries++;
-			}
-			
+			}	
 		}
 		if(numExplorers < maxExplorers){
 			if(currentMap->chars[y][x] == NULL){
