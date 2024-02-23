@@ -83,6 +83,8 @@ typedef struct character{
 	heap_node_t *hn;
 	int posX;
 	int posY;
+	int nextX;
+	int nextY;
 	char *symbol;
 	bool tileLocked;
 	char tile;
@@ -96,7 +98,7 @@ typedef struct map{
 	int gateCy;//left
 	int gateDy;//right
 	char *tiles[MAPHEIGHT][MAPWIDTH];
-	character_c *chars[MAPHEIGHT][MAPWIDTH];
+	character_c chars[MAPHEIGHT][MAPWIDTH];
 	int hikerMap[MAPHEIGHT][MAPWIDTH];
 	int rivalMap[MAPHEIGHT][MAPWIDTH];
 	//int *otherCostMap[MAPHEIGHT][MAPWIDTH]; same as rivial for the time being
@@ -141,10 +143,13 @@ map* createMap();
 void copyMap(map* destination, const map* source);
 void freeMap(map* mapToFree) ;
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
-void handleNPC(character_c *chars[MAPHEIGHT][MAPWIDTH]);
+void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
+static int32_t char_cmp(const void *key, const void *with);
+heap_t charHeap;
 
 int main(int argc, char *argv[]){
+	heap_init(&charHeap,char_cmp,NULL);
 	char command[20];
 	bool numTrainerSwitch = false;
 	for (int i = 1; i < argc; i++) {
@@ -305,6 +310,7 @@ void initMap(int a,int b,int c, int d){
 	//to get random rand seed
 	currentMap = createMap();
 	int i,j;
+
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
@@ -433,7 +439,7 @@ void initMap(int a,int b,int c, int d){
 			player.posY = playerY;
 			globe.playerX = playerX;
 			globe.playerY = playerY;
-			currentMap->chars[playerY][playerX] = &player;
+			currentMap->chars[playerY][playerX] = player;
 			//oldMap[playerY][playerX] = character_str[PLAYER];
 			genPlayer = true;
 			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
@@ -899,8 +905,8 @@ void printMap(map *Map){
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++)
 		for(j= 0; j < MAPWIDTH; j++){
-			if(Map->chars[i][j] != NULL){
-				printf("%s",Map->chars[i][j]->symbol);
+			if(Map->chars[i][j].symbol != NULL){
+				printf("%s",Map->chars[i][j].symbol);
 			}else{
 				printf("%s",Map->tiles[i][j]);
 			}
@@ -1181,10 +1187,40 @@ static int32_t char_cmp(const void *key, const void *with) {
   return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
 }
 
-void handleNPC(character_c *chars[MAPHEIGHT][MAPWIDTH]){
-	heap_t h;
-	heap_init(&h,char_cmp,NULL);
+void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
+	character_c *c;
+	if((c = heap_remove_min(&charHeap))){
+	//currentChar = *c;
+		if(c != NULL){
+			printf("FOUND INSERT\n");
+			// printf("symbol:%s\n",c->symbol);
+			// printf("x:%d\n",c->posX);
+			// printf("y:%d\n",c->posY);
+			// printf("next x:%d\n",c->nextX);
+			// printf("next y:%d\n",c->nextY);
+			// printf("next turn:%d\n",c->nextTurn);
 
+			// hiker.symbol = chars[c->posY][c->posX]->symbol;
+			// hiker.posX = chars[c->posY][c->posX]->posX;
+			// hiker.posY = chars[c->posY][c->posX]->posY;
+			// hiker.nextTurn = chars[c->posY][c->posX]->nextTurn + 100;
+			// int min = 9999;
+			// 	for(int i = -1; i < 2; i++){
+			// 		for(int j = -1; j < 2;j++){
+			// 			//check surrounding for lowest cost
+			// 			if(currentMap->hikerMap[c->nextY+j][c->nextX+i] < min){
+			// 				chars[c->nextY][c->nextX]->nextX = c->nextX+i;
+			// 				chars[c->nextY][c->nextX]->nextY = c->nextY+j;
+			// 				min = currentMap->hikerMap[c->nextY+j][c->nextX+i];
+			// 			}
+			// 		}
+			// 	}
+
+			//chars[c->posY][c->posX] = NULL;
+			//hiker.hn = heap_insert(&charHeap,&hiker);
+			//currentMap->chars[hiker.posY][hiker.posX] = &hiker;
+		}
+	}
 }
 
 void placeNPC(){		// weights of amount
@@ -1232,62 +1268,85 @@ void placeNPC(){		// weights of amount
 			continue;
 		}
 		if(numHiker < maxHiker){
-			if(currentMap->chars[y][x] == NULL){
+			if(currentMap->chars[y][x].symbol == NULL){
 				hiker.symbol = character_str[HIKER];
 				hiker.posX = x;
 				hiker.posY = y;
-				currentMap->chars[y][x]= &hiker;
+										
+				int min = 9999;
+				for(int i = -1; i < 2; i++){
+					for(int j = -1; j < 2;j++){
+						//check surrounding for lowest cost
+						if(currentMap->hikerMap[y+j][x+i] < min){
+							hiker.nextX = x+i;
+							hiker.nextY = y+j;
+							min = currentMap->hikerMap[y+j][x+i];
+						}
+					}
+				}
+				hiker.nextTurn = y;
 				numHiker++;
-
+				character_c tempHiker;
+				memcpy(&tempHiker,&hiker,sizeof(hiker));
+				currentMap->chars[y][x] = tempHiker;
+				printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
+				//currentMap->chars[y][x]->symbol = character_str[HIKER];
+				// currentMap->chars[y][x]->nextTurn = hiker.nextTurn;
+				// currentMap->chars[y][x]->posX = hiker.posX;
+				// currentMap->chars[y][x]->posY = hiker.posY;
+				// currentMap->chars[y][x]->nextX = hiker.nextX;
+				// currentMap->chars[y][x]->nextY = hiker.nextY;
+				//currentMap->chars[y][x]->hn = heap_insert(&charHeap,&currentMap->chars[y][x]);
+				
 			}
 		}
 		if(numRival < maxRival){
-				if(currentMap->chars[y][x] == NULL){
+				if(currentMap->chars[y][x].symbol == NULL){
 				rival.symbol = character_str[RIVAL];
 				rival.posX = x;
 				rival.posY = y;
-				currentMap->chars[y][x]= &rival;
+				currentMap->chars[y][x] = rival;
 				numRival++;
 			}
 			
 		}
 		if(numPacer < maxPacer){
-			if(currentMap->chars[y][x] == NULL){
+			if(currentMap->chars[y][x].symbol == NULL){
 				pacer.symbol = character_str[PACER];
 				pacer.posX = x;
 				pacer.posY = y;
-				currentMap->chars[y][x]= &pacer;
+				currentMap->chars[y][x]= pacer;
 				numPacer++;
 			}
 			
 		}
 		if(numWanderer < maxWanderer){
-			if(currentMap->chars[y][x] == NULL){
+			if(currentMap->chars[y][x].symbol == NULL){
 				wanderer.symbol = character_str[WANDERER];
 				wanderer.posX = x;
 				wanderer.posY = y;
 				wanderer.tileLocked = true;
 				wanderer.tile = *currentMap->tiles[y][x];
-				currentMap->chars[y][x]= &wanderer;
+				currentMap->chars[y][x]= wanderer;
 				numWanderer++;
 			}
 			
 		}
 		if(numSentries < maxSenteries){
-			if(currentMap->chars[y][x] == NULL){
+			if(currentMap->chars[y][x].symbol == NULL){
 				sentery.symbol = character_str[SENTRIES];
 				sentery.posX = x;
 				sentery.posY = y;
-				currentMap->chars[y][x]= &sentery;
+				currentMap->chars[y][x]= sentery;
 				numSentries++;
 			}	
 		}
 		if(numExplorers < maxExplorers){
-			if(currentMap->chars[y][x] == NULL){
+			if(currentMap->chars[y][x].symbol == NULL){
 				explorer.symbol = character_str[EXPLORERS];
 				explorer.posX = x;
 				explorer.posY = y;
-				currentMap->chars[y][x]= &explorer;
+				currentMap->chars[y][x]= explorer;
 				numExplorers++;		
 			}
 				
