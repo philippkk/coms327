@@ -89,6 +89,7 @@ typedef struct character{
 	int nextY;
 	char *symbol;
 	bool tileLocked;
+	int dir; //0 = left 1 = right 2 = up 3 = down
 	char tile;
 	int nextTurn;
 	int sequenceNum;
@@ -158,18 +159,19 @@ heap_t charHeap;
 int main(int argc, char *argv[]){
 	heap_init(&charHeap,char_cmp,NULL);
 	char command[20];
-	bool numTrainerSwitch = false;
+	//bool numTrainerSwitch = false;
 	for (int i = 1; i < argc; i++) {
 		if(!strcmp(argv[i],command_str[NUMTRAINERS])){
-			numTrainerSwitch = true;
+	//		numTrainerSwitch = true;
 			if(i < argc){
 				numTrainers = atoi(argv[i+1]);
 			}
 		}
     }
-	printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
+	//printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
 	while (*command != 'Q')
 	{	
+		printf("\e[1;1H\e[2J"); //CLEAR SCREEN PRINT
 	    srand ( time(NULL) );
 		if(globe.maps[posy][posx] == NULL){
 			globe.maps[posy][posx] = createMap();
@@ -452,7 +454,7 @@ void initMap(int a,int b,int c, int d){
 			heap_insert(&charHeap, &currentMap->chars[playerY][playerX]);
 			//oldMap[playerY][playerX] = character_str[PLAYER];
 			genPlayer = true;
-			printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
+			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
 
 		}
 	}
@@ -1120,7 +1122,6 @@ int getTileCost(char *tile,int type){
 		return INT16_MAX;
 		}
 	}
-	//printf("oop %s %d\n",tile,type);
 	return 0;
 }
 
@@ -1229,12 +1230,73 @@ static int32_t char_cmp(const void *key, const void *with) {
   return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
 }
 
-void setNextTurn(int posY,int posX,int type,int ox,int oy,character_c *character){
+void setNextTurn(int posY,int posX,int type,int ox,int oy){
 	int i;
 	int min = 9999;
 	int nextx = 0;
 	int nexty = 0;
-	for(i = 0; i < 8; i++){
+	//pacer and wanderer logic
+	if(type == 2 || type == 3){
+		//printf("PACER start dir: %d   ",currentMap->chars[posY][posX].dir);
+		if(currentMap->chars[oy][ox].dir == 0){//left
+			if(currentMap->rivalMap[posY][posX-1] != INT16_MAX &&
+			currentMap->chars[posY][posX-1].symbol == NULL){
+				nextx = posX -1;
+				nexty = posY;
+				currentMap->chars[posY][posX].dir = 0;
+			}else {
+				currentMap->chars[posY][posX].dir = 1;
+				nextx = posX + 1;
+				nexty = posY;
+			}
+		}
+		else if(currentMap->chars[oy][ox].dir == 1){//right
+			if(currentMap->rivalMap[posY][posX+1] != INT16_MAX&&
+			currentMap->chars[posY][posX+1].symbol == NULL){
+				nextx = posX +1;
+				nexty = posY;
+				currentMap->chars[posY][posX].dir = 1;
+			}else{
+				currentMap->chars[oy][ox].dir = 0;
+				nextx = posX -1;
+				nexty = posY;
+			}
+		}
+		else if(currentMap->chars[oy][ox].dir == 2){//up
+			if(currentMap->rivalMap[posY-1][posX] != INT16_MAX&&
+			currentMap->chars[posY-1][posX].symbol == NULL){
+				nextx = posX;
+				nexty = posY-1;
+				currentMap->chars[posY][posX].dir = 2;
+			}else{
+				currentMap->chars[posY][posX].dir = 3;
+				nextx = posX;
+				nexty = posY+1;
+			}
+		}
+		else if(currentMap->chars[oy][ox].dir == 3){//down
+			if(currentMap->rivalMap[posY+1][posX] != INT16_MAX&&
+			currentMap->chars[posY+1][posX].symbol == NULL){
+				nextx = posX;
+				nexty = posY+1;
+				currentMap->chars[posY][posX].dir = 3;
+			}else{
+				currentMap->chars[posY][posX].dir = 2;
+				nextx = posX;
+				nexty = posY-1;
+			}
+		}
+		if(nextx == 0){
+			nextx = ox;
+		}
+		if(nexty == 0){
+			nexty= oy;
+		}	
+		currentMap->chars[posY][posX].nextY = nexty;
+		currentMap->chars[posY][posX].nextX = nextx;
+		//printf("nexty: %d, nextx: %d \n", currentMap->chars[posY][posX].nextY,currentMap->chars[posY][posX].nextX);
+	}else{
+		for(i = 0; i < 8; i++){
 		if(type == 0){
 				//check surrounding for lowest cost
 			if(currentMap->hikerMap[posY+dirY[i]][posX+dirX[i]] < min  && currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == NULL){
@@ -1254,9 +1316,13 @@ void setNextTurn(int posY,int posX,int type,int ox,int oy,character_c *character
 			}
 		}
 	}
+	}
+
 	if(type == 0){			
 		currentMap->chars[posY][posX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],0) + currentMap->chars[oy][ox].nextTurn;
-	}else if (type == 1){//rivial
+	}else if (type == 1){//rivial and everything else 
+		currentMap->chars[posY][posX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],1) + currentMap->chars[oy][ox].nextTurn;
+	}else{
 		currentMap->chars[posY][posX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],1) + currentMap->chars[oy][ox].nextTurn;
 	}
 }
@@ -1282,7 +1348,8 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			// printf("next turn:%d\n",c->nextTurn);
 			
 			if(!strcmp(c->symbol,character_str[PLAYER])){
-				printf("PLAYER TURN     ");
+				//int num = rand() % 4;
+				//printf("PLAYER TURN  %d ",num);
 				c->nextTurn += getTileCost(currentMap->tiles[c->posY][c->posX],99);
 				heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
 			}
@@ -1297,11 +1364,11 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					currentMap->chars[c->nextY][c->nextX].posY = currentMap->chars[c->posY][c->posX].nextY;
 
 					if(!strcmp(c->symbol,character_str[HIKER])){
-						setNextTurn(c->nextY,c->nextX,0,c->posX,c->posY,c);
+						setNextTurn(c->nextY,c->nextX,0,c->posX,c->posY);
 					}else if (!strcmp(c->symbol,character_str[RIVAL])){
-						setNextTurn(c->nextY,c->nextX,1,c->posX,c->posY,c);
+						setNextTurn(c->nextY,c->nextX,1,c->posX,c->posY);
 					}else if (!strcmp(c->symbol,character_str[PACER])){
-						setNextTurn(c->nextY,c->nextX,2,c->posX,c->posY,c);
+						setNextTurn(c->nextY,c->nextX,2,c->posX,c->posY);
 					}			
 					// printf("NEW INSERT\n");
 					// printf("symbol:%s\n",currentMap->chars[c->nextY][c->nextX].symbol);
@@ -1310,16 +1377,18 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					// printf("next x:%d\n",currentMap->chars[c->nextY][c->nextX].nextX);
 					// printf("next y:%d\n",currentMap->chars[c->nextY][c->nextX].nextY);
 					// printf("next turn:%d\n",currentMap->chars[c->nextY][c->nextX].nextTurn);
-					currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
+					// currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
 					currentMap->chars[c->nextY][c->nextX].hn =
 					heap_insert(&charHeap, &currentMap->chars[c->nextY][c->nextX]);
 
 					currentMap->chars[c->posY][c->posX].symbol = NULL;
 				}else{
 					if(!strcmp(c->symbol,character_str[HIKER])){
-						setNextTurn(c->posY,c->posX,0,c->posX,c->posY,c);
+						setNextTurn(c->posY,c->posX,0,c->posX,c->posY);
 					}else if (!strcmp(c->symbol,character_str[RIVAL])){
-						setNextTurn(c->posY,c->posX,1,c->posX,c->posY,c);
+						setNextTurn(c->posY,c->posX,1,c->posX,c->posY);
+					}else if (!strcmp(c->symbol,character_str[PACER])){
+						setNextTurn(c->posY,c->posX,2,c->posX,c->posY);
 					}
 					currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
 					heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
@@ -1338,7 +1407,8 @@ void placeNPC(){		// weights of amount
 	 numWanderer=0,	maxWanderer = round(numTrainers * 0.13), 		//10
 	 numSentries=0,	maxSenteries = round(numTrainers * 0.08), 		//10
 	 numExplorers=0,maxExplorers = round(numTrainers * 0.17), 		//20
-	 total=0, totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
+	 //total=0,
+	  totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
 
 	/*
 		CHANGE WEIGHTS  I DONT LIKE IT ANYMORE
@@ -1351,9 +1421,9 @@ void placeNPC(){		// weights of amount
 		maxHiker += numTrainers - totalMax;
 		totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
 	}
-	printf("num npc, %d, %d, %d, %d ,%d ,%d, total: %d\n",numHiker,numRival,numPacer,numWanderer,numSentries,numExplorers,total);
-	printf("max npc, %d, %d, %d, %d ,%d ,%d, total: %d \n",maxHiker,maxRival,maxPacer,maxWanderer,maxSenteries,maxExplorers,
-	maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers);
+	//printf("num npc, %d, %d, %d, %d ,%d ,%d, total: %d\n",numHiker,numRival,numPacer,numWanderer,numSentries,numExplorers,total);
+	//printf("max npc, %d, %d, %d, %d ,%d ,%d, total: %d \n",maxHiker,maxRival,maxPacer,maxWanderer,maxSenteries,maxExplorers,
+	//maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers);
 
 	//mod currentMap char sheet
 
@@ -1370,7 +1440,7 @@ void placeNPC(){		// weights of amount
 		}
 		int x = rand() % 76; x += 2;
 		int y = rand() % 17; y += 3;
-		printf("x: %d y: %d\n",x,y);
+		//printf("x: %d y: %d\n",x,y);
 		if(!strcmp(currentMap->tiles[y][x],tile_str[TREE]) 
 		|| !strcmp(currentMap->tiles[y][x],tile_str[WATER])
 		|| !strcmp(currentMap->tiles[y][x],tile_str[ROCK])){
@@ -1381,22 +1451,12 @@ void placeNPC(){		// weights of amount
 				hiker.symbol = character_str[HIKER];
 				hiker.posX = x;
 				hiker.posY = y;
-										
-				int min = 9999;
-				for(int i = -1; i < 2; i++){
-					for(int j = -1; j < 2;j++){
-						//check surrounding for lowest cost
-						if(currentMap->hikerMap[y+j][x+i] < min && currentMap->chars[y+j][x+i].symbol == NULL && (i != 0 && j != 0)){
-							hiker.nextX = x+i;
-							hiker.nextY = y+j;
-							min = currentMap->hikerMap[hiker.nextY][hiker.nextX];
-						}
-					}
-				}
+
+				setNextTurn(y,x,0,x,y);
 				hiker.nextTurn = 0;//getTileCost(currentMap->tiles[hiker.nextY][hiker.nextX],0);
 				numHiker++;
 				currentMap->chars[y][x] = hiker;
-				printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
+				//printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
 				currentMap->chars[y][x].hn = 
 				heap_insert(&charHeap,&currentMap->chars[y][x]);
 				
@@ -1407,22 +1467,11 @@ void placeNPC(){		// weights of amount
 				rival.symbol = character_str[RIVAL];
 				rival.posX = x;
 				rival.posY = y;
-
-				int min = 9999;
-				for(int i = -1; i < 2; i++){
-					for(int j = -1; j < 2;j++){
-						//check surrounding for lowest cost
-						if(currentMap->rivalMap[y+j][x+i] < min && currentMap->chars[y+j][x+i].symbol == NULL && (i != 0 && j != 0)){
-							rival.nextX = x+i;
-							rival.nextY = y+j;
-							min = currentMap->rivalMap[rival.nextY][rival.nextX];
-						}
-					}
-				}
+				setNextTurn(y,x,0,x,y);
 				rival.nextTurn = 0;//getTileCost(currentMap->tiles[rival.nextY][rival.nextX],0);
 				numRival++;
 				currentMap->chars[y][x] = rival;
-				printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
+				//printf("CREATED RIVAL, %s \n",currentMap->chars[y][x].symbol);
 
 				currentMap->chars[y][x].hn = 
 				heap_insert(&charHeap,&currentMap->chars[y][x]);
@@ -1434,8 +1483,12 @@ void placeNPC(){		// weights of amount
 				pacer.symbol = character_str[PACER];
 				pacer.posX = x;
 				pacer.posY = y;
+				pacer.dir =	rand() %4;
+				setNextTurn(y,x,2,x,y);
+				pacer.nextTurn = 0;
 				currentMap->chars[y][x]= pacer;
 				numPacer++;
+				heap_insert(&charHeap,&currentMap->chars[y][x]);
 			}
 			
 		}
