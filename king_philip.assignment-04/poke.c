@@ -20,6 +20,8 @@ sequence num- used for tie breaker, order inserted into queue
 desicrete event sim	
 	event queue
 	need new compare
+
+	ADD PLAYER CHAR INTO QUEUE
 */
 
 //% = border, boulder, mountain
@@ -149,6 +151,7 @@ void freeMap(map* mapToFree) ;
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
+int getTileCost(char *tile,int type);
 static int32_t char_cmp(const void *key, const void *with);
 heap_t charHeap;
 
@@ -443,10 +446,13 @@ void initMap(int a,int b,int c, int d){
 			player.posY = playerY;
 			globe.playerX = playerX;
 			globe.playerY = playerY;
+			player.nextTurn = getTileCost(oldMap[playerY][playerX],99);
 			currentMap->chars[playerY][playerX] = player;
+			currentMap->chars[playerY][playerX].hn = 
+			heap_insert(&charHeap, &currentMap->chars[playerY][playerX]);
 			//oldMap[playerY][playerX] = character_str[PLAYER];
 			genPlayer = true;
-			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
+			printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
 
 		}
 	}
@@ -1051,6 +1057,37 @@ int getTileCost(char *tile,int type){
 		if(!strcmp(tile,tile_str[WATER])){
 		return INT16_MAX;
 		}
+	}else if(type == 99){//player
+		if(!strcmp(tile,tile_str[ROAD])){
+		//printf("r");
+		return 10;
+		}
+		if(!strcmp(tile,tile_str[MART])){
+		//printf("m");
+		return 10;
+		}
+		if(!strcmp(tile,tile_str[CENTER])){
+		//	printf("c");
+		return 10;
+		}
+		if(!strcmp(tile,tile_str[LONG])){
+		//	printf("l");
+		return 20;
+		}
+		if(!strcmp(tile,tile_str[SHORT])){
+		//	printf("s");
+		return 10;
+		}
+		if(!strcmp(tile,tile_str[ROCK])){
+		//	printf("r");
+		return INT16_MAX;
+		}
+		if(!strcmp(tile,tile_str[TREE])){
+		return INT16_MAX;
+		}
+		if(!strcmp(tile,tile_str[WATER])){
+		return INT16_MAX;
+		}
 	}else{
 		if(!strcmp(tile,tile_str[ROAD])){
 		//printf("r");
@@ -1074,7 +1111,7 @@ int getTileCost(char *tile,int type){
 		}
 		if(!strcmp(tile,tile_str[ROCK])){
 		//	printf("r");
-		return 15;
+		return INT16_MAX;
 		}
 		if(!strcmp(tile,tile_str[TREE])){
 		return INT16_MAX;
@@ -1192,7 +1229,7 @@ static int32_t char_cmp(const void *key, const void *with) {
   return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
 }
 
-void setNextTurn(int posY,int posX,int type,int ox,int oy){
+void setNextTurn(int posY,int posX,int type,int ox,int oy,character_c *character){
 	int i;
 	int min = 9999;
 	int nextx = 0;
@@ -1243,58 +1280,29 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			// printf("next x:%d\n",c->nextX);
 			// printf("next y:%d\n",c->nextY);
 			// printf("next turn:%d\n",c->nextTurn);
+			
+			if(!strcmp(c->symbol,character_str[PLAYER])){
+				printf("PLAYER TURN     ");
+				c->nextTurn += getTileCost(currentMap->tiles[c->posY][c->posX],99);
+				heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
+			}
 
 			// memcpy(&currentMap->chars[c->nextY][c->nextX],&currentMap->chars[c->posY][c->posX],sizeof(currentMap->chars[c->nextY][c->nextX]));
 			if(!strcmp(c->symbol,character_str[HIKER]) || 
-			!strcmp(c->symbol,character_str[RIVAL])){
+			!strcmp(c->symbol,character_str[RIVAL]) ||
+			!strcmp(c->symbol,character_str[PACER]) ){
 				if(currentMap->chars[c->nextY][c->nextX].symbol == NULL){
 					currentMap->chars[c->nextY][c->nextX].symbol = currentMap->chars[c->posY][c->posX].symbol;
 					currentMap->chars[c->nextY][c->nextX].posX = currentMap->chars[c->posY][c->posX].nextX;
 					currentMap->chars[c->nextY][c->nextX].posY = currentMap->chars[c->posY][c->posX].nextY;
 
-
 					if(!strcmp(c->symbol,character_str[HIKER])){
-						setNextTurn(c->nextY,c->nextX,0,c->posX,c->posY);
-					}else{
-						setNextTurn(c->nextY,c->nextX,1,c->posX,c->posY);
-					}
-					// int min = 9999;
-					// int nextx = 0;
-					// int nexty = 0;
-					// 	for(int i = -1; i < 2; i++){
-					// 		for(int j = -1; j < 2;j++){
-					// 			//check surrounding for lowest cost
-					// 			if(!strcmp(c->symbol,character_str[HIKER])){	
-					// 				if(currentMap->hikerMap[c->nextY+j][c->nextX+i] < min  && currentMap->chars[c->nextY+j][c->nextX+i].symbol == NULL
-					// 				&& !(i == 0 && j == 0)){
-					// 					nextx = c->nextX + i;
-					// 					nexty = c->nextY + j;
-					// 					currentMap->chars[c->nextY][c->nextX].nextX = nextx;
-					// 					currentMap->chars[c->nextY][c->nextX].nextY = nexty;
-					// 					min = currentMap->hikerMap[nexty][nextx];
-
-					// 				}
-					// 			}else{
-					// 				if(currentMap->rivalMap[c->nextY+j][c->nextX+i] < min  && currentMap->chars[c->nextY+j][c->nextX+i].symbol == NULL
-					// 				&& !(i == 0 && j == 0)){
-					// 					nextx = c->nextX + i;
-					// 					nexty = c->nextY + j;
-					// 					currentMap->chars[c->nextY][c->nextX].nextX = nextx;
-					// 					currentMap->chars[c->nextY][c->nextX].nextY = nexty;
-					// 					min = currentMap->rivalMap[nexty][nextx];
-
-					// 				}
-					// 			}
-					// 		}
-					// 	}
-					// 	//hiker
-					// 	if(!strcmp(c->symbol,character_str[HIKER])){			
-					// 		currentMap->chars[c->nextY][c->nextX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],0) + currentMap->chars[c->posY][c->posX].nextTurn;
-					// 	}else{//rivial
-					// 		currentMap->chars[c->nextY][c->nextX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],1) + currentMap->chars[c->posY][c->posX].nextTurn;
-					// 	}
-
-			
+						setNextTurn(c->nextY,c->nextX,0,c->posX,c->posY,c);
+					}else if (!strcmp(c->symbol,character_str[RIVAL])){
+						setNextTurn(c->nextY,c->nextX,1,c->posX,c->posY,c);
+					}else if (!strcmp(c->symbol,character_str[PACER])){
+						setNextTurn(c->nextY,c->nextX,2,c->posX,c->posY,c);
+					}			
 					// printf("NEW INSERT\n");
 					// printf("symbol:%s\n",currentMap->chars[c->nextY][c->nextX].symbol);
 					// printf("x:%d\n",currentMap->chars[c->nextY][c->nextX].posX);
@@ -1308,40 +1316,11 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 
 					currentMap->chars[c->posY][c->posX].symbol = NULL;
 				}else{
-					int min = 9999;
-					int nextx = 0;
-					int nexty = 0;
-						for(int i = -1; i < 2; i++){
-							for(int j = -1; j < 2;j++){
-								//check surrounding for lowest cost
-								if(!strcmp(c->symbol,character_str[HIKER])){	
-									if(currentMap->hikerMap[c->posY+j][c->posX+i] < min  && currentMap->chars[c->posY+j][c->posX+i].symbol == NULL
-									&& !(i == 0 && j == 0)){
-										nextx = c->nextX + i;
-										nexty = c->nextY + j;
-										currentMap->chars[c->posY][c->posX].nextX = nextx;
-										currentMap->chars[c->posY][c->posX].nextY = nexty;
-										min = currentMap->hikerMap[nexty][nextx];
-
-									}
-								}else{
-									if(currentMap->rivalMap[c->posY+j][c->posX+i] < min  && currentMap->chars[c->posY+j][c->posX+i].symbol == NULL
-									&& !(i == 0 && j == 0)){
-										nextx = c->nextX + i;
-										nexty = c->nextY + j;
-										currentMap->chars[c->posY][c->posX].nextX = nextx;
-										currentMap->chars[c->posY][c->posX].nextY = nexty;
-										min = currentMap->rivalMap[nexty][nextx];
-
-									}
-								}
-							}
-						}
-						if(!strcmp(c->symbol,character_str[HIKER])){			
-							currentMap->chars[c->posY][c->posX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],0) + currentMap->chars[c->posY][c->posX].nextTurn;
-						}else{//rivial
-							currentMap->chars[c->posY][c->posX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],1) + currentMap->chars[c->posY][c->posX].nextTurn;
-						}
+					if(!strcmp(c->symbol,character_str[HIKER])){
+						setNextTurn(c->posY,c->posX,0,c->posX,c->posY,c);
+					}else if (!strcmp(c->symbol,character_str[RIVAL])){
+						setNextTurn(c->posY,c->posX,1,c->posX,c->posY,c);
+					}
 					currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
 					heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
 				}
@@ -1418,7 +1397,6 @@ void placeNPC(){		// weights of amount
 				numHiker++;
 				currentMap->chars[y][x] = hiker;
 				printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
-
 				currentMap->chars[y][x].hn = 
 				heap_insert(&charHeap,&currentMap->chars[y][x]);
 				
