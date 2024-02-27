@@ -148,7 +148,6 @@ void genBuildings();
 void loadMap();
 map* createMap();
 void copyMap(map* destination, const map* source);
-void freeMap(map* mapToFree) ;
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
@@ -171,7 +170,7 @@ int main(int argc, char *argv[]){
 	//printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
 	while (*command != 'Q')
 	{	
-		printf("\e[1;1H\e[2J"); //CLEAR SCREEN PRINT
+	//	printf("\e[1;1H\e[2J"); //CLEAR SCREEN PRINT
 	    srand ( time(NULL) );
 		if(globe.maps[posy][posx] == NULL){
 			globe.maps[posy][posx] = createMap();
@@ -303,13 +302,15 @@ void loadMap(){
 			}
 		}
 
-		globe.maps[posy][posx] = createMap();	
+		//globe.maps[posy][posx] = createMap();	
 		initMap(a,b,c,d);
 	}else{
 		//printf("\nFOUND MAP\n");
+		currentMap = globe.maps[posy][posx];
 		handleNPC(currentMap->chars);
 		printMap( globe.maps[posy][posx]);
-		currentMap = globe.maps[posy][posx];
+
+
 	}
 
 
@@ -317,7 +318,8 @@ void loadMap(){
 void initMap(int a,int b,int c, int d){
 	//printf("INIT\n");
 	//to get random rand seed
-	currentMap = createMap();
+	//free(currentMap);
+	//currentMap = createMap();
 	int i,j;
 
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
@@ -467,6 +469,7 @@ void initMap(int a,int b,int c, int d){
 	placeNPC();
 	printMap(currentMap);
 	copyMap(globe.maps[posy][posx],currentMap);
+	free(currentMap);
 }
 void findPath(int x ,int y, int targetx, int targety){
 	int counter = 0;
@@ -927,6 +930,7 @@ void printMap(map *Map){
 				printf("\n");
 			}
 		}
+
 	// for(i = 0; i < MAPHEIGHT; i++){
 	// 	for(j= 0; j < MAPWIDTH; j++) {			
 	// 		if(j == globe.playerX && i == globe.playerY){
@@ -1230,115 +1234,49 @@ static int32_t char_cmp(const void *key, const void *with) {
   return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
 }
 
+void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
+	int nextx = nextX;
+	int nexty = nextY;
+	if(dir == 0){//left
+		if(currentMap->rivalMap[nextY][nextX - 1] != INT16_MAX
+		&& currentMap->chars[nextY][nextX - 1].symbol == NULL){
+			nextx = nextX-1;
+		}else{
+			dir = 1;
+		}
+	}else if(dir == 1){//right
+		if(currentMap->rivalMap[nextY][nextX + 1] != INT16_MAX
+		&& currentMap->chars[nextY][nextX + 1].symbol == NULL){
+			nextx = nextX+1;
+		}else{
+			dir = 0;
+		}
+	}else if(dir == 2){//up
+		if(currentMap->rivalMap[nextY-1][nextX] != INT16_MAX
+		&& currentMap->chars[nextY-1][nextX].symbol == NULL){
+			nexty = nextY-1;
+		}else{
+			dir = 3;
+		}
+	}else if(dir == 3){//down
+		if(currentMap->rivalMap[nextY+1][nextX] != INT16_MAX
+		&& currentMap->chars[nextY+1][nextX].symbol == NULL){
+			nexty = nextY+1;
+		}else{
+			dir = 2;
+		}
+	}
+	currentMap->chars[nextY][nextX].dir = dir;
+	currentMap->chars[nextY][nextX].nextY = nexty;
+	currentMap->chars[nextY][nextX].nextX = nextx;
+	currentMap->chars[nextY][nextX].nextTurn = getTileCost(currentMap->tiles[nexty][nextx],0) + currentMap->chars[posY][posX].nextTurn;
+	//printf("PACER: Dir:%d,ny%d,nx%d,y%d,x%d\n",dir,nextY,nextX,posY,posX);
+}
 void setNextTurn(int posY,int posX,int type,int ox,int oy){
 	int i;
 	int min = 9999;
 	int nextx = 0;
 	int nexty = 0;
-	if(type == 3){
-		currentMap->chars[posY][posX].tile = currentMap->chars[oy][ox].tile;
-	}
-	//pacer and wanderer and explorer logic
-	if(type == 2 || type == 3 || type == 4){
-		//printf("PACER start dir: %d   ",currentMap->chars[posY][posX].dir);
-		if(currentMap->chars[oy][ox].dir == 0){//left
-			if(currentMap->rivalMap[posY][posX-1] != INT16_MAX &&
-			currentMap->chars[posY][posX-1].symbol == NULL){
-				if(type != 3 || (type == 3 && !strcmp(currentMap->tiles[posY][posX-1],currentMap->chars[posY][posX].tile))){
-					nextx = posX -1;
-					nexty = posY;
-					currentMap->chars[posY][posX].dir = 0;
-				}else{
-					printf("WRONG TILE!!!~ %s",currentMap->tiles[posY][posX]);
-					currentMap->chars[posY][posX].dir = rand() %4;
-					nextx = posX;
-					nexty = posY;
-				}
-			}else {
-				if(type == 2)
-					currentMap->chars[posY][posX].dir = 1;
-				else
-					currentMap->chars[posY][posX].dir = rand() %4;
-				nextx = posX + 1;
-				nexty = posY;
-			}
-		}
-		else if(currentMap->chars[oy][ox].dir == 1){//right
-			if(currentMap->rivalMap[posY][posX+1] != INT16_MAX&&
-			currentMap->chars[posY][posX+1].symbol == NULL){
-				if(type != 3 || (type == 3 && !strcmp(currentMap->tiles[posY][posX+1],currentMap->chars[posY][posX].tile))){
-					nextx = posX +1;
-					nexty = posY;
-					currentMap->chars[posY][posX].dir = 1;
-				}else{
-					printf("WRONG TILE!!!~ %s",currentMap->tiles[posY][posX]);
-					currentMap->chars[posY][posX].dir = rand() %4;
-					nextx = posX;
-					nexty = posY;
-				}
-			}else{
-				if(type == 2)
-					currentMap->chars[posY][posX].dir = 0;
-				else
-					currentMap->chars[posY][posX].dir = rand() %4;		
-				nextx = posX -1;
-				nexty = posY;
-			}
-		}
-		else if(currentMap->chars[oy][ox].dir == 2){//up
-			if(currentMap->rivalMap[posY-1][posX] != INT16_MAX&&
-			currentMap->chars[posY-1][posX].symbol == NULL){
-				if(type != 3 || (type == 3 && !strcmp(currentMap->tiles[posY-1][posX],currentMap->chars[posY][posX].tile))){
-					nextx = posX;
-					nexty = posY-1;
-					currentMap->chars[posY][posX].dir = 2;
-				}else{
-					printf("WRONG TILE!!!~ %s",currentMap->tiles[posY][posX]);
-					currentMap->chars[posY][posX].dir = rand() %4;
-					nextx = posX;
-					nexty = posY;
-				}
-			}else{
-				if(type == 2)
-					currentMap->chars[posY][posX].dir = 3;
-				else
-					currentMap->chars[posY][posX].dir = rand() %4;		
-				nextx = posX;
-				nexty = posY+1;
-			}
-		}
-		else if(currentMap->chars[oy][ox].dir == 3){//down
-			if(currentMap->rivalMap[posY+1][posX] != INT16_MAX&&
-			currentMap->chars[posY+1][posX].symbol == NULL){
-				if(type != 3 || (type == 3 && !strcmp(currentMap->tiles[posY+1][posX],currentMap->chars[posY][posX].tile))){
-					nextx = posX;
-					nexty = posY+1;
-					currentMap->chars[posY][posX].dir = 3;
-				}else{
-					printf("WRONG TILE!!!~ %s",currentMap->tiles[posY][posX]);
-					currentMap->chars[posY][posX].dir = rand() %4;
-					nextx = posX;
-					nexty = posY;
-				}
-			}else{
-				if(type == 2)
-					currentMap->chars[posY][posX].dir = 2;
-				else
-					currentMap->chars[posY][posX].dir = rand() %4;		
-				nextx = posX;
-				nexty = posY-1;
-			}
-		}
-		if(nextx == 0){
-			nextx = ox;
-		}
-		if(nexty == 0){
-			nexty= oy;
-		}	
-		currentMap->chars[posY][posX].nextY = nexty;
-		currentMap->chars[posY][posX].nextX = nextx;
-		//printf("nexty: %d, nextx: %d \n", currentMap->chars[posY][posX].nextY,currentMap->chars[posY][posX].nextX);
-	}else{
 		for(i = 0; i < 8; i++){
 		if(type == 0){
 				//check surrounding for lowest cost
@@ -1355,7 +1293,7 @@ void setNextTurn(int posY,int posX,int type,int ox,int oy){
 			}
 		}
 	}
-	}
+
 	if(nextx == 0){
 			nextx = ox;
 		}
@@ -1383,7 +1321,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			}else if(c->nextTurn > timeNum){
 				currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
 				heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
-				copyMap(globe.maps[posy][posx],currentMap);
+				//copyMap(globe.maps[posy][posx],currentMap);
 				return;
 			}
 			// printf("FOUND INSERT\n");
@@ -1413,9 +1351,8 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					}else if (!strcmp(c->symbol,character_str[RIVAL])){
 						setNextTurn(c->nextY,c->nextX,1,c->posX,c->posY);
 					}else if (!strcmp(c->symbol,character_str[PACER])){
-						setNextTurn(c->nextY,c->nextX,2,c->posX,c->posY);
+						setNextPace(c->nextY,c->nextX,c->posY,c->posX,c->dir,2);
 					}else if (!strcmp(c->symbol,character_str[WANDERER])){
-						setNextTurn(c->nextY,c->nextX,3,c->posX,c->posY);
 					}
 					// printf("NEW INSERT\n");
 					// printf("symbol:%s\n",currentMap->chars[c->nextY][c->nextX].symbol);
@@ -1435,7 +1372,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					}else if (!strcmp(c->symbol,character_str[RIVAL])){
 						setNextTurn(c->posY,c->posX,1,c->posX,c->posY);
 					}else if (!strcmp(c->symbol,character_str[PACER])){
-						setNextTurn(c->posY,c->posX,2,c->posX,c->posY);
+						setNextPace(c->nextY,c->nextX,c->posY,c->posX,c->dir,2);
 					}else if (!strcmp(c->symbol,character_str[WANDERER])){
 						setNextTurn(c->nextY,c->nextX,3,c->posX,c->posY);
 					}
@@ -1445,7 +1382,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			}
 		}
 	}
-	copyMap(globe.maps[posy][posx],currentMap);
+	//copyMap(globe.maps[posy][posx],currentMap);
 
 }
 
@@ -1535,7 +1472,7 @@ void placeNPC(){		// weights of amount
 				pacer.dir =	rand() %4;
 				pacer.nextTurn = 0;
 				currentMap->chars[y][x]= pacer;
-				setNextTurn(y,x,2,x,y);
+				setNextPace(y,x,y,x,pacer.dir,2);
 				numPacer++;
 				heap_insert(&charHeap,&currentMap->chars[y][x]);
 			}
@@ -1550,9 +1487,9 @@ void placeNPC(){		// weights of amount
 				wanderer.dir = rand() %4;
 				wanderer.nextTurn = 0;
 				currentMap->chars[y][x]= wanderer;
-				setNextTurn(y,x,3,x,y);
+			//	setNextTurn(y,x,3,x,y);
 				numWanderer++;
-				heap_insert(&charHeap,&currentMap->chars[y][x]);
+				//heap_insert(&charHeap,&currentMap->chars[y][x]);
 			}
 			
 		}
