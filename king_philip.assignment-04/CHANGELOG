@@ -22,6 +22,12 @@ Wed, 31 Jan 2024 13:41:44 -0600 - started assignment 2
 
 Wed, 31 Jan 2024 16:25:51 -0600 - had a fistfight with structs and a 2d array of structs but i got it
 
+Thu, 1 Feb 2024 22:03:28 -0600 - added 418 homework
+
+Thu, 1 Feb 2024 22:08:04 -0600 - added 418 for real
+
+Fri, 2 Feb 2024 16:43:06 -0600 - last of the do not add messaged
+
 Fri, 2 Feb 2024 21:17:45 -0600 - added colors to the map as well as command input system
 
 Fri, 2 Feb 2024 23:20:04 -0600 - added north and south, had a fist fight with pointers and segfaults
@@ -52,6 +58,8 @@ Wed, 7 Feb 2024 13:36:27 -0600 - finished the chance for buldings, that means im
 
 Wed, 7 Feb 2024 13:50:49 -0600 - last changes for some bugs
 
+Thu, 8 Feb 2024 12:45:31 -0600 - bug
+
 Sat, 10 Feb 2024 16:24:36 -0600 - project 3
 
 Sat, 10 Feb 2024 16:27:11 -0600 - linux to mac test
@@ -77,3 +85,47 @@ Tue, 13 Feb 2024 12:50:26 -0600 - working on rival rn, running into weird bug wh
 Tue, 13 Feb 2024 13:08:59 -0600 - fixed it, i feel like something else is wrong but if it isnt im done
 
 Tue, 13 Feb 2024 22:57:12 -0600 - finished assigment 3
+
+Thu, 15 Feb 2024 13:34:00 -0600 - Started 04
+
+Mon, 19 Feb 2024 13:08:56 -0600 - switched maps to a struct instead of preinit 2d array to save space i think
+
+Mon, 19 Feb 2024 13:17:36 -0600 - added character enum
+
+Mon, 19 Feb 2024 22:26:23 -0600 - made logic for --numtrainers switch and got it parsin and stuff
+
+Mon, 19 Feb 2024 23:51:16 -0600 - just had the wildest fight of my life, not even sure what happened or what I was trying to fix. everything just broke and it took from the time of the last commit till now to get back working
+
+Tue, 20 Feb 2024 00:08:52 -0600 - now storing the current cost maps in the map struct
+
+Tue, 20 Feb 2024 09:53:54 -0600 - added weighting for num of trainers to add to the map that scales with the num given by the flag (or lack of flag)
+
+Tue, 20 Feb 2024 10:07:50 -0600 - got the game loop goin
+
+Tue, 20 Feb 2024 10:26:39 -0600 - added hikers
+
+Thu, 22 Feb 2024 23:47:45 -0600 - added spawning for all enemies
+
+Fri, 23 Feb 2024 11:27:11 -0600 - added logic for not allowing chars to spawn on trees and water
+
+Fri, 23 Feb 2024 15:09:46 -0600 - having the worst time right now trying to figure out now to make my custom struct work with a queue
+
+Fri, 23 Feb 2024 15:12:25 -0600 - I JUST GOT IT WORKINGgit add *git add *git add *git add *git add *git add *git add *git add *git add *git add *git add *git add *git add *
+
+Fri, 23 Feb 2024 16:40:36 -0600 - after a very long battle hikers are finished, i need to clean up all the code now
+
+Sun, 25 Feb 2024 21:19:24 -0600 - got rivals working, but also realized im not doing the turns correctly
+
+Sun, 25 Feb 2024 22:28:04 -0600 - ok i think i got it right i think idk
+
+Mon, 26 Feb 2024 13:09:34 -0600 - added player to queue for future turn things
+
+Mon, 26 Feb 2024 14:56:14 -0600 - got pacer workin
+
+Mon, 26 Feb 2024 16:29:40 -0600 - got wanderer in and he works like 90 percent of the time, not exactly sure why it breaks sometimes but ill figure it out
+
+Mon, 26 Feb 2024 21:53:11 -0600 - fixed a HUGE mem leak, also redid pacer and removed wanderer
+
+Tue, 27 Feb 2024 09:41:33 -0600 - finished i think, testing it in pyrite and valgrind
+
+Tue, 27 Feb 2024 10:22:50 -0600 - added player movement every 20 turns as well as rest of trainers, just need to write readme and changelog and then im done

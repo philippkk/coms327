@@ -8,14 +8,18 @@ How to clean:
 Description:
 	Running ./poke will run the game
 
-	The map will print first, next the cost to get to the player from every tile for the hiker
-	then the price for the rivial
+	Characters:
+		@ = player
+		h = hiker,	path to player
+		r = rival, 	path to player
+		e = explorer,   wander over whole map
+		s = sentury,    stay still
+		w = wanderer,	wander over spawned tile type
+		p = pacer,  	pace back and forth
 
-	The player will be the spot with the red background (or just colored depending on what youre running this on)
-	
+	UI:
+		currentTime: time of current move
+		turn: # of turns since last player move
+			player moves every 21 turns to test recalcuation of the navigation
 
-	logic: paths are generated using a weight map to find a somewhat organic path.
-	buldings have a decreasing chance to spawn as we go farther from the center of the map
-	all paths will connect to eachother, and on the edge cases the non edge paths and gates will be the only ones to spawn.
-		ie. top right corner of map will only have left and down gate which will connect.
-	All tiles are colored for style.
+		
