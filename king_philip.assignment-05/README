@@ -1,0 +1,25 @@
+How to run:
+	$ make
+	$ ./poke
+
+How to clean:
+	$ make clean
+
+Description:
+	Running ./poke will run the game
+
+	Characters:
+		@ = player
+		h = hiker,	path to player
+		r = rival, 	path to player
+		e = explorer,   wander over whole map
+		s = sentury,    stay still
+		w = wanderer,	wander over spawned tile type
+		p = pacer,  	pace back and forth
+
+	UI:
+		currentTime: time of current move
+		turn: # of turns since last player move
+			player moves every 21 turns to test recalcuation of the navigation
+
+		
