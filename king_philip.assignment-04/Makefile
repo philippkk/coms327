@@ -1,4 +1,5 @@
 #terrain: terrain.c
+
 #	gcc terrain.c -o terrain
 #clean:
 #	rm -f terrain *~ core
@@ -13,10 +14,10 @@
 
 
 poke: poke.o heap.o
-	gcc poke.o heap.o -o poke 
+	gcc poke.o heap.o -o poke
 
 poke.o: poke.c
-	gcc -Wall -Werror -g poke.c -c 
+	gcc -Wall -Werror -g poke.c -c
 
 heap.o: heap.c heap.h
 	gcc -Wall -Werror -g heap.c -c

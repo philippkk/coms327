@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <ctype.h>
 #include <math.h>
+#include <ctype.h>
 #include <unistd.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
