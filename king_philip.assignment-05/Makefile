@@ -13,7 +13,7 @@
 
 
 poke: poke.o heap.o
-	gcc poke.o heap.o -o poke -lm
+	gcc poke.o heap.o -o poke -lm -lcurses
 
 poke.o: poke.c
 	gcc -Wall -Werror -g poke.c -c 

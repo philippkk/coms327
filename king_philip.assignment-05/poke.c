@@ -5,6 +5,7 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include <ncurses.h>
 #include <unistd.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
@@ -150,6 +151,17 @@ static int32_t char_cmp(const void *key, const void *with);
 heap_t charHeap;
 
 int main(int argc, char *argv[]){
+	
+
+	initscr();			/* Start curses mode 		  */
+	noecho();
+	curs_set(0);
+	start_color();
+	printw("Hello World !!!");	/* Print Hello World		  */
+	refresh();			/* Print it on to the real screen */
+	// getch();			/* Wait for user input */
+	// endwin();			/* End curses mode		  */
+
 	heap_init(&charHeap,char_cmp,NULL);
 	char command[20];
 	//bool numTrainerSwitch = false;
@@ -912,19 +924,21 @@ void genBuildings(){
 	}
 }
 void printMap(map *Map){
-	printf("CURRENT TIME: %d, turn: %d\n",currentTime,DEBUGCHANGENUM);
-	int i,j;
-	for(i = 0; i < MAPHEIGHT; i++)
-		for(j= 0; j < MAPWIDTH; j++){
-			if(Map->chars[i][j].symbol != NULL){
-				printf("%s",Map->chars[i][j].symbol);
-			}else{
-				printf("%s",Map->tiles[i][j]);
-			}
-			if(j == MAPWIDTH -1){
-				printf("\n");
-			}
-		}
+	clear();
+	printw("CURRENT TIME: %d, turn: %d\n",currentTime,DEBUGCHANGENUM);
+	refresh();
+	// int i,j;
+	// for(i = 0; i < MAPHEIGHT; i++)
+	// 	for(j= 0; j < MAPWIDTH; j++){
+	// 		if(Map->chars[i][j].symbol != NULL){
+	// 			printf("%s",Map->chars[i][j].symbol);
+	// 		}else{
+	// 			printf("%s",Map->tiles[i][j]);
+	// 		}
+	// 		if(j == MAPWIDTH -1){
+	// 			printf("\n");
+	// 		}
+	// 	}
 
 	// for(i = 0; i < MAPHEIGHT; i++){
 	// 	for(j= 0; j < MAPWIDTH; j++) {			
