@@ -34,26 +34,41 @@ typedef enum Tiles
 }tiles;   
  char * const tile_str[] =
 {
-    [TREE]  = "\033[42;37m^\033[0m", 
-	[ROCK] = "\033[45;37m%\033[0m", 
-	[ROAD] = "\033[40;37m#\033[0m", 
-    [LONG] = "\033[102;37m:\033[0m", 
-	[SHORT] = "\033[102;37m.\033[0m", 
-	[WATER] = "\033[46;37m~\033[0m", 
-	[MART] = "\033[46;37mM\033[0m", 
-	[CENTER] = "\033[41;37mP\033[0m",
+    // [TREE]  = "\033[42;37m^\033[0m", 
+	// [ROCK] = "\033[45;37m%\033[0m", 
+	// [ROAD] = "\033[40;37m#\033[0m", 
+    // [LONG] = "\033[102;37m:\033[0m", 
+	// [SHORT] = "\033[102;37m.\033[0m", 
+	// [WATER] = "\033[46;37m~\033[0m", 
+	// [MART] = "\033[46;37mM\033[0m", 
+	// [CENTER] = "\033[41;37mP\033[0m",
+	[TREE]  = "^", 
+	[ROCK] = "%", 
+	[ROAD] = "#", 
+    [LONG] = ":", 
+	[SHORT] = ".", 
+	[WATER] = "~", 
+	[MART] = "M", 
+	[CENTER] = "P",
 };
 typedef enum Characters{
 	PLAYER, HIKER, RIVAL, PACER, WANDERER, SENTRIES, EXPLORERS
 }characters;
 char * const character_str[]={
-	[PLAYER] = "\033[044;05m@\033[0m",
-	[HIKER] = "\033[44;05mh\033[0m",
-	[RIVAL] = "\033[44;05mr\033[0m",
-	[PACER] = "\033[44;05mp\033[0m",
-	[WANDERER] = "\033[44;05mw\033[0m",
-	[SENTRIES] = "\033[44;05ms\033[0m",
-	[EXPLORERS] = "\033[44;05me\033[0m"
+	// [PLAYER] = "\033[044;05m@\033[0m",
+	// [HIKER] = "\033[44;05mh\033[0m",
+	// [RIVAL] = "\033[44;05mr\033[0m",
+	// [PACER] = "\033[44;05mp\033[0m",
+	// [WANDERER] = "\033[44;05mw\033[0m",
+	// [SENTRIES] = "\033[44;05ms\033[0m",
+	// [EXPLORERS] = "\033[44;05me\033[0m"
+	[PLAYER] = "@",
+	[HIKER] = "h",
+	[RIVAL] = "r",
+	[PACER] = "p",
+	[WANDERER] = "w",
+	[SENTRIES] = "s",
+	[EXPLORERS] = "e"
 };
 enum Commands{
 	EMPTY,
@@ -157,8 +172,20 @@ int main(int argc, char *argv[]){
 	noecho();
 	curs_set(0);
 	start_color();
-	printw("Hello World !!!");	/* Print Hello World		  */
-	refresh();			/* Print it on to the real screen */
+	init_pair(1, COLOR_RED, COLOR_BLACK);
+	init_pair(2, COLOR_WHITE, COLOR_BLUE);
+	init_pair(3, COLOR_GREEN, COLOR_BLACK);
+	init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(5, COLOR_BLACK, COLOR_MAGENTA);
+	init_pair(6, COLOR_WHITE, COLOR_CYAN);
+	init_pair(7, COLOR_WHITE, COLOR_BLACK);
+	init_pair(8, COLOR_WHITE, COLOR_BLUE);
+	init_pair(9, COLOR_WHITE, COLOR_RED);
+	init_pair(10, COLOR_WHITE, COLOR_GREEN);
+
+
+	//printw("Hello World !!!");	/* Print Hello World		  */
+	//refresh();			/* Print it on to the real screen */
 	// getch();			/* Wait for user input */
 	// endwin();			/* End curses mode		  */
 
@@ -925,21 +952,65 @@ void genBuildings(){
 }
 void printMap(map *Map){
 	clear();
+	//printw("\n");
+	attron(COLOR_PAIR(1));
 	printw("CURRENT TIME: %d, turn: %d\n",currentTime,DEBUGCHANGENUM);
+	attroff(COLOR_PAIR(1));
+	int i,j;
+	for(i = 0; i < MAPHEIGHT; i++)
+		for(j= 0; j < MAPWIDTH; j++){
+			if(Map->chars[i][j].symbol != NULL){
+				if(!strcasecmp(character_str[PLAYER],Map->chars[i][j].symbol)){
+						attron(COLOR_PAIR(6));
+						attron(A_BLINK);
+						printw("%s",Map->chars[i][j].symbol);
+						attroff(COLOR_PAIR(6));
+						attroff(A_BLINK);
+				}else{
+					attron(COLOR_PAIR(2));
+					printw("%s",Map->chars[i][j].symbol);
+					attroff(COLOR_PAIR(2));
+				}
+			}else{
+				if(!strcmp(tile_str[TREE],Map->tiles[i][j])){
+					attron(COLOR_PAIR(10));
+				}else if(!strcmp(tile_str[ROCK],Map->tiles[i][j])){
+					attron(COLOR_PAIR(5));
+				}else if(!strcmp(tile_str[ROAD],Map->tiles[i][j])){
+					attron(COLOR_PAIR(7));
+				}else if(!strcmp(tile_str[LONG],Map->tiles[i][j])){
+					attron(COLOR_PAIR(3));
+				}else if(!strcmp(tile_str[SHORT],Map->tiles[i][j])){
+					attron(COLOR_PAIR(3));
+				}else if(!strcmp(tile_str[WATER],Map->tiles[i][j])){
+					attron(COLOR_PAIR(6));
+				}else if(!strcmp(tile_str[MART],Map->tiles[i][j])){
+					attron(COLOR_PAIR(8));
+				}else if(!strcmp(tile_str[CENTER],Map->tiles[i][j])){
+					attron(COLOR_PAIR(9));
+				}
+				printw("%s",Map->tiles[i][j]);
+					attroff(COLOR_PAIR(1));
+					attroff(COLOR_PAIR(2));
+					attroff(COLOR_PAIR(3));
+					attroff(COLOR_PAIR(4));
+					attroff(COLOR_PAIR(5));
+					attroff(COLOR_PAIR(6));
+					attroff(COLOR_PAIR(7));
+					attroff(COLOR_PAIR(8));
+					attroff(COLOR_PAIR(9));
+					attroff(COLOR_PAIR(10));
+			}
+			if(j == MAPWIDTH -1){
+				printw("\n");
+			}
+		}
+	mvaddstr(15,25,"stuff printed to middle of screen");
+	mvaddstr(20,5,"RAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+  	mvaddstr(21,5,"line 21");
+  	mvaddstr(22,5,"line 22");
+	mvaddstr(23,5,"line 23");
 	refresh();
-	// int i,j;
-	// for(i = 0; i < MAPHEIGHT; i++)
-	// 	for(j= 0; j < MAPWIDTH; j++){
-	// 		if(Map->chars[i][j].symbol != NULL){
-	// 			printf("%s",Map->chars[i][j].symbol);
-	// 		}else{
-	// 			printf("%s",Map->tiles[i][j]);
-	// 		}
-	// 		if(j == MAPWIDTH -1){
-	// 			printf("\n");
-	// 		}
-	// 	}
-
 	// for(i = 0; i < MAPHEIGHT; i++){
 	// 	for(j= 0; j < MAPWIDTH; j++) {			
 	// 		if(j == globe.playerX && i == globe.playerY){
