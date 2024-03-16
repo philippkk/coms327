@@ -9,6 +9,7 @@
 #include <unistd.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
+#define KEY_ESC 27
 #include "heap.h"
 
 /*
@@ -165,16 +166,17 @@ int getTileCost(char *tile,int type);
 static int32_t char_cmp(const void *key, const void *with);
 heap_t charHeap;
 char command[20];
-char commandShort;
-
+int commandShort;
+bool playerTurn;
 
 int main(int argc, char *argv[]){
 	commandShort = ' ';
-
+	playerTurn = false;
 	initscr();			/* Start curses mode 		  */
 	noecho();
 	raw();
 	curs_set(0);
+	keypad(stdscr, TRUE);
 	start_color();
 	init_pair(1, COLOR_RED, COLOR_BLACK);
 	init_pair(2, COLOR_WHITE, COLOR_BLUE);
@@ -219,7 +221,12 @@ int main(int argc, char *argv[]){
 		}else{
 			loadMap();
 		}
-		commandShort = getch();
+
+		if(playerTurn){
+			commandShort = getch();
+			playerTurn = false;
+		}
+		
 		if(commandShort == 'Q'){
 			break;
 		}
@@ -1019,6 +1026,12 @@ void printMap(map *Map){
   	mvaddstr(22,5,"line 22");
 	mvaddstr(23,5,"line 23");
 	mvaddstr(22,30,"command: ");
+	if(commandShort == KEY_UP){
+		mvaddstr(23,25,"UP ARRROWWWWW");
+	}
+	if(commandShort == KEY_ESC){
+		mvaddstr(23,25,"escape");
+	}
 	mvaddch(22,38,commandShort);
 	refresh();
 	// for(i = 0; i < MAPHEIGHT; i++){
@@ -1451,6 +1464,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			
 			if(!strcmp(c->symbol,character_str[PLAYER])){
 				//int num = rand() % 4;
+				playerTurn = true;
 				bool genPlayer = false;
 				if(DEBUGCHANGENUM > 20){
 					while(!genPlayer){
