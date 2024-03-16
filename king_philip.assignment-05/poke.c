@@ -164,12 +164,16 @@ void placeNPC();
 int getTileCost(char *tile,int type);
 static int32_t char_cmp(const void *key, const void *with);
 heap_t charHeap;
+char command[20];
+char commandShort;
+
 
 int main(int argc, char *argv[]){
-	
+	commandShort = ' ';
 
 	initscr();			/* Start curses mode 		  */
 	noecho();
+	raw();
 	curs_set(0);
 	start_color();
 	init_pair(1, COLOR_RED, COLOR_BLACK);
@@ -190,7 +194,6 @@ int main(int argc, char *argv[]){
 	// endwin();			/* End curses mode		  */
 
 	heap_init(&charHeap,char_cmp,NULL);
-	char command[20];
 	//bool numTrainerSwitch = false;
 	for (int i = 1; i < argc; i++) {
 		if(!strcmp(argv[i],command_str[NUMTRAINERS])){
@@ -213,15 +216,20 @@ int main(int argc, char *argv[]){
 		if(!globe.maps[posy][posx]->generated){
 			//printf("first init");
 			initMap(99,99,99,99);
-			//handleNPC(currentMap->chars);
 		}else{
 			loadMap();
 		}
-		//calcCost(0);
-		//calcCost(1);
-		usleep(250000);
+		commandShort = getch();
+		if(commandShort == 'Q'){
+			break;
+		}
+		//usleep(250000);
 		DEBUGCHANGENUM++;
 		continue;
+
+
+
+
 		//break;
 		printf("\033[96mEnter command: \033[0m");
 		//scanf("%s",command);
@@ -1010,6 +1018,8 @@ void printMap(map *Map){
   	mvaddstr(21,5,"line 21");
   	mvaddstr(22,5,"line 22");
 	mvaddstr(23,5,"line 23");
+	mvaddstr(22,30,"command: ");
+	mvaddch(22,38,commandShort);
 	refresh();
 	// for(i = 0; i < MAPHEIGHT; i++){
 	// 	for(j= 0; j < MAPWIDTH; j++) {			
