@@ -127,6 +127,14 @@ character_c explorer;
 int numTrainers = 10;
 int currentTime = 0;
 int DEBUGCHANGENUM = 0;
+heap_t charHeap;
+char command[20];
+int commandShort;
+bool playerTurn;
+bool inMart;
+bool inCenter;
+bool inBattle;
+bool showingList;
 //messy function defs
 void initMap(int a, int b, int c, int d);
 void printMap(map *Map);
@@ -140,10 +148,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
 int getTileCost(char *tile,int type);
 static int32_t char_cmp(const void *key, const void *with);
-heap_t charHeap;
-char command[20];
-int commandShort;
-bool playerTurn;
+
 
 int main(int argc, char *argv[]){
 	commandShort =  ' ';
@@ -984,6 +989,12 @@ void printMap(map *Map){
 				addstr("\n");
 			}
 		}
+
+	if(showingList){
+		mvaddstr(10,35,"showing list");
+	}
+
+
 	 mvaddstr(22,30,"command: ");
 	if(commandShort == KEY_UP){
 		mvaddstr(23,25,"UP ARRROWWWWW");
@@ -1384,84 +1395,96 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			if(!strcmp(c->symbol,character_str[PLAYER])){
 				//int num = rand() % 4;
 				playerTurn = true;
-				commandShort = getch();
 				int playerX = player.posX;
 				int playerY = player.posY;
-				switch(commandShort){
-					case 'y':
-						playerX--;
-						playerY--;
-						break;
-					case 'k':
-						playerY--;
-						break;
-					case 'u':
-						playerX++;
-						playerY--;
-						break;
-					case 'l':
-						playerX++;
-						break;
-					case 'n':
-						playerX++;
-						playerY++;
-						break;
-					case 'j':
-						playerY++;
-						break;
-					case 'b':
-						playerX--;
-						playerY++;
-						break;
-					case 'h':
-						playerX--;
-						break;
-					case '7':
-						playerX--;
-						playerY--;
-						break;
-					case '8':
-						playerY--;
-						break;
-					case '9':
-						playerX++;
-						playerY--;
-						break;
-					case '6':
-						playerX++;
-						break;
-					case '3':
-						playerX++;
-						playerY++;
-						break;
-					case '2':
-						playerY++;
-						break;
-					case '1':
-						playerX--;
-						playerY++;
-						break;
-					case '4':
-						playerX--;
-						break;
-					case '>':
-						break;
-					case '.':
-						break;
-					case '5':
-						break;
-					case ' ':
-						break;
-					case 't':
-						break;
-					case KEY_UP:
-						break;
-					case KEY_DOWN:
-						break;
-					case KEY_ESC:
-						break;
-					default:
-						break;
+				bool validCommand = false;
+				while(!validCommand){	
+					printMap(currentMap);
+					commandShort = getch();
+					validCommand = true;
+					switch(commandShort){
+						case 'y':
+							playerX--;
+							playerY--;
+							break;
+						case 'k':
+							playerY--;
+							break;
+						case 'u':
+							playerX++;
+							playerY--;
+							break;
+						case 'l':
+							playerX++;
+							break;
+						case 'n':
+							playerX++;
+							playerY++;
+							break;
+						case 'j':
+							playerY++;
+							break;
+						case 'b':
+							playerX--;
+							playerY++;
+							break;
+						case 'h':
+							playerX--;
+							break;
+						case '7':
+							playerX--;
+							playerY--;
+							break;
+						case '8':
+							playerY--;
+							break;
+						case '9':
+							playerX++;
+							playerY--;
+							break;
+						case '6':
+							playerX++;
+							break;
+						case '3':
+							playerX++;
+							playerY++;
+							break;
+						case '2':
+							playerY++;
+							break;
+						case '1':
+							playerX--;
+							playerY++;
+							break;
+						case '4':
+							playerX--;
+							break;
+						case '>':
+							break;
+						case '<':
+							break;
+						case '.':
+							break;
+						case '5':
+							break;
+						case ' ':
+							break;
+						case 't':
+							showingList = !showingList;
+							validCommand = false;
+							break;
+						case KEY_UP:
+							break;
+						case KEY_DOWN:
+							break;
+						case KEY_ESC:
+							break;
+						case 'Q':
+							break;
+						default:
+							validCommand = false;
+							break;
+					}
 				}
 				if(getTileCost(currentMap->tiles[playerY][playerX],99) != INT16_MAX
 				&& currentMap->chars[playerY][playerX].symbol == NULL
