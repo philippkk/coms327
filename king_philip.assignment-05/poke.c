@@ -11,15 +11,6 @@
 #define MAPHEIGHT 21
 #define KEY_ESC 27
 #include "heap.h"
-
-/*
-USE raw(); to not enter after input
-noecho() to not print character input
-curs_set(0) no print cursor
-start_color()
-get color pairs for curses
-*/
-
 //% = border, boulder, mountain
 // ^ = tree and forest
 // # = road
@@ -35,14 +26,6 @@ typedef enum Tiles
 }tiles;   
  char * const tile_str[] =
 {
-    // [TREE]  = "\033[42;37m^\033[0m", 
-	// [ROCK] = "\033[45;37m%\033[0m", 
-	// [ROAD] = "\033[40;37m#\033[0m", 
-    // [LONG] = "\033[102;37m:\033[0m", 
-	// [SHORT] = "\033[102;37m.\033[0m", 
-	// [WATER] = "\033[46;37m~\033[0m", 
-	// [MART] = "\033[46;37mM\033[0m", 
-	// [CENTER] = "\033[41;37mP\033[0m",
 	[TREE]  = "^", 
 	[ROCK] = "%", 
 	[ROAD] = "#", 
@@ -56,13 +39,6 @@ typedef enum Characters{
 	PLAYER, HIKER, RIVAL, PACER, WANDERER, SENTRIES, EXPLORERS
 }characters;
 char * const character_str[]={
-	// [PLAYER] = "\033[044;05m@\033[0m",
-	// [HIKER] = "\033[44;05mh\033[0m",
-	// [RIVAL] = "\033[44;05mr\033[0m",
-	// [PACER] = "\033[44;05mp\033[0m",
-	// [WANDERER] = "\033[44;05mw\033[0m",
-	// [SENTRIES] = "\033[44;05ms\033[0m",
-	// [EXPLORERS] = "\033[44;05me\033[0m"
 	[PLAYER] = "@",
 	[HIKER] = "h",
 	[RIVAL] = "r",
@@ -188,13 +164,6 @@ int main(int argc, char *argv[]){
 	init_pair(8, COLOR_WHITE, COLOR_BLUE);
 	init_pair(9, COLOR_WHITE, COLOR_RED);
 	init_pair(10, COLOR_WHITE, COLOR_GREEN);
-
-
-	//printw("Hello World !!!");	/* Print Hello World		  */
-	//refresh();			/* Print it on to the real screen */
-	// getch();			/* Wait for user input */
-	// endwin();			/* End curses mode		  */
-
 	heap_init(&charHeap,char_cmp,NULL);
 	//bool numTrainerSwitch = false;
 	for (int i = 1; i < argc; i++) {
@@ -234,9 +203,6 @@ int main(int argc, char *argv[]){
 		//usleep(250000);
 		DEBUGCHANGENUM++;
 		continue;
-
-
-
 
 		//break;
 		printf("\033[96mEnter command: \033[0m");
@@ -368,8 +334,7 @@ void loadMap(){
 void initMap(int a,int b,int c, int d){
 	//printf("INIT\n");
 	//to get random rand seed
-	//free(currentMap);
-	//currentMap = createMap();
+
 	int i,j;
 
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
@@ -382,10 +347,6 @@ void initMap(int a,int b,int c, int d){
 				oldMap[i][j] = "-";
 				heightmap[i][j] = 0;
 			}
-			//printf("(%d,%d)",i,j);
-			// if(j > 70){
-			// 	printf("j: %d",j);
-			// }
 		}
 	}
 	//printf("after loop");
@@ -483,7 +444,6 @@ void initMap(int a,int b,int c, int d){
 		if(!foundEmpty){growing=false;}
 		foundEmpty = false;
 	}
-	
 	//printf("before path a%d b%d c%d d%d \n",a,b,c,d);
 	genPaths(a,b,c,d);
 	//printf("\nafter path\n");
@@ -1452,11 +1412,49 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					case 'h':
 						playerX--;
 						break;
+					case '7':
+						playerX--;
+						playerY--;
+						break;
+					case '8':
+						playerY--;
+						break;
+					case '9':
+						playerX++;
+						playerY--;
+						break;
+					case '6':
+						playerX++;
+						break;
+					case '3':
+						playerX++;
+						playerY++;
+						break;
+					case '2':
+						playerY++;
+						break;
+					case '1':
+						playerX--;
+						playerY++;
+						break;
+					case '4':
+						playerX--;
+						break;
 					case '>':
 						break;
 					case '.':
 						break;
+					case '5':
+						break;
+					case ' ':
+						break;
 					case 't':
+						break;
+					case KEY_UP:
+						break;
+					case KEY_DOWN:
+						break;
+					case KEY_ESC:
 						break;
 					default:
 						break;
