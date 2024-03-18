@@ -200,7 +200,7 @@ int main(int argc, char *argv[]){
 		if(commandShort == 'Q'){
 			break;
 		}
-		usleep(250000);
+		//usleep(250000);
 		DEBUGCHANGENUM++;
 		continue;
 
@@ -930,7 +930,10 @@ void genBuildings(){
 void printMap(map *Map){
 	clear();
 	attron(COLOR_PAIR(1));
-	printw("CURRENT TIME: %d\n",currentTime);
+	addstr("CURRENT TIME: ");
+	char str[10];
+	sprintf(str,"%d",currentTime);
+    addstr(str);addstr("\n");
 	attroff(COLOR_PAIR(1));
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++)
@@ -939,12 +942,12 @@ void printMap(map *Map){
 				if(!strcasecmp(character_str[PLAYER],Map->chars[i][j].symbol)){
 						attron(COLOR_PAIR(6));
 						attron(A_BLINK);
-						printw("%s",Map->chars[i][j].symbol);
+						addch(*Map->chars[i][j].symbol);
 						attroff(COLOR_PAIR(6));
 						attroff(A_BLINK);
 				}else{
 					attron(COLOR_PAIR(2));
-					printw("%s",Map->chars[i][j].symbol);
+					addch(*Map->chars[i][j].symbol);
 					attroff(COLOR_PAIR(2));
 				}
 			}else{
@@ -965,7 +968,7 @@ void printMap(map *Map){
 				}else if(!strcmp(tile_str[CENTER],Map->tiles[i][j])){
 					attron(COLOR_PAIR(9));
 				}
-				printw("%s",Map->tiles[i][j]);
+				addch(*Map->tiles[i][j]);
 					attroff(COLOR_PAIR(1));
 					attroff(COLOR_PAIR(2));
 					attroff(COLOR_PAIR(3));
@@ -978,17 +981,17 @@ void printMap(map *Map){
 					attroff(COLOR_PAIR(10));
 			}
 			if(j == MAPWIDTH -1){
-				printw("\n");
+				addstr("\n");
 			}
 		}
-	mvaddstr(22,30,"command: ");
+	 mvaddstr(22,30,"command: ");
 	if(commandShort == KEY_UP){
 		mvaddstr(23,25,"UP ARRROWWWWW");
 	}
 	if(commandShort == KEY_ESC){
 		mvaddstr(23,25,"escape");
 	}
-	mvaddch(22,38,commandShort);
+	 mvaddch(22,38,commandShort);
 	refresh();
 }
 map* createMap() {
@@ -1381,7 +1384,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			if(!strcmp(c->symbol,character_str[PLAYER])){
 				//int num = rand() % 4;
 				playerTurn = true;
-				//commandShort = getch();
+				commandShort = getch();
 				int playerX = player.posX;
 				int playerY = player.posY;
 				switch(commandShort){
