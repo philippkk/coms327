@@ -200,7 +200,7 @@ int main(int argc, char *argv[]){
 		if(commandShort == 'Q'){
 			break;
 		}
-		//usleep(250000);
+		usleep(250000);
 		DEBUGCHANGENUM++;
 		continue;
 
@@ -279,6 +279,7 @@ int main(int argc, char *argv[]){
 
 		}
 	}
+	endwin();
 	return 0;
 }
 void loadMap(){
@@ -1380,7 +1381,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			if(!strcmp(c->symbol,character_str[PLAYER])){
 				//int num = rand() % 4;
 				playerTurn = true;
-				commandShort = getch();
+				//commandShort = getch();
 				int playerX = player.posX;
 				int playerY = player.posY;
 				switch(commandShort){
