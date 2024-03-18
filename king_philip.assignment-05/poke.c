@@ -9,6 +9,7 @@
 #include <unistd.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
+#define UIMIDOFFSET 15
 #define KEY_ESC 27
 #include "heap.h"
 //% = border, boulder, mountain
@@ -135,6 +136,7 @@ bool inMart;
 bool inCenter;
 bool inBattle;
 bool showingList;
+int trainerListOffset = 0;
 //messy function defs
 void initMap(int a, int b, int c, int d);
 void printMap(map *Map);
@@ -195,13 +197,9 @@ int main(int argc, char *argv[]){
 		}else{
 			loadMap();
 		}
-
 		if(playerTurn){
 			playerTurn = false;
-		}else{
-			commandShort = ' ';
-		}
-		
+		}	
 		if(commandShort == 'Q'){
 			break;
 		}
@@ -990,10 +988,66 @@ void printMap(map *Map){
 			}
 		}
 
+	//80/21
 	if(showingList){
-		mvaddstr(10,35,"showing list");
-	}
 
+		//PRINTING FIRST BOX
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "          TRAINERS DISTANCE TO PLAYER            ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 18;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(18,i,ACS_HLINE);
+		}
+		mvaddch(18,15,ACS_LLCORNER);
+		mvaddch(18,64,ACS_LRCORNER);
+		//PRINTING REST OF THING.
+		int numOfChars = 0;
+		character_c chars[numTrainers];
+		for(int i = 1; i < MAPHEIGHT - 1;i++){
+			for(int j = 1; j < MAPWIDTH - 1;j++){
+				if(currentMap->chars[i][j].symbol != NULL &&
+				currentMap->chars[i][j].symbol != character_str[PLAYER]){
+					chars[numOfChars] = currentMap->chars[i][j];
+					numOfChars++;
+				}
+			}
+		}
+		for(int i = 0; i < numOfChars;i++){
+			attron(COLOR_PAIR(2));
+			mvaddch(7+i,15 + UIMIDOFFSET, *chars[i].symbol);
+			attroff(COLOR_PAIR(2));
+			mvaddstr(7+i,17+ UIMIDOFFSET,"->");
+			char trainerX[4];
+			char trainerY[4];
+			sprintf(trainerX,"%d",chars[i].posX - globe.playerX);
+			sprintf(trainerY,"%d",chars[i].posY - globe.playerY);
+			mvaddstr(7+i,20 +UIMIDOFFSET,"X:");
+			mvaddstr(7+i,23 +UIMIDOFFSET,trainerX);
+			mvaddstr(7+i,27 +UIMIDOFFSET,"Y:");
+			mvaddstr(7+i,30 +UIMIDOFFSET,trainerY);
+
+
+		}
+		char str[10];
+		sprintf(str,"%d",numOfChars);
+    	mvaddstr(17,16,"num of chars: ");mvaddstr(17,30,str);
+		
+	}
 
 	 mvaddstr(22,30,"command: ");
 	if(commandShort == KEY_UP){
@@ -1278,7 +1332,8 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 	char *currentTile = currentMap->chars[posY][posX].tile;
 	if(dir == 0){//left
 		if(currentMap->rivalMap[nextY][nextX - 1] != INT16_MAX
-		&& currentMap->chars[nextY][nextX - 1].symbol == NULL){
+		&& currentMap->chars[nextY][nextX - 1].symbol == NULL
+		&& posX > 1){
 			nextx = nextX-1;
 		}else{
 			if(type == 3 || type == 4)
@@ -1288,7 +1343,8 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		}
 	}else if(dir == 1){//right
 		if(currentMap->rivalMap[nextY][nextX + 1] != INT16_MAX
-		&& currentMap->chars[nextY][nextX + 1].symbol == NULL){
+		&& currentMap->chars[nextY][nextX + 1].symbol == NULL
+		&& posX < MAPWIDTH - 2){
 			nextx = nextX+1;
 		}else{
 			if(type == 3 || type == 4)
@@ -1298,7 +1354,8 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		}
 	}else if(dir == 2){//up
 		if(currentMap->rivalMap[nextY-1][nextX] != INT16_MAX
-		&& currentMap->chars[nextY-1][nextX].symbol == NULL){
+		&& currentMap->chars[nextY-1][nextX].symbol == NULL
+		&& posY > 2){
 			nexty = nextY-1;
 		}else{
 			if(type == 3 || type == 4)
@@ -1308,7 +1365,8 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		}
 	}else if(dir == 3){//down
 		if(currentMap->rivalMap[nextY+1][nextX] != INT16_MAX
-		&& currentMap->chars[nextY+1][nextX].symbol == NULL){
+		&& currentMap->chars[nextY+1][nextX].symbol == NULL
+		&& posY < MAPHEIGHT - 2){
 			nexty = nextY+1;
 		}else{
 			if(type == 3 || type == 4)
@@ -1400,6 +1458,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				bool validCommand = false;
 				while(!validCommand){	
 					printMap(currentMap);
+					commandShort = ' ';
 					commandShort = getch();
 					validCommand = true;
 					switch(commandShort){
