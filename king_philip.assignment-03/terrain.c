@@ -128,7 +128,7 @@ void freeMap(map* mapToFree) ;
 void calcCost(int type);//0 = hiker 1 = rival
 player_c player;
 int main(int argc, char *argv[]){
-	char command[20];
+	char command[20] = " ";
 	//currentMap = *maps[posx][posy];
 	while (*command != 'Q')
 	{	

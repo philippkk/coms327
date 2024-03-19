@@ -13,7 +13,7 @@
 
 
 terrain: terrain.o heap.o
-	gcc terrain.o heap.o -o terrain 
+	gcc terrain.o heap.o -o terrain -lm 
 
 terrain.o: terrain.c
 	gcc -Wall -Werror -g terrain.c -c 

@@ -1027,25 +1027,32 @@ void printMap(map *Map){
 				}
 			}
 		}
-		for(int i = 0; i < numOfChars;i++){
+		int j = 0;
+		for(int i = trainerListOffset; i < trainerListOffset + 10;i++){
 			attron(COLOR_PAIR(2));
-			mvaddch(7+i,15 + UIMIDOFFSET, *chars[i].symbol);
+			if(trainerListOffset > 0)
+				mvaddch(7,35 +UIMIDOFFSET,'^');
+			if(trainerListOffset < numTrainers - 10)
+				mvaddch(17,35 +UIMIDOFFSET,'v');
+			char index[3];
+			sprintf(index,"%d",j + trainerListOffset + 1);
+			mvaddstr(7+j,10 + UIMIDOFFSET,index);
+			mvaddch(7+j,15 + UIMIDOFFSET, *chars[i].symbol);
 			attroff(COLOR_PAIR(2));
-			mvaddstr(7+i,17+ UIMIDOFFSET,"->");
+			mvaddstr(7+j,17+ UIMIDOFFSET,"->");
 			char trainerX[4];
 			char trainerY[4];
 			sprintf(trainerX,"%d",chars[i].posX - globe.playerX);
 			sprintf(trainerY,"%d",chars[i].posY - globe.playerY);
-			mvaddstr(7+i,20 +UIMIDOFFSET,"X:");
-			mvaddstr(7+i,23 +UIMIDOFFSET,trainerX);
-			mvaddstr(7+i,27 +UIMIDOFFSET,"Y:");
-			mvaddstr(7+i,30 +UIMIDOFFSET,trainerY);
-
-
+			mvaddstr(7+j,20 +UIMIDOFFSET,"X:");
+			mvaddstr(7+j,23 +UIMIDOFFSET,trainerX);
+			mvaddstr(7+j,27 +UIMIDOFFSET,"Y:");
+			mvaddstr(7+j,30 +UIMIDOFFSET,trainerY);
+			j++;
 		}
 		char str[10];
 		sprintf(str,"%d",numOfChars);
-    	mvaddstr(17,16,"num of chars: ");mvaddstr(17,30,str);
+    	mvaddstr(17,16,"num of trainers: ");mvaddstr(17,33,str);
 		
 	}
 
@@ -1461,89 +1468,116 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					commandShort = ' ';
 					commandShort = getch();
 					validCommand = true;
-					switch(commandShort){
-						case 'y':
-							playerX--;
-							playerY--;
-							break;
-						case 'k':
-							playerY--;
-							break;
-						case 'u':
-							playerX++;
-							playerY--;
-							break;
-						case 'l':
-							playerX++;
-							break;
-						case 'n':
-							playerX++;
-							playerY++;
-							break;
-						case 'j':
-							playerY++;
-							break;
-						case 'b':
-							playerX--;
-							playerY++;
-							break;
-						case 'h':
-							playerX--;
-							break;
-						case '7':
-							playerX--;
-							playerY--;
-							break;
-						case '8':
-							playerY--;
-							break;
-						case '9':
-							playerX++;
-							playerY--;
-							break;
-						case '6':
-							playerX++;
-							break;
-						case '3':
-							playerX++;
-							playerY++;
-							break;
-						case '2':
-							playerY++;
-							break;
-						case '1':
-							playerX--;
-							playerY++;
-							break;
-						case '4':
-							playerX--;
-							break;
-						case '>':
-							break;
-						case '<':
-							break;
-						case '.':
-							break;
-						case '5':
-							break;
-						case ' ':
-							break;
-						case 't':
-							showingList = !showingList;
-							validCommand = false;
-							break;
-						case KEY_UP:
-							break;
-						case KEY_DOWN:
-							break;
-						case KEY_ESC:
-							break;
-						case 'Q':
-							break;
-						default:
-							validCommand = false;
-							break;
+
+					/*
+					MAKE ANOTHER SWITCH STATEMENT FOR THE TRAINER STUFF AND NOT ALLOW MOVEMENT
+					WHILE THE LIST IS BEING SHOWN
+					*/
+					if(showingList){
+						switch(commandShort){
+							case 't':
+								showingList = !showingList;
+								validCommand = false;
+								break;
+							case KEY_UP:
+								if(trainerListOffset > 0)
+									trainerListOffset--;
+								validCommand = false;
+								break;
+							case KEY_DOWN:
+								if(trainerListOffset < numTrainers - 10)
+									trainerListOffset++;
+								validCommand = false;
+								break;
+							case KEY_ESC:
+								showingList = false;
+								break;
+							case 'Q':
+								break;
+							default:
+								validCommand = false;
+								break;
+						}
+					}else{
+						switch(commandShort){
+							case 'y':
+								playerX--;
+								playerY--;
+								break;
+							case 'k':
+								playerY--;
+								break;
+							case 'u':
+								playerX++;
+								playerY--;
+								break;
+							case 'l':
+								playerX++;
+								break;
+							case 'n':
+								playerX++;
+								playerY++;
+								break;
+							case 'j':
+								playerY++;
+								break;
+							case 'b':
+								playerX--;
+								playerY++;
+								break;
+							case 'h':
+								playerX--;
+								break;
+							case '7':
+								playerX--;
+								playerY--;
+								break;
+							case '8':
+								playerY--;
+								break;
+							case '9':
+								playerX++;
+								playerY--;
+								break;
+							case '6':
+								playerX++;
+								break;
+							case '3':
+								playerX++;
+								playerY++;
+								break;
+							case '2':
+								playerY++;
+								break;
+							case '1':
+								playerX--;
+								playerY++;
+								break;
+							case '4':
+								playerX--;
+								break;
+							case '>':
+								break;
+							case '<':
+								break;
+							case '.':
+								break;
+							case '5':
+								break;
+							case ' ':
+								break;
+							case 't':
+								showingList = !showingList;
+								validCommand = false;
+								break;
+							case 'Q':
+								break;
+							default:
+								validCommand = false;
+								break;
+						}
 					}
+					
 				}
 				if(getTileCost(currentMap->tiles[playerY][playerX],99) != INT16_MAX
 				&& currentMap->chars[playerY][playerX].symbol == NULL
