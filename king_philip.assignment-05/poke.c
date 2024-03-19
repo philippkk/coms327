@@ -76,11 +76,10 @@ typedef struct character{
 	int nextX;
 	int nextY;
 	char *symbol;
-	bool tileLocked;
 	int dir; //0 = left 1 = right 2 = up 3 = down
 	char *tile;
 	int nextTurn;
-	int sequenceNum;
+	int defeated;
 }character_c;
 typedef struct map{
 	bool generated;
@@ -135,6 +134,7 @@ bool playerTurn;
 bool inMart;
 bool inCenter;
 bool inBattle;
+bool wonBattle;
 bool showingList;
 int trainerListOffset = 0;
 //messy function defs
@@ -998,6 +998,11 @@ void printMap(map *Map){
 		mvaddstr(0,0,"in pokecenter!\n");
 		attroff(COLOR_PAIR(1));
 	}
+	if(inBattle){
+		attron(COLOR_PAIR(1));
+		mvaddstr(0,0,"in Battle!!\n");
+		attroff(COLOR_PAIR(1));
+	}
 	//80/21
 	if(showingList){
 
@@ -1044,7 +1049,7 @@ void printMap(map *Map){
 				mvaddch(7,35 +UIMIDOFFSET,'^');
 			if(trainerListOffset < numTrainers - 10)
 				mvaddch(17,35 +UIMIDOFFSET,'v');
-			char index[3];
+			char index[15];
 			sprintf(index,"%d",j + trainerListOffset + 1);
 			mvaddstr(7+j,10 + UIMIDOFFSET,index);
 			mvaddch(7+j,15 + UIMIDOFFSET, *chars[i].symbol);
@@ -1346,7 +1351,25 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& currentMap->chars[nextY][nextX - 1].symbol == NULL
 		&& posX > 1){
 			nextx = nextX-1;
-		}else{
+		}
+		else if(currentMap->rivalMap[nextY][nextX - 1] != INT16_MAX
+		&& currentMap->chars[nextY][nextX - 1].symbol == character_str[PLAYER]
+		&& posX > 1){
+			inBattle = true;
+				currentMap->chars[posY][posX].symbol = NULL;
+				printMap(currentMap);
+				while (inBattle)
+				{
+					commandShort = getch();
+					if(commandShort == KEY_ESC){
+						inBattle = false;
+						currentMap->chars[nextY][nextX].defeated = true;
+					}			
+				}
+				nextx = posX;
+				nexty = posY;
+		}
+		else{
 			if(type == 3 || type == 4)
 				dir = rand()%4;
 			else
@@ -1357,7 +1380,25 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& currentMap->chars[nextY][nextX + 1].symbol == NULL
 		&& posX < MAPWIDTH - 2){
 			nextx = nextX+1;
-		}else{
+		}
+		else if(currentMap->rivalMap[nextY][nextX + 1] != INT16_MAX
+		&& currentMap->chars[nextY][nextX + 1].symbol == character_str[PLAYER]
+		&& posX > 1){
+			inBattle = true;
+				currentMap->chars[posY][posX].symbol = NULL;
+				printMap(currentMap);
+				while (inBattle)
+				{
+					commandShort = getch();
+					if(commandShort == KEY_ESC){
+						inBattle = false;
+						currentMap->chars[nextY][nextX].defeated = true;
+					}			
+				}
+				nextx = posX;
+				nexty = posY;
+		}
+		else{
 			if(type == 3 || type == 4)
 				dir = rand()%4;
 			else
@@ -1368,7 +1409,25 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& currentMap->chars[nextY-1][nextX].symbol == NULL
 		&& posY > 2){
 			nexty = nextY-1;
-		}else{
+		}
+		else if(currentMap->rivalMap[nextY-1][nextX] != INT16_MAX
+		&& currentMap->chars[nextY-1][nextX].symbol == character_str[PLAYER]
+		&& posX > 1){
+			inBattle = true;
+				currentMap->chars[posY][posX].symbol = NULL;
+				printMap(currentMap);
+				while (inBattle)
+				{
+					commandShort = getch();
+					if(commandShort == KEY_ESC){
+						inBattle = false;
+						currentMap->chars[nextY][nextX].defeated = true;
+					}			
+				}
+				nextx = posX;
+				nexty = posY;
+		}
+		else{
 			if(type == 3 || type == 4)
 				dir = rand()%4;
 			else
@@ -1379,7 +1438,25 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& currentMap->chars[nextY+1][nextX].symbol == NULL
 		&& posY < MAPHEIGHT - 2){
 			nexty = nextY+1;
-		}else{
+		}
+		else if(currentMap->rivalMap[nextY+1][nextX] != INT16_MAX
+		&& currentMap->chars[nextY+1][nextX].symbol == character_str[PLAYER]
+		&& posX > 1){
+			inBattle = true;
+				currentMap->chars[posY][posX].symbol = NULL;
+				printMap(currentMap);
+				while (inBattle)
+				{
+					commandShort = getch();
+					if(commandShort == KEY_ESC){
+						inBattle = false;
+						currentMap->chars[nextY][nextX].defeated = true;
+					}			
+				}
+				nextx = posX;
+				nexty = posY;
+		}
+		else{
 			if(type == 3 || type == 4)
 				dir = rand()%4;
 			else
@@ -1422,11 +1499,44 @@ void setNextTurn(int posY,int posX,int type,int ox,int oy){
 				nexty = posY + dirY[i];
 				min = currentMap->hikerMap[nexty][nextx];
 			}
+			else if(currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == character_str[PLAYER]){
+				inBattle = true;
+				currentMap->chars[oy][ox].symbol = NULL;
+				printMap(currentMap);
+					while (inBattle)
+					{
+						commandShort = getch();
+						if(commandShort == KEY_ESC){
+							inBattle = false;
+							currentMap->chars[posY][posX].defeated = true;
+						}			
+						
+					}
+					nextx = ox;
+					nexty = oy;
+			}
 		}else if(type==1){
 			if(currentMap->rivalMap[posY+dirY[i]][posX+dirX[i]] < min  && currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == NULL){
 				nextx = posX + dirX[i];
 				nexty = posY + dirY[i];
 				min = currentMap->rivalMap[nexty][nextx];
+			}
+			else if(currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == character_str[PLAYER]){
+				inBattle = true;
+				currentMap->chars[oy][ox].symbol = NULL;
+				printMap(currentMap);
+					while (inBattle)
+					{
+						commandShort = getch();
+						if(commandShort == KEY_ESC){
+							inBattle = false;
+							currentMap->chars[posY][posX].defeated = true;
+						}			
+						
+					}
+
+					nextx = ox;
+					nexty = oy;
 			}
 		}
 	}
@@ -1456,10 +1566,9 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 			if(timeNum == 0){
 				timeNum = currentTime;
 			}else if(c->nextTurn > timeNum){
-				currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
+				//currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
 				heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
-				//copyMap(globe.maps[posy][posx],currentMap);
-				return;
+				break;
 			}
 			if(!strcmp(c->symbol,character_str[PLAYER])){
 				//int num = rand() % 4;
@@ -1599,24 +1708,53 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					globe.playerY = playerY;
 					player.nextTurn += getTileCost(currentMap->tiles[playerY][playerX],99);
 					currentMap->chars[playerY][playerX] = player;
-				}else{
+					currentMap->chars[playerY][playerX].symbol = character_str[PLAYER];
+				}
+				else if(getTileCost(currentMap->tiles[playerY][playerX],99) != INT16_MAX
+				&& currentMap->chars[playerY][playerX].symbol != NULL
+				&& currentMap->chars[playerY][playerX].symbol != character_str[PLAYER]
+				&& !currentMap->chars[playerY][playerX].defeated
+				&& playerX < MAPWIDTH -1 && playerX > 0
+				&& playerY < MAPHEIGHT -1 && playerY > 0){	
+					inBattle = true;
+					while (inBattle)
+					{
+						printMap(currentMap);
+						commandShort = getch();
+						if(commandShort == KEY_ESC){
+							inBattle = false;
+							currentMap->chars[playerY][playerX].defeated = true;
+						}			
+					}	
+				}
+				else{
 					player.posX = globe.playerX;
 					player.posY = globe.playerY;
 					player.nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
 					currentMap->chars[globe.playerY][globe.playerX] = player;
+					currentMap->chars[globe.playerY][globe.playerX].symbol = character_str[PLAYER];
+
 				}
 					calcCost(0,currentMap);calcCost(1,currentMap);
 					currentMap->chars[globe.playerY][globe.playerX].nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
+					currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
 					heap_insert(&charHeap, &currentMap->chars[globe.playerY][globe.playerX]);
+					break;
 			}else if(!strcmp(c->symbol,character_str[HIKER])
 			|| !strcmp(c->symbol,character_str[RIVAL])
 			|| !strcmp(c->symbol,character_str[PACER])
 			|| !strcmp(c->symbol,character_str[WANDERER])
 			|| !strcmp(c->symbol,character_str[EXPLORERS])){
+				if(c->defeated){
+					//currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
+					//heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
+				
+				}else{
 				if(currentMap->chars[c->nextY][c->nextX].symbol == NULL){
 					currentMap->chars[c->nextY][c->nextX].symbol = currentMap->chars[c->posY][c->posX].symbol;
 					currentMap->chars[c->nextY][c->nextX].posX = currentMap->chars[c->posY][c->posX].nextX;
 					currentMap->chars[c->nextY][c->nextX].posY = currentMap->chars[c->posY][c->posX].nextY;
+
 
 					if(!strcmp(c->symbol,character_str[HIKER])){
 						setNextTurn(c->nextY,c->nextX,0,c->posX,c->posY);
@@ -1629,11 +1767,12 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					}else if (!strcmp(c->symbol,character_str[EXPLORERS])){
 						setNextPace(c->nextY,c->nextX,c->posY,c->posX,c->dir,4);
 					}
-					currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
+
+					//currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
 					currentMap->chars[c->nextY][c->nextX].hn =
 					heap_insert(&charHeap, &currentMap->chars[c->nextY][c->nextX]);
-
 					currentMap->chars[c->posY][c->posX].symbol = NULL;
+					break;
 				}else{
 					if(!strcmp(c->symbol,character_str[HIKER])){
 						setNextTurn(c->posY,c->posX,0,c->posX,c->posY);
@@ -1646,9 +1785,11 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					}else if (!strcmp(c->symbol,character_str[EXPLORERS])){
 						setNextPace(c->posY,c->posX,c->posY,c->posX,c->dir,4);
 					}
-					currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
+					//currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
 					heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
+					break;
 				}
+			}
 			}
 		}
 	}
@@ -1706,6 +1847,7 @@ void placeNPC(){		// weights of amount
 				hiker.symbol = character_str[HIKER];
 				hiker.posX = x;
 				hiker.posY = y;
+				hiker.defeated = 0;
 
 				hiker.nextTurn = 0;//getTileCost(currentMap->tiles[hiker.nextY][hiker.nextX],0);
 				numHiker++;
@@ -1722,6 +1864,8 @@ void placeNPC(){		// weights of amount
 				rival.symbol = character_str[RIVAL];
 				rival.posX = x;
 				rival.posY = y;
+				rival.defeated = 0;
+
 				rival.nextTurn = 0;//getTileCost(currentMap->tiles[rival.nextY][rival.nextX],0);
 				numRival++;
 				currentMap->chars[y][x] = rival;
@@ -1739,6 +1883,7 @@ void placeNPC(){		// weights of amount
 				pacer.posX = x;
 				pacer.posY = y;
 				pacer.dir =	rand() %4;
+				pacer.defeated = 0;
 				pacer.nextTurn = 0;
 				currentMap->chars[y][x]= pacer;
 				setNextPace(y,x,y,x,pacer.dir,2);
@@ -1752,6 +1897,7 @@ void placeNPC(){		// weights of amount
 				wanderer.symbol = character_str[WANDERER];
 				wanderer.posX = x;
 				wanderer.posY = y;
+				wanderer.defeated = 0;
 				wanderer.tile = currentMap->tiles[y][x];
 				wanderer.dir = rand() %4;
 				wanderer.nextTurn = 0;
@@ -1767,6 +1913,7 @@ void placeNPC(){		// weights of amount
 				sentery.symbol = character_str[SENTRIES];
 				sentery.posX = x;
 				sentery.posY = y;
+				sentery.defeated = 0;
 				currentMap->chars[y][x]= sentery;
 				numSentries++;
 			}	
@@ -1776,6 +1923,7 @@ void placeNPC(){		// weights of amount
 				explorer.symbol = character_str[EXPLORERS];
 				explorer.posX = x;
 				explorer.posY = y;
+				explorer.defeated = 0;
 				explorer.dir = rand() %4;
 				currentMap->chars[y][x]= explorer;
 				numExplorers++;		
