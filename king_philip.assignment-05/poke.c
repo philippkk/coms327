@@ -988,6 +988,16 @@ void printMap(map *Map){
 			}
 		}
 
+	if(inMart){
+		attron(COLOR_PAIR(1));
+		mvaddstr(0,0,"in pokemart!\n");
+		attroff(COLOR_PAIR(1));
+	}
+	if(inCenter){
+		attron(COLOR_PAIR(1));
+		mvaddstr(0,0,"in pokecenter!\n");
+		attroff(COLOR_PAIR(1));
+	}
 	//80/21
 	if(showingList){
 
@@ -1057,12 +1067,6 @@ void printMap(map *Map){
 	}
 
 	 mvaddstr(22,30,"command: ");
-	if(commandShort == KEY_UP){
-		mvaddstr(23,25,"UP ARRROWWWWW");
-	}
-	if(commandShort == KEY_ESC){
-		mvaddstr(23,25,"escape");
-	}
 	 mvaddch(22,38,commandShort);
 	refresh();
 }
@@ -1468,11 +1472,6 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					commandShort = ' ';
 					commandShort = getch();
 					validCommand = true;
-
-					/*
-					MAKE ANOTHER SWITCH STATEMENT FOR THE TRAINER STUFF AND NOT ALLOW MOVEMENT
-					WHILE THE LIST IS BEING SHOWN
-					*/
 					if(showingList){
 						switch(commandShort){
 							case 't':
@@ -1498,6 +1497,13 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								validCommand = false;
 								break;
 						}
+					}else if(inMart || inCenter){
+						if(commandShort == '<'){
+							inMart = false;
+							inCenter = false;
+						}else if(commandShort == 'Q')
+							break;
+						validCommand = false;
 					}else{
 						switch(commandShort){
 							case 'y':
@@ -1557,8 +1563,11 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								playerX--;
 								break;
 							case '>':
-								break;
-							case '<':
+								if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[CENTER]))
+									inCenter = true;
+								if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[MART]))
+									inMart = true;
+								validCommand = false;
 								break;
 							case '.':
 								break;
