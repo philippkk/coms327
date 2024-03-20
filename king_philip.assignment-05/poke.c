@@ -932,12 +932,7 @@ void genBuildings(){
 }
 void printMap(map *Map){
 	clear();
-	attron(COLOR_PAIR(1));
-	addstr("CURRENT TIME: ");
-	char str[10];
-	sprintf(str,"%d",currentTime);
-    addstr(str);addstr("\n");
-	attroff(COLOR_PAIR(1));
+	addstr("\n");
 	int i,j;
 	for(i = 0; i < MAPHEIGHT; i++)
 		for(j= 0; j < MAPWIDTH; j++){
@@ -1044,6 +1039,9 @@ void printMap(map *Map){
 		}
 		int j = 0;
 		for(int i = trainerListOffset; i < trainerListOffset + 10;i++){
+			if(chars[i].defeated){
+				mvaddstr(7+j,1+UIMIDOFFSET,"defeated");
+			}
 			attron(COLOR_PAIR(2));
 			if(trainerListOffset > 0)
 				mvaddch(7,35 +UIMIDOFFSET,'^');
@@ -1494,49 +1492,17 @@ void setNextTurn(int posY,int posX,int type,int ox,int oy){
 		if(type == 0){
 
 				//check surrounding for lowest cost
-			if(currentMap->hikerMap[posY+dirY[i]][posX+dirX[i]] < min  && currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == NULL){
+			if(currentMap->hikerMap[posY+dirY[i]][posX+dirX[i]] < min  && 
+			(currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == NULL || currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == character_str[PLAYER])){
 				nextx = posX + dirX[i];
 				nexty = posY + dirY[i];
 				min = currentMap->hikerMap[nexty][nextx];
 			}
-			else if(currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == character_str[PLAYER]){
-				inBattle = true;
-				currentMap->chars[oy][ox].symbol = NULL;
-				printMap(currentMap);
-					while (inBattle)
-					{
-						commandShort = getch();
-						if(commandShort == KEY_ESC){
-							inBattle = false;
-							currentMap->chars[posY][posX].defeated = true;
-						}			
-						
-					}
-					nextx = ox;
-					nexty = oy;
-			}
 		}else if(type==1){
-			if(currentMap->rivalMap[posY+dirY[i]][posX+dirX[i]] < min  && currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == NULL){
-				nextx = posX + dirX[i];
+			if(currentMap->rivalMap[posY+dirY[i]][posX+dirX[i]] < min  && 
+			(currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == NULL || currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == character_str[PLAYER])){				nextx = posX + dirX[i];
 				nexty = posY + dirY[i];
 				min = currentMap->rivalMap[nexty][nextx];
-			}
-			else if(currentMap->chars[posY+dirY[i]][posX+dirX[i]].symbol == character_str[PLAYER]){
-				inBattle = true;
-				currentMap->chars[oy][ox].symbol = NULL;
-				printMap(currentMap);
-					while (inBattle)
-					{
-						commandShort = getch();
-						if(commandShort == KEY_ESC){
-							inBattle = false;
-							currentMap->chars[posY][posX].defeated = true;
-						}			
-						
-					}
-
-					nextx = ox;
-					nexty = oy;
 			}
 		}
 	}
@@ -1560,13 +1526,10 @@ void setNextTurn(int posY,int posX,int type,int ox,int oy){
 }
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 	character_c *c;
-	int timeNum = 0;
 	while((c = heap_remove_min(&charHeap))){
 		 if(c != NULL){
-			if(timeNum == 0){
-				timeNum = currentTime;
-			}else if(c->nextTurn > timeNum){
-				//currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
+			if(c->nextTurn > currentTime){
+				currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
 				heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
 				break;
 			}
@@ -1737,7 +1700,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				}
 					calcCost(0,currentMap);calcCost(1,currentMap);
 					currentMap->chars[globe.playerY][globe.playerX].nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
-					currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
+					//currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
 					heap_insert(&charHeap, &currentMap->chars[globe.playerY][globe.playerX]);
 					break;
 			}else if(!strcmp(c->symbol,character_str[HIKER])
@@ -1771,8 +1734,19 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					//currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
 					currentMap->chars[c->nextY][c->nextX].hn =
 					heap_insert(&charHeap, &currentMap->chars[c->nextY][c->nextX]);
-					currentMap->chars[c->posY][c->posX].symbol = NULL;
+					currentMap->chars[c->posY][c->posX].symbol = NULL;				
 					break;
+				}else if(currentMap->chars[c->nextY][c->nextX].symbol == character_str[PLAYER]){
+					inBattle = true;
+					printMap(currentMap);
+					while (inBattle)
+					{
+						commandShort = getch();
+						if(commandShort == KEY_ESC){
+							inBattle = false;
+							currentMap->chars[c->posY][c->posX].defeated = true;
+						}			
+					}
 				}else{
 					if(!strcmp(c->symbol,character_str[HIKER])){
 						setNextTurn(c->posY,c->posX,0,c->posX,c->posY);
