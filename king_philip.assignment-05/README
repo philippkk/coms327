@@ -2,11 +2,18 @@ How to run:
 	$ make
 	$ ./poke
 
+	OR
+
+	$ ./poke --numtrainers <num>
+
 How to clean:
 	$ make clean
 
 Description:
 	Running ./poke will run the game
+	
+	The game is displayed using curses and has full color.
+	There is a line at the bottom to show you what the last entered command was.
 
 	Characters:
 		@ = player
@@ -17,9 +24,25 @@ Description:
 		w = wanderer,	wander over spawned tile type
 		p = pacer,  	pace back and forth
 
-	UI:
-		currentTime: time of current move
-		turn: # of turns since last player move
-			player moves every 21 turns to test recalcuation of the navigation
+	Controls:
+		same as spec. vim controls to move etc.
+		Press 'Q' to exit game while not in battle.
 
-		
+	Menus:
+		Press 't' to open trainer menu. Trainer menu will show all trainers on map,
+		thier position relative to player, and if they are defeated or not.
+	Try battling one and reopening the menu to see change.
+		Try ./poke --numtrainers 15, the list will show the first 10,
+		use up and down arrow to scroll list
+		Press 't' or 'Esc' to exit menu
+
+		Press '>' to enter pokemart or pokecenter
+		indicated by "in mart!" or "in center!"
+		press '<' to leave
+
+	Battle:
+		when colliding with a trainer a battle will start
+		indicated by "in Battle!" in top of screen
+		Press 'Esc' to leave
+		Trainer will be considered defeated and will not move after.
+		This makes you need strategy to not block your path ways.

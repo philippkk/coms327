@@ -1,3 +1,9 @@
+Tue, 23 Jan 2024 13:20:18 -0600 - added files
+
+Tue, 23 Jan 2024 13:35:57 -0600 - new things
+
+Tue, 23 Jan 2024 13:39:54 -0600 - moved stuff
+
 Tue, 23 Jan 2024 23:31:19 -0600 - started project and got the map displaying as well as seeded with the required areas
 
 Wed, 24 Jan 2024 00:17:11 -0600 - started grow algo, but made a mistake to have the seeds grow infinite up and down
@@ -129,3 +135,37 @@ Mon, 26 Feb 2024 21:53:11 -0600 - fixed a HUGE mem leak, also redid pacer and re
 Tue, 27 Feb 2024 09:41:33 -0600 - finished i think, testing it in pyrite and valgrind
 
 Tue, 27 Feb 2024 10:22:50 -0600 - added player movement every 20 turns as well as rest of trainers, just need to write readme and changelog and then im done
+
+Tue, 27 Feb 2024 12:47:00 -0600 - turn in assignment 4
+
+Thu, 29 Feb 2024 12:48:58 -0600 - made files for assignment 5
+
+Sun, 3 Mar 2024 19:04:17 -0600 - added -lm to proper spot
+
+Thu, 14 Mar 2024 21:19:12 -0500 - started implementing curses, got some stuff printing
+
+Thu, 14 Mar 2024 22:15:30 -0500 - got colors and stuff going as well as the ability to print over the map wherever i want
+
+Fri, 15 Mar 2024 21:11:04 -0500 - input is implemented and Q quits
+
+Fri, 15 Mar 2024 21:31:00 -0500 - added player turn command properly as well as proper detection of special keys
+
+Sat, 16 Mar 2024 14:28:48 -0500 - got player movement working as well as some fixes to some other parts of code. all that is left is the pop up window
+
+Mon, 18 Mar 2024 11:37:42 -0500 - added statements for all commands now just need to put them in
+
+Mon, 18 Mar 2024 12:00:13 -0500 - having issues
+
+Mon, 18 Mar 2024 12:42:45 -0500 - removed all printw and switched to addch and addstr
+
+Mon, 18 Mar 2024 13:30:01 -0500 - fixed more stuff then added list pop up
+
+Mon, 18 Mar 2024 14:45:10 -0500 - got the trainer pop up done as well as a lot of other tweaks to fit specs, all that is left is the mart and the battles
+
+Mon, 18 Mar 2024 19:33:09 -0500 - added arrows to indicate if you can scroll list or not as well as checks to not over scroll
+
+Mon, 18 Mar 2024 19:46:48 -0500 - added entering the marts and centers
+
+Mon, 18 Mar 2024 21:54:59 -0500 - chasing a bug right now that i cant figure out. everthing is done other than one bug that seg faults the whole game
+
+Tue, 19 Mar 2024 21:10:06 -0500 - found bug and finished project, need to write read me and change log

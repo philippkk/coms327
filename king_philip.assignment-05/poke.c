@@ -987,16 +987,66 @@ void printMap(map *Map){
 		attron(COLOR_PAIR(1));
 		mvaddstr(0,0,"in pokemart!\n");
 		attroff(COLOR_PAIR(1));
+				//PRINTING FIRST BOX
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "                    PokeMart                     ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 18;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(18,i,ACS_HLINE);
+		}
+		mvaddch(18,15,ACS_LLCORNER);
+		mvaddch(18,64,ACS_LRCORNER);
 	}
 	if(inCenter){
 		attron(COLOR_PAIR(1));
 		mvaddstr(0,0,"in pokecenter!\n");
 		attroff(COLOR_PAIR(1));
+		
+		//PRINTING FIRST BOX
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "                   PokeCenter                    ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 18;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(18,i,ACS_HLINE);
+		}
+		mvaddch(18,15,ACS_LLCORNER);
+		mvaddch(18,64,ACS_LRCORNER);
 	}
 	if(inBattle){
 		attron(COLOR_PAIR(1));
 		mvaddstr(0,0,"in Battle!!\n");
 		attroff(COLOR_PAIR(1));
+		
 	}
 	//80/21
 	if(showingList){
