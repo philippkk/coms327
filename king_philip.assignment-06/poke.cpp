@@ -53,26 +53,7 @@ const char* character_str[]={
 	[SENTRIES] = "s",
 	[EXPLORERS] = "e"
 };
-enum Commands{
-	EMPTY,
-	N,
-	E,
-	S,
-	W,
-	FLY,
-	Q,
-	NUMTRAINERS
-};
-const char* command_str[]={
-	[EMPTY] = "",
-	[N] = "N",
-	[S] = "S",
-	[E] = "E",
-	[W] = "W",
-	[FLY] = "F",
-	[Q] = "Q",
-	[NUMTRAINERS] = "--numtrainers"
-};
+
 
 typedef class character{
 	public:
@@ -208,9 +189,10 @@ int main(int argc, char *argv[]){
 	init_pair(9, COLOR_WHITE, COLOR_RED);
 	init_pair(10, COLOR_WHITE, COLOR_GREEN);
 	heap_init(&charHeap,char_cmp,NULL);
+
 	//bool numTrainerSwitch = false;
 	for (int i = 1; i < argc; i++) {
-		if(!strcmp(argv[i],command_str[NUMTRAINERS])){
+		if(!strcmp(argv[i],"--numtrainers")){
 	//		numTrainerSwitch = true;
 			if(i < argc){
 				numTrainers = atoi(argv[i+1]);
@@ -220,19 +202,14 @@ int main(int argc, char *argv[]){
 	//printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
 	while (*command != 'Q')
 	{	
-	    srand ( time(NULL) );
-		if(globe.maps[posy][posx] == NULL){
-			globe.maps[posy][posx] = createMap();
-			currentMap = createMap();
-		}
-
-		//printf("command: %s\n",command);
-		if(!globe.maps[posy][posx]->generated){
-			//printf("first init");
-			initMap(99,99,99,99);
-		}else{
+		if(commandShort == 'l'){
+			posx++;
 			loadMap();
+			commandShort =' ';
+			continue;
 		}
+	    srand ( time(NULL) );
+		loadMap();
 		if(playerTurn){
 			playerTurn = false;
 		}	
@@ -242,82 +219,7 @@ int main(int argc, char *argv[]){
 		//usleep(250000);
 		DEBUGCHANGENUM++;
 		continue;
-
-
-		//break;
-		//scanf("%s",command);
-		//fgets(command,20,stdin);
-		char *s = command;
-		 while (*s) {
-    		*s = toupper((unsigned char) *s);
-   		 	s++;
-  		}
-		s[strlen(s)-1] = '\0'; //get rid of newline from the fgets()
-		char copyStr[20];
-		strcpy(copyStr,command);
-		if(strcmp(command,command_str[EMPTY])){
-			//globe.maps[posy][posx] = currentMap;
-			if(!strcmp(command,command_str[Q])){
-				break;
-			}else if(!strcmp(command,command_str[N])){
-				if(posy < 401){
-					posy--;	
-				}
-				loadMap();
-			}else if(!strcmp(command,command_str[S])){
-				if(posy>=0)
-					posy++;
-				loadMap();
-			}else if(!strcmp(command,command_str[E])){
-				if(posx<401)
-					posx++;
-				loadMap();
-			}else if(!strcmp(command,command_str[W])){
-				if(posx>=0)
-					posx--;
-				loadMap();
-			}else if(!strcmp(strtok(copyStr, " "),command_str[FLY])){
-				int i,x,y;
-				for (i = 0; command[i] != '\0'; ++i)
-					;
-				if(i > 11|| i < 3){
-					printf("INVALID FLY!!!!\n");
-					continue;
-				}
-				char * pch;
-				int counter = 0;
-				pch = strtok (command," ,.");
-				while (pch != NULL)
-				{
-					int i;
-					for (i = 0; pch[i] != '\0'; ++i);
-					if(i > 4 || atoi(pch) < -200 || atoi(pch) > 200){
-						printf("INVALID FLY!!!!\n");
-						break ;
-					}
-					if(counter == 1){
-						printf("X: %s\n", pch);
-						x = atoi(pch);
-					}
-					if(counter == 2){
-						printf("Y: %s\n", pch);
-						y = atoi(pch);
-					}
-
-					pch = strtok (NULL, " ,.");
-					counter++;
-				}
-				//should be good to fly now
-				posy = y + 200;
-				posx = x + 200;
-				loadMap();
-			}else{
-				printf("unknown command! \"%s\" \n",command);
-				// printf("%s",&command[0]);
-			}
-
-		}
-	}
+	 }
 	endwin();
 	return 0;
 }
@@ -325,6 +227,8 @@ void loadMap(){
 	//printf("(%d,%d)pre\n",posx-200,posy-200);
 		//printf("(%d,%d)pre real:\n",posx,posy);
 	if(globe.maps[posy][posx] == NULL){
+			globe.maps[posy][posx] = createMap();
+			currentMap = createMap();
 		//printf("in loadmap");
 		//LOGIC FOR CONNECTING GATES BETWEEN MAPS VVVVVVV
 		int a=99,b=99,c=99,d=99;
@@ -363,9 +267,9 @@ void loadMap(){
 	}else{
 		//printf("\nFOUND MAP\n");
 		currentMap = globe.maps[posy][posx];
+		charHeap = currentMap->localHeap;
+		printMap(currentMap);
 		handleNPC(currentMap->chars);
-		printMap( globe.maps[posy][posx]);
-
 
 	}
 
@@ -512,7 +416,7 @@ void initMap(int a,int b,int c, int d){
 			player.nextTurn = getTileCost(oldMap[playerY][playerX],99);
 			currentMap->chars[playerY][playerX] = player;
 			currentMap->chars[playerY][playerX].hn = 
-			heap_insert(&charHeap, &currentMap->chars[playerY][playerX]);
+			heap_insert(&currentMap->localHeap, &currentMap->chars[playerY][playerX]);
 			//oldMap[playerY][playerX] = character_str[PLAYER];
 			genPlayer = true;
 			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
@@ -975,7 +879,6 @@ void genBuildings(){
 					oldMap[y-1][x] = c;oldMap[y-2][x] = c;oldMap[y-1][x+1] = c;oldMap[y-2][x+1] = c;
 						break;
 				}
-				//free(c);
 			}
 		}
 	}
@@ -1176,6 +1079,7 @@ void printMap(map *Map){
 map* createMap() {
     map* newMap = new map;
     newMap->generated = false;
+	heap_init(&newMap->localHeap,char_cmp,NULL);
     for (int i = 0; i < MAPHEIGHT; ++i) {
         for (int j = 0; j < MAPWIDTH; ++j) {
             newMap->tiles[i][j] = NULL;
@@ -1190,6 +1094,7 @@ void copyMap(map* destination, const map* source) {
 	destination->gateBx=source->gateBx;
 	destination->gateCy=source->gateCy;
 	destination->gateDy=source->gateDy;
+	destination->localHeap = source->localHeap;
     // Copy tiles array
     for (int i = 0; i < MAPHEIGHT; ++i) {
         for (int j = 0; j < MAPWIDTH; ++j) {
@@ -1626,11 +1531,11 @@ void setNextTurn(int posY,int posX,int type,int ox,int oy){
 }
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 	character_c *c;
-	while((c = static_cast<character_c*>(heap_remove_min(&charHeap)))){
+	while((c = static_cast<character_c*>(heap_remove_min(&currentMap->localHeap)))){
 		 if(c != NULL){
 			if(c->nextTurn > currentTime){
 				currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
-				heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
+				heap_insert(&currentMap->localHeap, &currentMap->chars[c->posY][c->posX]);
 				break;
 			}
 			if(!strcmp(c->symbol,character_str[PLAYER])){
@@ -1691,8 +1596,6 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								break;
 							case 'l':
 								playerX++;
-								posx++;
-								loadMap();
 								break;
 							case 'n':
 								playerX++;
@@ -1803,7 +1706,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					calcCost(0,currentMap);calcCost(1,currentMap);
 					currentMap->chars[globe.playerY][globe.playerX].nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
 					//currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
-					heap_insert(&charHeap, &currentMap->chars[globe.playerY][globe.playerX]);
+					heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
 					break;
 			}else if(!strcmp(c->symbol,character_str[HIKER])
 			|| !strcmp(c->symbol,character_str[RIVAL])
@@ -1835,7 +1738,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 
 					//currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
 					currentMap->chars[c->nextY][c->nextX].hn =
-					heap_insert(&charHeap, &currentMap->chars[c->nextY][c->nextX]);
+					heap_insert(&currentMap->localHeap, &currentMap->chars[c->nextY][c->nextX]);
 					currentMap->chars[c->posY][c->posX].symbol = NULL;				
 					break;
 				}else if(currentMap->chars[c->nextY][c->nextX].symbol == character_str[PLAYER]){
@@ -1862,7 +1765,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 						setNextPace(c->posY,c->posX,c->posY,c->posX,c->dir,4);
 					}
 					//currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
-					heap_insert(&charHeap, &currentMap->chars[c->posY][c->posX]);
+					heap_insert(&currentMap->localHeap, &currentMap->chars[c->posY][c->posX]);
 					break;
 				}
 			}
@@ -1930,7 +1833,7 @@ void placeNPC(){		// weights of amount
 				setNextTurn(y,x,0,x,y);
 				//printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
 				currentMap->chars[y][x].hn = 
-				heap_insert(&charHeap,&currentMap->chars[y][x]);
+				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 				
 			}
 		}
@@ -1948,7 +1851,7 @@ void placeNPC(){		// weights of amount
 				//printf("CREATED RIVAL, %s \n",currentMap->chars[y][x].symbol);
 
 				currentMap->chars[y][x].hn = 
-				heap_insert(&charHeap,&currentMap->chars[y][x]);
+				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 			}
 		
 		}//still breaks sometimes
@@ -1963,7 +1866,7 @@ void placeNPC(){		// weights of amount
 				currentMap->chars[y][x]= pacer;
 				setNextPace(y,x,y,x,pacer.dir,2);
 				numPacer++;
-				heap_insert(&charHeap,&currentMap->chars[y][x]);
+				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 			}
 			
 		}
@@ -1979,7 +1882,7 @@ void placeNPC(){		// weights of amount
 				currentMap->chars[y][x]= wanderer;
 				setNextPace(y,x,y,x,wanderer.dir,3);
 				numWanderer++;
-				heap_insert(&charHeap,&currentMap->chars[y][x]);
+				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 			}
 			
 		}
@@ -2003,7 +1906,7 @@ void placeNPC(){		// weights of amount
 				currentMap->chars[y][x]= explorer;
 				numExplorers++;		
 				setNextPace(y,x,y,x,explorer.dir,4);
-				heap_insert(&charHeap,&currentMap->chars[y][x]);
+				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 			}
 				
 		}
