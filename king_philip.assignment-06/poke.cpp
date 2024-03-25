@@ -169,7 +169,8 @@ engine generator( seed );
 std::uniform_int_distribution< u32 > xdistribute( 1, 79 );
 std::uniform_int_distribution< u32 > ydistribute( 1, 20);
 int main(int argc, char *argv[]){
-	
+	globe.playerX = -9999;
+	globe.playerY = -9999;
 	commandShort =  ' ';
 	playerTurn = false;
 	initscr();			/* Start curses mode 		  */
@@ -202,12 +203,12 @@ int main(int argc, char *argv[]){
 	//printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
 	while (*command != 'Q')
 	{	
-		if(commandShort == 'l'){
-			posx++;
-			loadMap();
-			commandShort =' ';
-			continue;
-		}
+		// if(commandShort == 'l'){
+		// 	posx++;
+		// 	loadMap();
+		// 	commandShort =' ';
+		// 	continue;
+		// }
 	    srand ( time(NULL) );
 		loadMap();
 		if(playerTurn){
@@ -267,7 +268,6 @@ void loadMap(){
 	}else{
 		//printf("\nFOUND MAP\n");
 		currentMap = globe.maps[posy][posx];
-		charHeap = currentMap->localHeap;
 		printMap(currentMap);
 		handleNPC(currentMap->chars);
 
@@ -278,9 +278,7 @@ void loadMap(){
 void initMap(int a,int b,int c, int d){
 	//printf("INIT\n");
 	//to get random rand seed
-
 	int i,j;
-
 	int tallGrass = 0,shortGrass = 0,water =0,tree = 0,rock=0;
 	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
@@ -293,14 +291,6 @@ void initMap(int a,int b,int c, int d){
 			}
 		}
 	}
-	// for(i = 0; i < MAPHEIGHT; i++){
-	// 	for(j= 0; j < MAPWIDTH; j++){
-	// 		std::cout<<oldMap[i][j];
-	// 		if(j == MAPWIDTH - 1){
-	// 			std::cout<<std::endl;
-	// 		}
-	// 	}
-	// }
 	//printf("after loop");
 	bool seeded = false;
 	//seeding here 
@@ -404,8 +394,16 @@ void initMap(int a,int b,int c, int d){
 	//temp player thing here
 	bool genPlayer = false;
 	while(!genPlayer){
-		int playerX = rand() % 70; playerX+=5;
-		int playerY = rand() % 15; playerY+=2;
+		int playerX,playerY;
+		if(globe.playerX != -9999){
+			playerX = globe.playerX;
+		}else{
+			playerX = rand() % 70; playerX+=5;		
+		}if(globe.playerY != -9999){
+			playerY = globe.playerY;
+		}else{
+			playerY = rand() % 15; playerY+=2;
+		}
 
 		if(!strcmp(oldMap[playerY][playerX], tile_str[ROAD])){
 			player.symbol = (char *)character_str[PLAYER];
@@ -417,10 +415,7 @@ void initMap(int a,int b,int c, int d){
 			currentMap->chars[playerY][playerX] = player;
 			currentMap->chars[playerY][playerX].hn = 
 			heap_insert(&currentMap->localHeap, &currentMap->chars[playerY][playerX]);
-			//oldMap[playerY][playerX] = character_str[PLAYER];
 			genPlayer = true;
-			//printf("PLAYER POS: %d, %d \n",player.posX,player.posY);
-
 		}
 	}
 
@@ -1041,7 +1036,11 @@ void printMap(map *Map){
 			}
 		}
 		int j = 0;
-		for(int i = trainerListOffset; i < trainerListOffset + 10;i++){
+		int num = 10;
+		if(numTrainers < 10){
+			num = numTrainers;
+		}
+		for(int i = trainerListOffset; i < trainerListOffset + num;i++){
 			if(chars[i].defeated){
 				mvaddstr(7+j,1+UIMIDOFFSET,"defeated");
 			}
@@ -1344,7 +1343,26 @@ void calcCost(int type, map *Map){
 static int32_t char_cmp(const void *key, const void *with) {
   return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
 }
-
+void playerReturnToMapCalc(int playerX, int playerY){
+	int min = INT32_MAX;
+	if(globe.maps[posy][posx] != NULL){
+		for(int i = 1; i < MAPHEIGHT -1;i++){
+			for(int j = 1; j < MAPWIDTH - 1;j++){
+				if(globe.maps[posy][posx]->chars[i][j].symbol != NULL){
+						if(globe.maps[posy][posx]->chars[i][j].nextTurn < min &&
+						globe.maps[posy][posx]->chars[i][j].nextTurn > 0){
+							min = globe.maps[posy][posx]->chars[i][j].nextTurn;
+						}
+					}
+				}
+		}
+	player.nextTurn = min;
+	globe.maps[posy][posx]->chars[playerY][playerX] = player;
+	globe.maps[posy][posx]->chars[playerY][playerX].hn = 
+	heap_insert(&globe.maps[posy][posx]->localHeap, &globe.maps[posy][posx]->chars[playerY][playerX]);
+						
+	}
+}
 void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 	int nextx = nextX;
 	int nexty = nextY;
@@ -1666,24 +1684,68 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					
 				}
 				if(getTileCost(currentMap->tiles[playerY][playerX],99) != INT16_MAX
-				&& currentMap->chars[playerY][playerX].symbol == NULL
-				&& playerX < MAPWIDTH -1 && playerX > 0
-				&& playerY < MAPHEIGHT -1 && playerY > 0){
+				&& currentMap->chars[playerY][playerX].symbol == NULL){
 					currentMap->chars[globe.playerY][globe.playerX].symbol = NULL;
-					player.posX = playerX;
-					player.posY = playerY;
-					globe.playerX = playerX;
-					globe.playerY = playerY;
-					player.nextTurn += getTileCost(currentMap->tiles[playerY][playerX],99);
-					currentMap->chars[playerY][playerX] = player;
-					currentMap->chars[playerY][playerX].symbol = (char*)character_str[PLAYER];
+					
+
+					if(playerX == 0){
+						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
+						posx--;
+						playerX = MAPWIDTH-2;
+						player.posX = playerX;
+						player.posY = playerY;
+						globe.playerX = playerX;
+						globe.playerY = playerY;
+						playerReturnToMapCalc(playerX,playerY);
+						return;
+					}
+					else if(playerX == MAPWIDTH-1){
+						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
+						posx++;
+						playerX = 1;
+						player.posX = playerX;
+						player.posY = playerY;
+						globe.playerX = playerX;
+						globe.playerY = playerY;
+						playerReturnToMapCalc(playerX,playerY);
+						return;
+					}
+					else if(playerY == 0){
+						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
+						posy--;
+						playerY = MAPHEIGHT -2;
+						player.posX = playerX;
+						player.posY = playerY;
+						globe.playerX = playerX;
+						globe.playerY = playerY;
+						playerReturnToMapCalc(playerX,playerY);
+						return;
+					}
+					else if(playerY == MAPHEIGHT - 1){
+						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
+						posy++;
+						playerY = 1;
+						player.posX = playerX;
+						player.posY = playerY;
+						globe.playerX = playerX;
+						globe.playerY = playerY;
+						playerReturnToMapCalc(playerX,playerY);
+						return;
+					}else{
+						player.posX = playerX;
+						player.posY = playerY;
+						globe.playerX = playerX;
+						globe.playerY = playerY;
+						player.nextTurn += getTileCost(currentMap->tiles[playerY][playerX],99);
+						currentMap->chars[playerY][playerX] = player;
+						currentMap->chars[playerY][playerX].symbol = (char*)character_str[PLAYER];
+					}
+
 				}
 				else if(getTileCost(currentMap->tiles[playerY][playerX],99) != INT16_MAX
 				&& currentMap->chars[playerY][playerX].symbol != NULL
 				&& currentMap->chars[playerY][playerX].symbol != character_str[PLAYER]
-				&& !currentMap->chars[playerY][playerX].defeated
-				&& playerX < MAPWIDTH -1 && playerX > 0
-				&& playerY < MAPHEIGHT -1 && playerY > 0){	
+				&& !currentMap->chars[playerY][playerX].defeated){	
 					inBattle = true;
 					while (inBattle)
 					{
