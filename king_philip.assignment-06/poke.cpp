@@ -1348,7 +1348,9 @@ void playerReturnToMapCalc(int playerX, int playerY){
 	if(globe.maps[posy][posx] != NULL){
 		for(int i = 1; i < MAPHEIGHT -1;i++){
 			for(int j = 1; j < MAPWIDTH - 1;j++){
-				if(globe.maps[posy][posx]->chars[i][j].symbol != NULL){
+				if(globe.maps[posy][posx]->chars[i][j].symbol != NULL &&
+				strcmp(globe.maps[posy][posx]->chars[i][j].symbol,character_str[PLAYER])&&
+				strcmp(globe.maps[posy][posx]->chars[i][j].symbol,character_str[SENTRIES])){
 						if(globe.maps[posy][posx]->chars[i][j].nextTurn < min &&
 						globe.maps[posy][posx]->chars[i][j].nextTurn > 0){
 							min = globe.maps[posy][posx]->chars[i][j].nextTurn;
