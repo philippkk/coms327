@@ -1338,7 +1338,7 @@ void playerReturnToMapCalc(int playerX, int playerY){
 		}
 	player.nextTurn = min;
 	globe.maps[posy][posx]->chars[playerY][playerX] = player;
-	globe.maps[posy][posx]->chars[playerY][playerX].hn = 
+	//globe.maps[posy][posx]->chars[playerY][playerX].hn = 
 	heap_insert(&globe.maps[posy][posx]->localHeap, &globe.maps[posy][posx]->chars[playerY][playerX]);
 						
 	}
@@ -1677,7 +1677,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 						globe.playerX = playerX;
 						globe.playerY = playerY;
 						playerReturnToMapCalc(playerX,playerY);
-						return;
+						break;
 					}
 					else if(playerX == MAPWIDTH-1){
 						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
@@ -1688,7 +1688,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 						globe.playerX = playerX;
 						globe.playerY = playerY;
 						playerReturnToMapCalc(playerX,playerY);
-						return;
+						break;
 					}
 					else if(playerY == 0){
 						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
@@ -1699,7 +1699,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 						globe.playerX = playerX;
 						globe.playerY = playerY;
 						playerReturnToMapCalc(playerX,playerY);
-						return;
+						break;
 					}
 					else if(playerY == MAPHEIGHT - 1){
 						//heap_insert(&currentMap->localHeap, &currentMap->chars[globe.playerY][globe.playerX]);
@@ -1710,7 +1710,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 						globe.playerX = playerX;
 						globe.playerY = playerY;
 						playerReturnToMapCalc(playerX,playerY);
-						return;
+						break;
 					}else{
 						player.posX = playerX;
 						player.posY = playerY;
