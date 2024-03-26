@@ -9,6 +9,7 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <random>
+#include <inttypes.h>
 #define MAPWIDTH 80
 #define MAPHEIGHT 21
 #define UIMIDOFFSET 15
@@ -57,7 +58,7 @@ const char* character_str[]={
 	[SENTRIES] = "s",
 	[EXPLORERS] = "e"
 };
-typedef class map{
+class map{
 	public:
 		bool generated;
 		int gateAx;//top
@@ -70,7 +71,7 @@ typedef class map{
 		int rivalMap[MAPHEIGHT][MAPWIDTH];
 		heap_t localHeap;
 	//int *otherCostMap[MAPHEIGHT][MAPWIDTH]; same as rivial for the time being
-}map;
+};
 typedef class globe{
 	public:
 		map *maps[401][401];
@@ -117,6 +118,8 @@ int commandShort;
 bool playerTurn;
 bool inMart;
 bool inCenter;
+bool fly = false;
+char flyX,flyY = 0;
 bool inBattle;
 bool wonBattle;
 bool showingList;
@@ -1049,6 +1052,35 @@ void printMap(map *Map){
 		
 	}
 
+	while(fly){
+		echo();
+		mvaddstr(22,0,"enter x");
+		char str[10];
+		str[0] = getch();
+		for (int i = 1; str[i - 1] != '\n' && i < 9; ++i)
+			str[i] = getch();
+		str[9] = '\0';
+		mvaddstr(22,0,"                     ");
+		char *endp;
+		int n = strtoimax(str, &endp, 10);
+		noecho();
+		char flyx[10];
+		snprintf(flyx,10,"%d",n);
+		char flyy[10];
+		snprintf(flyy,10,"%d",flyY);
+		mvaddstr(22,0,"fly? X:");
+		mvaddstr(22,7,flyx);
+		mvaddstr(22,11,"Y:");
+		mvaddstr(22,13,flyy);
+		//flyX = getch();
+		flyX -= '0';
+		
+		if(n == 2){
+			fly = false;
+			mvaddstr(22,0,"                     ");
+		}
+	}
+
 	 mvaddstr(22,30,"command: ");
 	 mvaddch(22,38,commandShort);
 	refresh();
@@ -1655,6 +1687,10 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								validCommand = false;
 								break;
 							case 'Q':
+								break;
+							case 'f':
+								fly = !fly;
+								validCommand = false;
 								break;
 							default:
 								validCommand = false;
