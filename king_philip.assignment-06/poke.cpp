@@ -14,6 +14,10 @@
 #define UIMIDOFFSET 15
 #define KEY_ESC 27
 #include "heap.h"
+#include "character.h"
+/* TODO
+	change defeated trainer to explorer?
+*/
 
 using u32    = uint_least32_t; 
 using engine = std::mt19937;
@@ -53,21 +57,6 @@ const char* character_str[]={
 	[SENTRIES] = "s",
 	[EXPLORERS] = "e"
 };
-
-
-typedef class character{
-	public:
-		heap_node_t *hn;
-		int posX;
-		int posY;
-		int nextX;
-		int nextY;
-		char *symbol;
-		int dir; //0 = left 1 = right 2 = up 3 = down
-		char *tile;
-		int nextTurn;
-		int defeated;
-}character_c;
 typedef class map{
 	public:
 		bool generated;
@@ -96,20 +85,9 @@ typedef class path {
 		uint8_t pos[2];
 		uint8_t from[2];
 		int32_t cost;
-	path(){
-		
-	}
+	path(){}
 	path(void* input){
-		 // Cast the input pointer to the appropriate type
         uint8_t* dataPtr = static_cast<uint8_t*>(input);
-
-        // Assuming the layout of data in memory is as follows:
-        // - heap_node_t *hn (sizeof(heap_node_t*) bytes)
-        // - uint8_t pos[2] (2 * sizeof(uint8_t) bytes)
-        // - uint8_t from[2] (2 * sizeof(uint8_t) bytes)
-        // - int32_t cost (sizeof(int32_t) bytes)
-
-        // Copy data from the input pointer to the members of the path class
         hn = reinterpret_cast<heap_node_t*>(dataPtr);
         for (int i = 0; i < 2; ++i) {
             pos[i] = *(dataPtr + sizeof(heap_node_t*) + i);
@@ -119,6 +97,7 @@ typedef class path {
 	}
 } path_t;
 
+character_c player;
 //messy global vars
 globe_m globe;
 //check left, right, top, bottom, upleft ,downleft, upright, downright
@@ -129,13 +108,6 @@ int playerx, playery;
 map *currentMap;
 char *oldMap[MAPHEIGHT][MAPWIDTH];
 int heightmap[MAPHEIGHT][MAPWIDTH];
-character_c player;
-character_c hiker;
-character_c rival;
-character_c pacer;
-character_c wanderer;
-character_c sentery;
-character_c explorer;
 int numTrainers = 10;
 int currentTime = 0;
 int DEBUGCHANGENUM = 0;
@@ -892,9 +864,11 @@ void printMap(map *Map){
 						attroff(COLOR_PAIR(6));
 						attroff(A_BLINK);
 				}else{
+					attron(A_BLINK);
 					attron(COLOR_PAIR(2));
 					addch(*Map->chars[i][j].symbol);
 					attroff(COLOR_PAIR(2));
+					attroff(A_BLINK);
 				}
 			}else{
 				if(!strcmp(tile_str[TREE],Map->tiles[i][j])){
@@ -1044,6 +1018,10 @@ void printMap(map *Map){
 			if(chars[i].defeated){
 				mvaddstr(7+j,1+UIMIDOFFSET,"defeated");
 			}
+			char nextTurn[15];    
+			snprintf(nextTurn,15,"%d",chars[i].nextTurn );   
+			mvaddstr(7+j,40 + UIMIDOFFSET,nextTurn);
+			mvaddstr(7+j,36 + UIMIDOFFSET,"nt: ");
 			attron(COLOR_PAIR(2));
 			if(trainerListOffset > 0)
 				mvaddch(7,35 +UIMIDOFFSET,'^');
@@ -1105,11 +1083,9 @@ void copyMap(map* destination, const map* source) {
     }
 
 }
-
 static int32_t path_cmp(const void *key, const void *with) {
   return ((path_t *) key)->cost - ((path_t *) with)->cost;
 }
-
 int getTileCost(char *tile,int type){
 	if(type == 0){
 		if(!strcmp(tile,tile_str[ROAD])){
@@ -1239,7 +1215,6 @@ int getTileCost(char *tile,int type){
 	}
 	return 0;
 }
-
 void calcCost(int type, map *Map){
 	path_t path[MAPHEIGHT][MAPWIDTH],*p;	
   	uint32_t initialized = 0;
@@ -1339,7 +1314,6 @@ void calcCost(int type, map *Map){
 		}
 	}
 }
-
 static int32_t char_cmp(const void *key, const void *with) {
   return ((character_c *) key)->nextTurn - ((character_c *) with)->nextTurn;
 }
@@ -1350,13 +1324,17 @@ void playerReturnToMapCalc(int playerX, int playerY){
 			for(int j = 1; j < MAPWIDTH - 1;j++){
 				if(globe.maps[posy][posx]->chars[i][j].symbol != NULL &&
 				strcmp(globe.maps[posy][posx]->chars[i][j].symbol,character_str[PLAYER])&&
-				strcmp(globe.maps[posy][posx]->chars[i][j].symbol,character_str[SENTRIES])){
+				strcmp(globe.maps[posy][posx]->chars[i][j].symbol,character_str[SENTRIES])&&
+				!globe.maps[posy][posx]->chars[i][j].defeated){
 						if(globe.maps[posy][posx]->chars[i][j].nextTurn < min &&
 						globe.maps[posy][posx]->chars[i][j].nextTurn > 0){
 							min = globe.maps[posy][posx]->chars[i][j].nextTurn;
 						}
 					}
 				}
+		}
+		if(min == INT32_MAX){
+			min = 0;
 		}
 	player.nextTurn = min;
 	globe.maps[posy][posx]->chars[playerY][playerX] = player;
@@ -1838,7 +1816,6 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 	}
 	//copyMap(globe.maps[posy][posx],currentMap);
 }
-
 void placeNPC(){		// weights of amount
 	int numHiker=0, maxHiker = round(numTrainers * 0.10),			//25
 	 numRival=0,	maxRival = round(numTrainers * 0.15), 			//25
@@ -1886,16 +1863,10 @@ void placeNPC(){		// weights of amount
 		}
 		if(numHiker < maxHiker){
 			if(currentMap->chars[y][x].symbol == NULL){
-				hiker.symbol = (char*) character_str[HIKER];
-				hiker.posX = x;
-				hiker.posY = y;
-				hiker.defeated = 0;
-
-				hiker.nextTurn = 0;//getTileCost(currentMap->tiles[hiker.nextY][hiker.nextX],0);
+				character hiker = character(x,y,(char*) character_str[HIKER],0,NULL,0,0);
 				numHiker++;
 				currentMap->chars[y][x] = hiker;
 				setNextTurn(y,x,0,x,y);
-				//printf("CREATED HIKER, %s \n",currentMap->chars[y][x].symbol);
 				currentMap->chars[y][x].hn = 
 				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 				
@@ -1903,17 +1874,10 @@ void placeNPC(){		// weights of amount
 		}
 		if(numRival < maxRival){
 				if(currentMap->chars[y][x].symbol == NULL){
-				rival.symbol = (char*) character_str[RIVAL];
-				rival.posX = x;
-				rival.posY = y;
-				rival.defeated = 0;
-
-				rival.nextTurn = 0;//getTileCost(currentMap->tiles[rival.nextY][rival.nextX],0);
+				character rival = character(x,y,(char*) character_str[RIVAL],0,NULL,0,0);
 				numRival++;
 				currentMap->chars[y][x] = rival;
 				setNextTurn(y,x,1,x,y);
-				//printf("CREATED RIVAL, %s \n",currentMap->chars[y][x].symbol);
-
 				currentMap->chars[y][x].hn = 
 				heap_insert(&currentMap->localHeap,&currentMap->chars[y][x]);
 			}
@@ -1921,12 +1885,7 @@ void placeNPC(){		// weights of amount
 		}//still breaks sometimes
 		if(numPacer < maxPacer){
 			if(currentMap->chars[y][x].symbol == NULL){
-				pacer.symbol = (char*) character_str[PACER];
-				pacer.posX = x;
-				pacer.posY = y;
-				pacer.dir =	rand() %4;
-				pacer.defeated = 0;
-				pacer.nextTurn = 0;
+				character pacer = character(x,y,(char*) character_str[PACER],rand()%4,NULL,0,0);
 				currentMap->chars[y][x]= pacer;
 				setNextPace(y,x,y,x,pacer.dir,2);
 				numPacer++;
@@ -1936,13 +1895,7 @@ void placeNPC(){		// weights of amount
 		}
 		if(numWanderer < maxWanderer){
 			if(currentMap->chars[y][x].symbol == NULL){
-				wanderer.symbol = (char*) character_str[WANDERER];
-				wanderer.posX = x;
-				wanderer.posY = y;
-				wanderer.defeated = 0;
-				wanderer.tile = currentMap->tiles[y][x];
-				wanderer.dir = rand() %4;
-				wanderer.nextTurn = 0;
+				character wanderer = character(x,y,(char*) character_str[WANDERER],rand()%4,currentMap->tiles[y][x],0,0);
 				currentMap->chars[y][x]= wanderer;
 				setNextPace(y,x,y,x,wanderer.dir,3);
 				numWanderer++;
@@ -1952,21 +1905,14 @@ void placeNPC(){		// weights of amount
 		}
 		if(numSentries < maxSenteries){
 			if(currentMap->chars[y][x].symbol == NULL){
-				sentery.symbol = (char*) character_str[SENTRIES];
-				sentery.posX = x;
-				sentery.posY = y;
-				sentery.defeated = 0;
+				character sentery = character(x,y,(char*) character_str[SENTRIES],0,NULL,0,0);
 				currentMap->chars[y][x]= sentery;
 				numSentries++;
 			}	
 		}
 		if(numExplorers < maxExplorers){
 			if(currentMap->chars[y][x].symbol == NULL){
-				explorer.symbol = (char*) character_str[EXPLORERS];
-				explorer.posX = x;
-				explorer.posY = y;
-				explorer.defeated = 0;
-				explorer.dir = rand() %4;
+				character explorer = character(x,y,(char*) character_str[EXPLORERS],rand()%4,NULL,0,0);
 				currentMap->chars[y][x]= explorer;
 				numExplorers++;		
 				setNextPace(y,x,y,x,explorer.dir,4);
