@@ -17,7 +17,8 @@
 #include "heap.h"
 #include "character.h"
 /* TODO
-	change defeated trainer to explorer?
+	mvscanw for fly
+	FOR EDGE CASE JUST CHECK CHAR MAP FIRST THEN PUT PLAYER UP OR DOWN
 */
 
 using u32    = uint_least32_t; 
@@ -1055,6 +1056,7 @@ void printMap(map *Map){
 	while(fly){
 		echo();
 		mvaddstr(22,0,"enter x");
+
 		char str[10];
 		str[0] = getch();
 		for (int i = 1; str[i - 1] != '\n' && i < 9; ++i)
@@ -1063,6 +1065,7 @@ void printMap(map *Map){
 		mvaddstr(22,0,"                     ");
 		char *endp;
 		int n = strtoimax(str, &endp, 10);
+		
 		noecho();
 		char flyx[10];
 		snprintf(flyx,10,"%d",n);
@@ -1369,6 +1372,25 @@ void playerReturnToMapCalc(int playerX, int playerY){
 			min = 0;
 		}
 	player.nextTurn = min;
+	if(globe.maps[posy][posx]->chars[playerY][playerX].symbol != NULL){
+		//check surrounding tiles around enterance
+		for(int i = 0; i < 8;i++){
+			int testX = playerX + dirX[i];
+			int testY = playerY + dirY[i];
+			if(testX > 0 && testX < MAPWIDTH-1 
+			&& testY > 0 && testY < MAPHEIGHT-1
+			&& globe.maps[posy][posx]->chars[testY][testX].symbol == NULL
+			&& getTileCost(globe.maps[posy][posx]->tiles[testY][testX],99) != INT16_MAX){
+				playerX = testX;
+				playerY = testY;
+				globe.playerX = playerX;
+				globe.playerY = playerY;
+				player.posX = playerX;
+				player.posY = playerY;
+				break;
+			}
+		}
+	}
 	globe.maps[posy][posx]->chars[playerY][playerX] = player;
 	//globe.maps[posy][posx]->chars[playerY][playerX].hn = 
 	heap_insert(&globe.maps[posy][posx]->localHeap, &globe.maps[posy][posx]->chars[playerY][playerX]);
