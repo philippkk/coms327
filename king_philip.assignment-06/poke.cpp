@@ -1083,9 +1083,16 @@ void printMap(map *Map){
 			mvaddstr(22,0,"                     ");
 		}
 	}
-
-	 mvaddstr(22,30,"command: ");
-	 mvaddch(22,38,commandShort);
+	char posY[10];
+	snprintf(posY,10,"%d",posy);
+	mvaddstr(22,6,"Y:");
+	mvaddstr(22,8,posY);
+	char posX[10];
+	snprintf(posX,10,"%d",posx);
+	mvaddstr(22,0,"X:");
+	mvaddstr(22,2,posX);
+	mvaddstr(22,30,"command: ");
+	mvaddch(22,38,commandShort);
 	refresh();
 }
 map* createMap() {
