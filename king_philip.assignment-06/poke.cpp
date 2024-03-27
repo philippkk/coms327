@@ -1060,10 +1060,23 @@ void printMap(map *Map){
 	}
 
 	if(fly){
+		flyX = posx+200;
+		flyY = posy+200;
 		attron(COLOR_PAIR(1));
 		fly = false;
 		commandShort = ' ';
 		bool validFly = false;
+		char posY[12];
+		int numy = posy-200;
+		snprintf(posY,sizeof(posY),"%d",numy);
+		mvaddstr(22,26,"Y:");
+		mvaddstr(22,28,posY);
+		char posX[12];
+		int numx = posx -200;
+		snprintf(posX,sizeof(posX),"%d",numx);
+		mvaddstr(22,20,"X:");
+		mvaddstr(22,22,posX);
+		mvaddstr(22,32,"world pos");
 		echo();
 		curs_set(1);
 		while(!validFly){
@@ -1114,23 +1127,25 @@ void printMap(map *Map){
 		
 	}
 	attron(COLOR_PAIR(1));
-	char posY[10];
-	snprintf(posY,10,"%d",posy-200);
+	char posY[12];
+	int numy = posy-200;
+	snprintf(posY,sizeof(posY),"%d",numy);
 	mvaddstr(22,6,"Y:");
 	mvaddstr(22,8,posY);
-	char posX[10];
-	snprintf(posX,10,"%d",posx-200);
+	char posX[12];
+	int numx = posx -200;
+	snprintf(posX,sizeof(posX),"%d",numx);
 	mvaddstr(22,0,"X:");
 	mvaddstr(22,2,posX);
 	mvaddstr(22,12,"world pos");
 	attroff(COLOR_PAIR(1));
 	attron(COLOR_PAIR(3));
-	char pposY[10];
-	snprintf(pposY,10,"%d",globe.playerY);
+	char pposY[12];
+	snprintf(pposY,sizeof(pposY),"%d",globe.playerY);
 	mvaddstr(23,6,"Y:");
 	mvaddstr(23,8,pposY);
-	char pposX[10];
-	snprintf(pposX,10,"%d",globe.playerX);
+	char pposX[12];
+	snprintf(pposX,sizeof(pposX),"%d",globe.playerX);
 	mvaddstr(23,0,"X:");
 	mvaddstr(23,12,"player pos");
 	mvaddstr(23,2,pposX);
@@ -1449,6 +1464,8 @@ void playerReturnToMapCalc(int playerX, int playerY){
 	heap_insert(&globe.maps[posy][posx]->localHeap, &globe.maps[posy][posx]->chars[playerY][playerX]);
 						
 	}
+	skipHeap = true;
+	loadMap();
 }
 void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 	int nextx = nextX;
