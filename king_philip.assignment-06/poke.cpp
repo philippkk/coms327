@@ -17,8 +17,7 @@
 #include "heap.h"
 #include "character.h"
 /* TODO
-	mvscanw for fly
-	FOR EDGE CASE JUST CHECK CHAR MAP FIRST THEN PUT PLAYER UP OR DOWN
+
 */
 
 using u32    = uint_least32_t; 
@@ -1955,10 +1954,6 @@ void placeNPC(){		// weights of amount
 	 numExplorers=0,maxExplorers = round(numTrainers * 0.17), 		//20
 	 //total=0,
 	  totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
-
-	/*
-		CHANGE WEIGHTS  I DONT LIKE IT ANYMORE
-	*/
 	if(numTrainers == 2){
 		maxHiker = 1;
 		maxRival = 1;
@@ -1967,10 +1962,6 @@ void placeNPC(){		// weights of amount
 		maxHiker += numTrainers - totalMax;
 		totalMax = maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers;
 	}
-	//printf("num npc, %d, %d, %d, %d ,%d ,%d, total: %d\n",numHiker,numRival,numPacer,numWanderer,numSentries,numExplorers,total);
-	//printf("max npc, %d, %d, %d, %d ,%d ,%d, total: %d \n",maxHiker,maxRival,maxPacer,maxWanderer,maxSenteries,maxExplorers,
-	//maxHiker + maxRival + maxPacer + maxWanderer+maxSenteries+maxExplorers);
-
 	bool generated = false;
 	//int uhOhTimer = 0;
 	while(!generated){
