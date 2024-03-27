@@ -120,10 +120,12 @@ bool playerTurn;
 bool inMart;
 bool inCenter;
 bool fly = false;
-char flyX,flyY = 0;
+int flyX;
+int flyY;
 bool inBattle;
 bool wonBattle;
 bool showingList;
+bool skipHeap = false;
 int trainerListOffset = 0;
 //messy function defs
 void initMap(int a, int b, int c, int d);
@@ -133,6 +135,7 @@ void genBuildings();
 void loadMap();
 map* createMap();
 void copyMap(map* destination, const map* source);
+void playerReturnToMapCalc(int playerX, int playerY);
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
@@ -245,8 +248,11 @@ void loadMap(){
 		//printf("\nFOUND MAP\n");
 		currentMap = globe.maps[posy][posx];
 		printMap(currentMap);
-		handleNPC(currentMap->chars);
-
+		if(skipHeap){
+			skipHeap = false;
+			return;
+		}
+		handleNPC(globe.maps[posy][posx]->chars);
 	}
 
 
@@ -1053,46 +1059,86 @@ void printMap(map *Map){
 		
 	}
 
-	while(fly){
+	if(fly){
+		attron(COLOR_PAIR(1));
+		fly = false;
+		commandShort = ' ';
+		bool validFly = false;
 		echo();
-		mvaddstr(22,0,"enter x");
+		curs_set(1);
+		while(!validFly){
+			mvaddstr(22,0,"fly to? ");
+			mvaddstr(23,8," x y ");
+			char format[] = " %d %d";
+			mvscanw(22,8,format,&flyX,&flyY);
 
-		char str[10];
-		str[0] = getch();
-		for (int i = 1; str[i - 1] != '\n' && i < 9; ++i)
-			str[i] = getch();
-		str[9] = '\0';
-		mvaddstr(22,0,"                     ");
-		char *endp;
-		int n = strtoimax(str, &endp, 10);
-		
-		noecho();
-		char flyx[10];
-		snprintf(flyx,10,"%d",n);
-		char flyy[10];
-		snprintf(flyy,10,"%d",flyY);
-		mvaddstr(22,0,"fly? X:");
-		mvaddstr(22,7,flyx);
-		mvaddstr(22,11,"Y:");
-		mvaddstr(22,13,flyy);
-		//flyX = getch();
-		flyX -= '0';
-		
-		if(n == 2){
-			fly = false;
-			mvaddstr(22,0,"                     ");
+			if(flyX >= -200 && flyX <= 200
+			&& flyY >= -200 && flyY <= 200){
+				validFly = true;
+				mvaddstr(23,0,"            ");
+			}else{
+				mvaddstr(22,0,"            ");
+				mvaddstr(23,0,"Invalid fly!");
+			}
 		}
+		globe.maps[posy][posx]->chars[globe.playerY][globe.playerX].symbol = NULL;
+		noecho();
+		curs_set(0);
+		//movement here
+		posx = flyX + 200;
+		posy = flyY + 200;
+		if(globe.maps[posy][posx] != NULL){
+				bool genPlayer = false;
+				int playerX,playerY;
+			while(!genPlayer){
+					playerX = rand() % 70; playerX+=5;  
+				playerY = rand() % 15; playerY+=2;
+				if(!strcmp(globe.maps[posy][posx]->tiles[playerY][playerX], tile_str[ROAD])){
+					player.posX = playerX;
+					player.posY = playerY;
+					globe.playerX = playerX;
+					globe.playerY = playerY;
+					//globe.maps[posy][posx]->chars[playerY][playerX] = player;
+					genPlayer = true;
+					playerReturnToMapCalc(playerX,playerY);
+				}
+			}
+		}else{
+			globe.playerX = -9999;
+			globe.playerY = -9999;
+		}
+	
+		skipHeap = true;
+		//mvaddstr(22,0,"                     ");
+		loadMap();
+		
 	}
+	attron(COLOR_PAIR(1));
 	char posY[10];
-	snprintf(posY,10,"%d",posy);
+	snprintf(posY,10,"%d",posy-200);
 	mvaddstr(22,6,"Y:");
 	mvaddstr(22,8,posY);
 	char posX[10];
-	snprintf(posX,10,"%d",posx);
+	snprintf(posX,10,"%d",posx-200);
 	mvaddstr(22,0,"X:");
 	mvaddstr(22,2,posX);
+	mvaddstr(22,12,"world pos");
+	attroff(COLOR_PAIR(1));
+	attron(COLOR_PAIR(3));
+	char pposY[10];
+	snprintf(pposY,10,"%d",globe.playerY);
+	mvaddstr(23,6,"Y:");
+	mvaddstr(23,8,pposY);
+	char pposX[10];
+	snprintf(pposX,10,"%d",globe.playerX);
+	mvaddstr(23,0,"X:");
+	mvaddstr(23,12,"player pos");
+	mvaddstr(23,2,pposX);
+	attroff(COLOR_PAIR(3));
+	attron(COLOR_PAIR(6));
 	mvaddstr(22,30,"command: ");
 	mvaddch(22,38,commandShort);
+	attroff(COLOR_PAIR(6));
 	refresh();
 }
 map* createMap() {
@@ -1399,7 +1445,7 @@ void playerReturnToMapCalc(int playerX, int playerY){
 		}
 	}
 	globe.maps[posy][posx]->chars[playerY][playerX] = player;
-	//globe.maps[posy][posx]->chars[playerY][playerX].hn = 
+	globe.maps[posy][posx]->chars[playerY][playerX].hn = 
 	heap_insert(&globe.maps[posy][posx]->localHeap, &globe.maps[posy][posx]->chars[playerY][playerX]);
 						
 	}
@@ -1719,7 +1765,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								break;
 							case 'f':
 								fly = !fly;
-								validCommand = false;
+								validCommand = true;
 								break;
 							default:
 								validCommand = false;
@@ -1810,6 +1856,8 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					currentMap->chars[globe.playerY][globe.playerX].symbol = (char*)character_str[PLAYER];
 
 				}
+					if(fly)
+						break;
 					calcCost(0,currentMap);calcCost(1,currentMap);
 					currentMap->chars[globe.playerY][globe.playerX].nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
 					//currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
