@@ -169,3 +169,30 @@ Mon, 18 Mar 2024 19:46:48 -0500 - added entering the marts and centers
 Mon, 18 Mar 2024 21:54:59 -0500 - chasing a bug right now that i cant figure out. everthing is done other than one bug that seg faults the whole game
 
 Tue, 19 Mar 2024 21:10:06 -0500 - found bug and finished project, need to write read me and change log
+
+Tue, 19 Mar 2024 23:29:04 -0500 - turned it in
+
+Sun, 24 Mar 2024 16:55:00 -0500 - started 6, got everything ported to c++
+
+Sun, 24 Mar 2024 17:37:24 -0500 - got movement between maps back in including local char heaps
+
+Mon, 25 Mar 2024 15:38:51 -0500 - got movement between screen working with all the heap logic and such. need to clean up code now
+
+Mon, 25 Mar 2024 15:47:19 -0500 - fixed bug i found but already forogt what it was
+
+Mon, 25 Mar 2024 23:40:50 -0500 - swapped to using another character class but im currently chasing some bugs idek how they happen
+
+Mon, 25 Mar 2024 23:57:36 -0500 - i did nothing but the bug is fixed idek im so unhappy
+
+Tue, 26 Mar 2024 00:31:26 -0500 - started on fly
+
+Tue, 26 Mar 2024 13:32:05 -0500 - added check to ensure gate moving into is not blocked and to move to a spot thatis good instead
+
+Tue, 26 Mar 2024 13:39:03 -0500 - added world pos to screen
+
+Tue, 26 Mar 2024 23:32:27 -0500 - had a fistfight with flying and my dumb mind, but project is done, bug search and readme time
+
+Tue, 26 Mar 2024 23:54:25 -0500 - stuff is happening and its weird, tryin to figure it out
+
+Wed, 27 Mar 2024 12:25:42 -0500 - finished hw6
+

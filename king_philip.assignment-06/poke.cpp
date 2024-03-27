@@ -1659,6 +1659,8 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				heap_insert(&currentMap->localHeap, &currentMap->chars[c->posY][c->posX]);
 				break;
 			}
+			if(c->symbol == NULL)
+				continue;;
 			if(!strcmp(c->symbol,character_str[PLAYER])){
 				//int num = rand() % 4;
 				playerTurn = true;
