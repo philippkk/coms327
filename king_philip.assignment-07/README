@@ -1,0 +1,57 @@
+How to run:
+	$ make
+	$ ./poke
+
+	OR
+
+	$ ./poke --numtrainers <num>
+
+How to clean:
+	$ make clean
+
+Description:
+	Running ./poke will run the game
+	
+	The game is displayed using curses and has full color.
+	There is a line at the bottom to show you what the last entered command was.
+	The world and player pos will be shown on the bottom left
+
+	Characters:
+		@ = player
+		h = hiker,	path to player
+		r = rival, 	path to player
+		e = explorer,   wander over whole map
+		s = sentury,    stay still
+		w = wanderer,	wander over spawned tile type
+		p = pacer,  	pace back and forth
+
+	Controls:
+		same as spec. vim controls to move etc.
+		Press 'Q' to exit game while not in battle.
+		Press 'f' to open fly menu
+
+	Menus:
+		Press 't' to open trainer menu. Trainer menu will show all trainers on map,
+		their position relative to player, and if they are defeated or not as well as the next turn value.
+			(sentries always have a next turn of 0)
+		Try battling one and reopening the menu to see change.
+		Try ./poke --numtrainers 15, the list will show the first 10,
+		use up and down arrow to scroll list
+		Press 't' or 'Esc' to exit menu
+
+		Press '>' to enter pokemart or pokecenter
+		indicated by "in mart!" or "in center!" as well as a pop up
+		press '<' to leave
+	Fly:
+		Pressing 'f' will activate the fly command.
+		enter the x y coord you would like to fly to -200 to 200
+		Syntax is <x coord> <y coord>
+			EX: 150 150 OR -125 -25 OR 5 123
+		If an invalid number is entered, a message will appear and reask for input.
+
+	Battle:
+		when colliding with a trainer a battle will start
+		indicated by "in Battle!" in top of screen
+		Press 'Esc' to leave
+		Trainer will be considered defeated and will not move after.
+		This makes you need strategy to not block your path ways.

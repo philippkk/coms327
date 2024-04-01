@@ -153,7 +153,7 @@ int main(int argc, char *argv[]){
 	globe.playerY = -9999;
 	commandShort =  ' ';
 	playerTurn = false;
-	initscr();			/* Start curses mode 		  */
+	//initscr();			/* Start curses mode 		  */
 	noecho();
 	raw();
 	curs_set(0);
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]){
 	init_pair(10, COLOR_WHITE, COLOR_GREEN);
 	heap_init(&charHeap,char_cmp,NULL);
 
-	//bool numTrainerSwitch = false;
+	//use this for prase check
 	for (int i = 1; i < argc; i++) {
 		if(!strcmp(argv[i],"--numtrainers")){
 	//		numTrainerSwitch = true;
@@ -180,15 +180,9 @@ int main(int argc, char *argv[]){
 			}
 		}
     }
-	//printf("TRAINERS SET TO: %d, %d\n",numTrainers,numTrainerSwitch);
 	while (*command != 'Q')
 	{	
-		// if(commandShort == 'l'){
-		// 	posx++;
-		// 	loadMap();
-		// 	commandShort =' ';
-		// 	continue;
-		// }
+		break;
 	    srand ( time(NULL) );
 		loadMap();
 		if(playerTurn){
