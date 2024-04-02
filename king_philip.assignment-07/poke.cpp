@@ -16,6 +16,7 @@
 #define KEY_ESC 27
 #include "heap.h"
 #include "character.h"
+#include "pokeparser.h"
 /* TODO
 USE VECTOrs TO STORE CSV VALUES
 PARSE ALL THE WAY TO CORRECT PRIM
@@ -171,6 +172,8 @@ int main(int argc, char *argv[]){
 	init_pair(10, COLOR_WHITE, COLOR_GREEN);
 	heap_init(&charHeap,char_cmp,NULL);
 
+
+	pokeparser parser = pokeparser();
 	//use this for prase check
 	for (int i = 1; i < argc; i++) {
 		if(!strcmp(argv[i],"--numtrainers")){
@@ -180,6 +183,19 @@ int main(int argc, char *argv[]){
 			}
 		}
     }
+	//std::string hi = "hi";
+	//pokemon p = pokemon(1,hi,0,0,0,0,0,0);
+
+	std::vector<pokemon> p;
+	p = parser.parsePokemon();
+	while (p.size() > 0)
+	{
+		pokemon poke = p.back();
+		p.pop_back();
+		std::cout<<poke.identifier<<std::endl;
+	}
+	
+
 	while (*command != 'Q')
 	{	
 		break;
