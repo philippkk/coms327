@@ -183,8 +183,6 @@ int main(int argc, char *argv[]){
 			}
 		}
     }
-	//std::string hi = "hi";
-	//pokemon p = pokemon(1,hi,0,0,0,0,0,0);
 
 	std::vector<pokemon> p;
 	p = parser.parsePokemon();
@@ -192,7 +190,9 @@ int main(int argc, char *argv[]){
 	{
 		pokemon poke = p.back();
 		p.pop_back();
-		std::cout<<poke.identifier<<std::endl;
+		std::cout<<poke.id<<" "<<poke.identifier<<" "<< poke.species_id<< " "
+		<< poke.height<<" "<< poke.weight<< " " <<poke.base_experience<< " " <<
+		poke.order<<" "<<poke.is_default<< std::endl;
 	}
 	
 
