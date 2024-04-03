@@ -13,15 +13,15 @@ std::vector<pokemon> pokeparser::parsePokemon()
 
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "pokemon.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "pokemon.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return pokemon_v;
             }
         }
@@ -83,15 +83,15 @@ std::vector<moves> pokeparser::parseMoves()
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "moves.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "moves.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -154,15 +154,15 @@ std::vector<pokemon_moves> pokeparser::parsePokemonMoves()
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "pokemon_moves.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "pokemon_moves.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -205,15 +205,15 @@ std::vector<pokemon_species> pokeparser::parsePokemonSpecies(){
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "pokemon_species.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "pokemon_species.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -275,15 +275,15 @@ std::vector<experience> pokeparser::parseExperience(){
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "experience.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "experience.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -325,15 +325,15 @@ std::vector<type_names> pokeparser::parseTypeNames(){
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "type_names.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "type_names.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -384,15 +384,15 @@ std::vector<pokemon_stats> pokeparser::parsePokemonStats(){
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "pokemon_stats.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "pokemon_stats.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -434,15 +434,15 @@ std::vector<stats> pokeparser::parseStats(){
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "stats.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "stats.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }
@@ -500,15 +500,15 @@ std::vector<pokemon_types> pokeparser::parsePokemonTypes(){
     std::string line;
     if (!file.is_open())
     {
-        std::cout << "path 1 not open" << std::endl;
+        std::cout << "path 1 not open: " << pathOne << std::endl;
         file.open(pathTwo + "pokemon_types.csv");
         if (!file.is_open())
         {
-            std::cout << "path 2 not open" << std::endl;
+            std::cout << "path 2 not open: " << pathTwo<<std::endl;
             file.open(pathThree + "pokemon_types.csv");
             if (!file.is_open())
             {
-                std::cout << "path 3 not open" << std::endl;
+                std::cout << "path 3 not open: "<<pathThree << std::endl;
                 return moves_v;
             }
         }

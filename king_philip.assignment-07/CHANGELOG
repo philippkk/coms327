@@ -196,3 +196,16 @@ Tue, 26 Mar 2024 23:54:25 -0500 - stuff is happening and its weird, tryin to fig
 
 Wed, 27 Mar 2024 12:25:42 -0500 - finished hw6
 
+Wed, 27 Mar 2024 12:36:15 -0500 - one last bug fix
+
+Mon, 1 Apr 2024 12:24:42 -0500 - started assignment 7
+
+Tue, 2 Apr 2024 00:00:23 -0500 - got the first file parsing and making a pokemon class
+
+Tue, 2 Apr 2024 00:14:26 -0500 - got the check for filepaths then the check for empty things, just a huge copy paste job now for the other csv
+
+Tue, 2 Apr 2024 10:41:20 -0500 - finished three of the class while also fixing other things
+
+Tue, 2 Apr 2024 23:48:59 -0500 - only two left, changed a lot as I am learning better ways of doing things
+
+Wed, 3 Apr 2024 00:49:16 -0500 - finished just need to do changelog and read me, all is tested on pyrite as well
