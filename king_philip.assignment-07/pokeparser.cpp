@@ -379,7 +379,7 @@ std::vector<type_names> pokeparser::parseTypeNames(){
     return moves_v;
 }
 std::vector<pokemon_stats> pokeparser::parsePokemonStats(){
-     std::vector<pokemon_stats> moves_v;
+    std::vector<pokemon_stats> moves_v;
     std::ifstream file(pathOne + "pokemon_stats.csv");
     std::string line;
     if (!file.is_open())
@@ -423,6 +423,122 @@ std::vector<pokemon_stats> pokeparser::parsePokemonStats(){
             count++;
         }
         moves_v.push_back(pokemon_stats(values[0], values[1], values[2],values[3]));
+        ss.clear();
+    }
+    file.close();
+    return moves_v;
+}
+std::vector<stats> pokeparser::parseStats(){
+    std::vector<stats> moves_v;
+    std::ifstream file(pathOne + "stats.csv");
+    std::string line;
+    if (!file.is_open())
+    {
+        std::cout << "path 1 not open" << std::endl;
+        file.open(pathTwo + "stats.csv");
+        if (!file.is_open())
+        {
+            std::cout << "path 2 not open" << std::endl;
+            file.open(pathThree + "stats.csv");
+            if (!file.is_open())
+            {
+                std::cout << "path 3 not open" << std::endl;
+                return moves_v;
+            }
+        }
+    }
+    int lineNum = 0;
+    while (std::getline(file, line))
+    {
+        if (lineNum < 1)
+        {
+            lineNum++;
+            continue;
+        }
+        std::stringstream ss(line);
+        std::string f;
+        int count = 0;
+        int values[4];
+        std::fill(std::begin(values),std::end(values),INT_MAX);
+
+        std::string identifier;
+        while (std::getline(ss, f, ','))
+        {
+            if (count == 2)
+            {
+                identifier = f;
+            }
+            else
+            {
+                try
+                {   
+                    if(count > 2)
+                        values[count-1] = std::stoi(f);
+                    else
+                        values[count] = std::stoi(f);
+
+                }
+                catch (const std::invalid_argument &e)
+                {
+                     if(count > 2)
+                        values[count-1] = INT_MAX;
+                    else
+                        values[count] = INT_MAX;
+                }
+            }
+            count++;
+        }
+        moves_v.push_back(stats(values[0], values[1],identifier,values[2],values[3]));
+        ss.clear();
+    }
+    file.close();
+    return moves_v;
+}
+std::vector<pokemon_types> pokeparser::parsePokemonTypes(){
+    std::vector<pokemon_types> moves_v;
+    std::ifstream file(pathOne + "pokemon_types.csv");
+    std::string line;
+    if (!file.is_open())
+    {
+        std::cout << "path 1 not open" << std::endl;
+        file.open(pathTwo + "pokemon_types.csv");
+        if (!file.is_open())
+        {
+            std::cout << "path 2 not open" << std::endl;
+            file.open(pathThree + "pokemon_types.csv");
+            if (!file.is_open())
+            {
+                std::cout << "path 3 not open" << std::endl;
+                return moves_v;
+            }
+        }
+    }
+    int lineNum = 0;
+    while (std::getline(file, line))
+    {
+        if (lineNum < 1)
+        {
+            lineNum++;
+            continue;
+        }
+        std::stringstream ss(line);
+        std::string f;
+        int count = 0;
+        int values[3];
+        std::fill(std::begin(values),std::end(values),INT_MAX);
+        while (std::getline(ss, f, ','))
+        {
+            try
+            {
+                values[count] = std::stoi(f);
+            }
+            catch (const std::invalid_argument &e)
+            {
+                values[count] = INT_MAX;
+            }
+            count++;
+        }
+        moves_v.push_back(pokemon_types(values[0], values[1], values[2]));
         ss.clear();
     }
     file.close();
@@ -645,6 +761,36 @@ void pokemon_stats::printPokemonStats(){
     if(effort == INT_MAX){
         std::cout<< " ";
     }else{std::cout<<effort;}
+    std::cout<<std::endl;
+}
+stats::stats(int iD,int dcid,std::string i,int ibo,int gi):id(iD),damage_class_id(dcid),is_battle_only(ibo),game_index(gi),identifier(i){}
+stats::stats(){}
+void stats::printStats(){
+    std::cout<<id<<",";
+    if(damage_class_id == INT_MAX){
+        std::cout<< " "<<",";
+    }else{std::cout<<damage_class_id<<",";}
+    std::cout<<identifier<<",";
+     if(is_battle_only == INT_MAX){
+        std::cout<< " "<<",";
+    }else{std::cout<<is_battle_only<<",";}
+     if(game_index == INT_MAX){
+        std::cout<< " ";
+    }else{std::cout<<game_index;}
+    std::cout<<std::endl;
+}
+pokemon_types::pokemon_types(int pid,int tid,int s):pokemon_id(pid),type_id(tid),slot(s){}
+pokemon_types::pokemon_types(){}
+void pokemon_types::printPokemonTypes(){
+    if(pokemon_id == INT_MAX){
+        std::cout<< " "<<",";
+    }else{std::cout<<pokemon_id<<",";}
+     if(type_id == INT_MAX){
+        std::cout<< " "<<",";
+    }else{std::cout<<type_id<<",";}
+     if(slot == INT_MAX){
+        std::cout<< " ";
+    }else{std::cout<<slot;}
     std::cout<<std::endl;
 }
 

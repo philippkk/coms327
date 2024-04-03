@@ -181,21 +181,66 @@ int main(int argc, char *argv[]){
 			if(i < argc){
 				numTrainers = atoi(argv[i+1]);
 			}
+		}else if(!strcmp(argv[i],"--pokemon")){
+			std::vector<pokemon> p;
+			p = parser.parsePokemon();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printPokemon();
+			}
+		}else if(!strcmp(argv[i],"--moves")){
+			std::vector<moves> p;
+			p = parser.parseMoves();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printMoves();
+			}
+		}else if(!strcmp(argv[i],"--pokemon_moves")){
+			std::vector<pokemon_moves> p;
+			p = parser.parsePokemonMoves();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printPokemonMoves();
+			}
+		}else if(!strcmp(argv[i],"--pokemon_species")){
+			std::vector<pokemon_species> p;
+			p = parser.parsePokemonSpecies();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printPokemonSpecies();
+			}
+		}else if(!strcmp(argv[i],"--experience")){
+			std::vector<experience> p;
+			p = parser.parseExperience();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printExperience();
+			}
+		}else if(!strcmp(argv[i],"--type_names")){
+			std::vector<type_names> p;
+			p = parser.parseTypeNames();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printTypeNames();
+			}
+		}else if(!strcmp(argv[i],"--pokemon_stats")){
+			std::vector<pokemon_stats> p;
+			p = parser.parsePokemonStats();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printPokemonStats();
+			}
+		}else if(!strcmp(argv[i],"--stats")){
+			std::vector<stats> p;
+			p = parser.parseStats();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printStats();
+			}
+		}else if(!strcmp(argv[i],"--pokemon_types")){
+			std::vector<pokemon_types> p;
+			p = parser.parsePokemonTypes();
+			for(long unsigned int i = 0; i < p.size();i++){
+				p[i].printPokemonTypes();
+			}
+		}else{
+			std::cout<<"no file found: "<<argv[i]<<std::endl;
 		}
     }
 
-	std::vector<pokemon_stats> p;
-	// moves p;
-	// std::string hi = "hi";
-	// p = moves(1,hi,0,0,0,0,0,0,0,0,0,0,0,0,0);
-	// std::cout<<p.indentifier<<std::endl;
-	p = parser.parsePokemonStats();
-	while (p.size() > 0)
-	{
-		pokemon_stats poke = p.back();
-		p.pop_back();
-		poke.printPokemonStats();
-	}
+	
 	
 
 	while (*command != 'Q')

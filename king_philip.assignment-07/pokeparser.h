@@ -71,29 +71,36 @@ class pokemon_stats{
         pokemon_stats();
         void printPokemonStats();
 };
-class stats{};
-class pokemon_types{};
-
-class pokeparser
-{
-private:
-    
-public:
-    pokeparser();
-    ~pokeparser();
-    std::vector<pokemon> parsePokemon();
-    std::vector<moves> parseMoves();
-    std::vector<pokemon_moves> parsePokemonMoves();
-    std::vector<pokemon_species> parsePokemonSpecies();
-    std::vector<experience> parseExperience();
-    std::vector<type_names> parseTypeNames();
-    std::vector<pokemon_stats> parsePokemonStats();
-    std::string pathOne;
-    std::string pathTwo;
-    std::string pathThree;
-
+class stats{
+    public:
+        int id,damage_class_id,is_battle_only,game_index;
+        std::string identifier;
+        stats(int iD,int dcid,std::string i,int ibo,int gi);
+        stats();
+        void printStats();
 };
-
-
-
+class pokemon_types{
+    public:
+        int pokemon_id,type_id,slot;
+        pokemon_types(int pid,int tid,int s);
+        pokemon_types();
+        void printPokemonTypes();
+};
+class pokeparser{
+    public:
+        pokeparser();
+        ~pokeparser();
+        std::vector<pokemon> parsePokemon();
+        std::vector<moves> parseMoves();
+        std::vector<pokemon_moves> parsePokemonMoves();
+        std::vector<pokemon_species> parsePokemonSpecies();
+        std::vector<experience> parseExperience();
+        std::vector<type_names> parseTypeNames();
+        std::vector<pokemon_stats> parsePokemonStats();
+        std::vector<stats> parseStats();
+        std::vector<pokemon_types> parsePokemonTypes();
+        std::string pathOne;
+        std::string pathTwo;
+        std::string pathThree;
+};
 #endif
