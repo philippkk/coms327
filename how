@@ -7,6 +7,8 @@ git log --pretty="%cD - %s%n" --reverse
 to delete:
 	rm -rf <file>
 
+scp -r ../king_philip.assignment-07 philipk@pyrite.cs.iastate.edu:./
+
 to unpack:
 	mkdir tmp
 	cd tmp

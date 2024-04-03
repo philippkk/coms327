@@ -184,17 +184,17 @@ int main(int argc, char *argv[]){
 		}
     }
 
-	std::vector<pokemon_moves> p;
+	std::vector<pokemon_stats> p;
 	// moves p;
 	// std::string hi = "hi";
 	// p = moves(1,hi,0,0,0,0,0,0,0,0,0,0,0,0,0);
 	// std::cout<<p.indentifier<<std::endl;
-	p = parser.parsePokemonMoves();
+	p = parser.parsePokemonStats();
 	while (p.size() > 0)
 	{
-		pokemon_moves poke = p.back();
+		pokemon_stats poke = p.back();
 		p.pop_back();
-		poke.printPokemonMoves();
+		poke.printPokemonStats();
 	}
 	
 
