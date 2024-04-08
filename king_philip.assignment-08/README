@@ -1,0 +1,27 @@
+How to run:
+	$ make
+	$ ./poke --<file name>
+		
+	possbile files:
+		pokemon
+		moves
+		pokemon_moves
+		pokemon_species
+		experience
+		type_names
+		pokemon_stats
+		stats
+		pokemon_types
+
+	Example:
+		./poke --pokemon
+How to clean:
+	$ make clean
+
+Description:
+	after running, the contents of the related csv file will be printed.
+	
+	empty values in the csv will be printed as a space, " ", but internally is stored as INT_MAX
+
+	if the file is not found at a specific location, a message saying not found will be displayed and the next location will be tried.
+	if all fail the program terminates.
