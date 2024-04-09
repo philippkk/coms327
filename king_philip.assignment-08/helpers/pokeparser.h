@@ -92,11 +92,13 @@ class pokemon_types{
 
 class pokemonObject{
     public: 
-        int id,name,species_id,level,exp,
-        hp,atk,def,spd,satk,sdef,gender,iv;
+        int id,species_id,level,exp,
+        hp,atk,def,spd,satk,sdef,gender,iv,currHp,currXp;
+        std::string name;
         bool shiny;
         moves availableMoves[4]; //either 1 or 2 moves for encounter, if none add struggle
-        pokemonObject(int iD,int n,int sid,int lvl,int e,int h,int a,int d,int sa,int sd,int g,int iV,int s,moves am[4]);
+        pokemonObject(int iD,std::string  n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4]);
+        pokemonObject();
 };
 class pokeparser{
     public:

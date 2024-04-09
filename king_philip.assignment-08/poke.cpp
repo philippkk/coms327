@@ -132,6 +132,15 @@ bool wonBattle;
 bool showingList;
 bool skipHeap = false;
 int trainerListOffset = 0;
+
+std::vector<pokemon> pokemonDb;
+std::vector<pokemon_moves> pokemon_movesDb;
+std::vector<moves> movesDb;
+std::vector<pokemon_stats> pokemon_statsDb;
+std::vector<stats> statsDb;
+
+pokemonObject encounteredPoke;
+
 //messy function defs
 void initMap(int a, int b, int c, int d);
 void printMap(map *Map);
@@ -158,6 +167,15 @@ int main(int argc, char *argv[]){
 	globe.playerY = -9999;
 	commandShort =  ' ';
 	playerTurn = false;
+	pokeparser parser = pokeparser();
+	pokemonDb = parser.parsePokemon();
+	movesDb = parser.parseMoves();
+	pokemon_statsDb = parser.parsePokemonStats();
+	statsDb = parser.parseStats();
+	std::cout << "loading..."<<std::endl;
+	pokemon_movesDb = parser.parsePokemonMoves();
+	std::cout << "done"<<std::endl;
+	usleep(500000);
 	initscr();			/* Start curses mode 		  */
 	noecho();
 	raw();
@@ -177,7 +195,7 @@ int main(int argc, char *argv[]){
 	heap_init(&charHeap,char_cmp,NULL);
 
 
-	pokeparser parser = pokeparser();
+
 	//use this for prase check
 	for (int i = 1; i < argc; i++) {
 		if(!strcmp(argv[i],"--numtrainers")){
@@ -185,22 +203,12 @@ int main(int argc, char *argv[]){
 			if(i < argc){
 				numTrainers = atoi(argv[i+1]);
 			}
-		}else if(!strcmp(argv[i],"--pokemon")){
-			std::vector<pokemon> p;
-			p = parser.parsePokemon();
-			for(long unsigned int i = 0; i < p.size();i++){
-				p[i].printPokemon();
-			}
-		}else{
-			std::cout<<"no file found: "<<argv[i]<<std::endl;
 		}
     }
 
-	
-	
-
 	while (*command != 'Q')
 	{	
+		refresh();
 	    srand ( time(NULL) );
 		loadMap();
 		if(playerTurn){
@@ -1140,7 +1148,22 @@ void printMap(map *Map){
 	}
 	
 	if(inEcounter){
-			mvaddstr(25,6,"bitches aint shit");
+			mvaddstr(24,6,encounteredPoke.name.c_str());
+			mvaddstr(25,0,std::to_string(encounteredPoke.id).c_str());
+			mvaddstr(25,5,std::to_string(encounteredPoke.species_id).c_str());
+			mvaddstr(25,10,std::to_string(encounteredPoke.level).c_str());
+			mvaddstr(25,15,std::to_string(encounteredPoke.exp).c_str());
+			mvaddstr(25,20,std::to_string(encounteredPoke.hp).c_str());
+			mvaddstr(25,25,std::to_string(encounteredPoke.atk).c_str());
+			mvaddstr(25,30,std::to_string(encounteredPoke.def).c_str());
+			mvaddstr(25,35,std::to_string(encounteredPoke.spd).c_str());
+			mvaddstr(26,0,std::to_string(encounteredPoke.satk).c_str());
+			mvaddstr(26,5,std::to_string(encounteredPoke.sdef).c_str());
+			mvaddstr(26,10,std::to_string(encounteredPoke.gender).c_str());
+			mvaddstr(26,15,std::to_string(encounteredPoke.iv).c_str());
+			mvaddstr(26,20,std::to_string(encounteredPoke.currHp).c_str());
+			mvaddstr(26,25,std::to_string(encounteredPoke.currXp).c_str());
+
 	}
 
 	attron(COLOR_PAIR(1));
@@ -1901,8 +1924,49 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 						int magicNumber = encounter(generator);//0-100
 						if(magicNumber > 90){
 							inEcounter = true;
+							int randomPokemon = (rand() % pokemonDb.size()-1)+1;
+							pokemon p = pokemonDb.at(randomPokemon);
+							int distx, disty;distx = abs(posx-200);disty = abs(posy-200);
+							int dist = distx+disty;
+							int level,ivtotal = 0;
+							int gender = rand() % 2;
+							moves moveAr[4];
+							bool shiny = false;
+							if(rand()%8192==1){shiny = true;}
+							if(dist <= 200)	
+								level = (rand() % ((dist/2)+1))+1;
+							else
+								level = (dist-200)/2 + (rand() %(100-((dist-200)/2)+1));
+							//parse stats
+							int values[6]={0,0,0,0,0,0};
+							for(long unsigned int i = 0;i<pokemon_statsDb.size();i++){
+								if(pokemon_statsDb.at(i).pokemon_id == p.id){
+									int iv = rand() % 16;
+									if(pokemon_statsDb.at(i).stat_id == 1){
+										values[0] = pokemon_statsDb.at(i).base_stat + iv;
+									}else if(pokemon_statsDb.at(i).stat_id == 2){
+										values[1] = pokemon_statsDb.at(i).base_stat + iv;
+									}else if(pokemon_statsDb.at(i).stat_id == 3){
+										values[2] = pokemon_statsDb.at(i).base_stat + iv;
+									}else if(pokemon_statsDb.at(i).stat_id == 4){
+										values[3] = pokemon_statsDb.at(i).base_stat + iv;
+									}else if(pokemon_statsDb.at(i).stat_id == 5){
+										values[4] = pokemon_statsDb.at(i).base_stat + iv;
+									}else if(pokemon_statsDb.at(i).stat_id == 6){
+										values[5] = pokemon_statsDb.at(i).base_stat + iv;
+									}
+									ivtotal += iv;
+								}else if(pokemon_statsDb.at(i).pokemon_id > p.id){
+									break;
+								}
+							}
+							encounteredPoke = pokemonObject(p.id,p.identifier,p.species_id,level,p.base_experience,
+							values[0],values[1],values[2],values[3],values[4],values[5],gender,ivtotal,shiny,moveAr);
 						}
 						while(inEcounter){
+							//create pokemon
+							//first need the id,moves,and stuff;
+							
 							printMap(currentMap);
 							commandShort = getch();
 							if(commandShort == KEY_ESC){
