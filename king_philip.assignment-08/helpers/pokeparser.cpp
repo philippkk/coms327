@@ -788,12 +788,28 @@ void pokemon_types::printPokemonTypes(){
     }else{std::cout<<slot;}
     std::cout<<std::endl;
 }
-pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4])
-:id(iD),species_id(sid),level(lvl),exp(e),hp(h),atk(a),def(d),spd(speed),satk(sa),sdef(sd),gender(g),iv(iV),name(n),shiny(s){{
+pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4],int hiv,int aiv,int div,int spiv,int saiv,int sdiv)
+:id(iD),species_id(sid),level(lvl),exp(e),hp(h),atk(a),def(d),spd(speed),satk(sa),sdef(sd),gender(g),iv(iV),hpiv(hiv),atkiv(aiv),defiv(div),spdiv(spiv),satkiv(saiv),sdefiv(sdiv),name(n),shiny(s){{
         for(int i = 0; i < 4;i++){
             availableMoves[i] = am[i];
         }
-        currHp = h;
+        //calc level stats and set to curr<stat> base stat will be stored in <stat>
         currXp = e;
+        if(level > 1){
+            currHp = ((((h+hpiv)*2) * level)/100)+level+10;
+            curratk = ((((a+atkiv)*2) * level)/100)+5;
+            currdef = ((((d+defiv)*2) * level)/100)+5;
+            currspd = ((((speed+spdiv)*2) * level)/100)+5;
+            currsatk = ((((sa+satkiv)*2) * level)/100)+5;
+            currsdef = ((((sd+sdefiv)*2) * level)/100)+5;
+        }else{
+            currHp = h + hiv;
+            curratk = a + atkiv;
+            currdef = d + div;
+            currspd = s + spdiv;
+            currsatk = sa + satkiv;
+            currsdef = sd + sdefiv; 
+        }
+        
 }}
 pokemonObject::pokemonObject(){}

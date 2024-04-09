@@ -153,6 +153,7 @@ void playerReturnToMapCalc(int playerX, int playerY);
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
+pokemonObject createPokemon(bool isEncounter);
 int getTileCost(char *tile,int type);
 static int32_t char_cmp(const void *key, const void *with);
 
@@ -853,7 +854,7 @@ void genBuildings(){
 			}
 
 			if(spot != 0){
-				char *c = new char;
+				char *c;
 				if(!mart){
 					c = (char*) tile_str[MART];
 					mart = true;
@@ -1152,13 +1153,13 @@ void printMap(map *Map){
 			mvaddstr(25,0,std::to_string(encounteredPoke.id).c_str());
 			mvaddstr(25,5,std::to_string(encounteredPoke.species_id).c_str());
 			mvaddstr(25,10,std::to_string(encounteredPoke.level).c_str());
-			mvaddstr(25,15,std::to_string(encounteredPoke.exp).c_str());
-			mvaddstr(25,20,std::to_string(encounteredPoke.hp).c_str());
-			mvaddstr(25,25,std::to_string(encounteredPoke.atk).c_str());
-			mvaddstr(25,30,std::to_string(encounteredPoke.def).c_str());
-			mvaddstr(25,35,std::to_string(encounteredPoke.spd).c_str());
-			mvaddstr(26,0,std::to_string(encounteredPoke.satk).c_str());
-			mvaddstr(26,5,std::to_string(encounteredPoke.sdef).c_str());
+			mvaddstr(25,15,std::to_string(encounteredPoke.currXp).c_str());
+			mvaddstr(25,20,std::to_string(encounteredPoke.currHp).c_str());
+			mvaddstr(25,25,std::to_string(encounteredPoke.curratk).c_str());
+			mvaddstr(25,30,std::to_string(encounteredPoke.currdef).c_str());
+			mvaddstr(25,35,std::to_string(encounteredPoke.currspd).c_str());
+			mvaddstr(26,0,std::to_string(encounteredPoke.currsatk).c_str());
+			mvaddstr(26,5,std::to_string(encounteredPoke.currspd).c_str());
 			mvaddstr(26,10,std::to_string(encounteredPoke.gender).c_str());
 			mvaddstr(26,15,std::to_string(encounteredPoke.iv).c_str());
 			mvaddstr(26,20,std::to_string(encounteredPoke.currHp).c_str());
@@ -1203,6 +1204,7 @@ map* createMap() {
     for (int i = 0; i < MAPHEIGHT; ++i) {
         for (int j = 0; j < MAPWIDTH; ++j) {
             newMap->tiles[i][j] = NULL;
+			newMap->chars[i][j].symbol = NULL;
         }
     }
 
@@ -1921,59 +1923,21 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 
 					//CHECK FOR LONG GRASS
 					if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[LONG])){
-						int magicNumber = encounter(generator);//0-100
-						if(magicNumber > 90){
-							inEcounter = true;
-							int randomPokemon = (rand() % pokemonDb.size()-1)+1;
-							pokemon p = pokemonDb.at(randomPokemon);
-							int distx, disty;distx = abs(posx-200);disty = abs(posy-200);
-							int dist = distx+disty;
-							int level,ivtotal = 0;
-							int gender = rand() % 2;
-							moves moveAr[4];
-							bool shiny = false;
-							if(rand()%8192==1){shiny = true;}
-							if(dist <= 200)	
-								level = (rand() % ((dist/2)+1))+1;
-							else
-								level = (dist-200)/2 + (rand() %(100-((dist-200)/2)+1));
-							//parse stats
-							int values[6]={0,0,0,0,0,0};
-							for(long unsigned int i = 0;i<pokemon_statsDb.size();i++){
-								if(pokemon_statsDb.at(i).pokemon_id == p.id){
-									int iv = rand() % 16;
-									if(pokemon_statsDb.at(i).stat_id == 1){
-										values[0] = pokemon_statsDb.at(i).base_stat + iv;
-									}else if(pokemon_statsDb.at(i).stat_id == 2){
-										values[1] = pokemon_statsDb.at(i).base_stat + iv;
-									}else if(pokemon_statsDb.at(i).stat_id == 3){
-										values[2] = pokemon_statsDb.at(i).base_stat + iv;
-									}else if(pokemon_statsDb.at(i).stat_id == 4){
-										values[3] = pokemon_statsDb.at(i).base_stat + iv;
-									}else if(pokemon_statsDb.at(i).stat_id == 5){
-										values[4] = pokemon_statsDb.at(i).base_stat + iv;
-									}else if(pokemon_statsDb.at(i).stat_id == 6){
-										values[5] = pokemon_statsDb.at(i).base_stat + iv;
-									}
-									ivtotal += iv;
-								}else if(pokemon_statsDb.at(i).pokemon_id > p.id){
-									break;
-								}
+							int magicNumber = encounter(generator);//0-100
+							if(magicNumber > 90){
+								inEcounter = true;
+								encounteredPoke = createPokemon(true);
 							}
-							encounteredPoke = pokemonObject(p.id,p.identifier,p.species_id,level,p.base_experience,
-							values[0],values[1],values[2],values[3],values[4],values[5],gender,ivtotal,shiny,moveAr);
+
 						}
-						while(inEcounter){
-							//create pokemon
-							//first need the id,moves,and stuff;
-							
+						while(inEcounter){							
 							printMap(currentMap);
 							commandShort = getch();
 							if(commandShort == KEY_ESC){
 								inEcounter = false;
 							}	
 						}
-					}
+					
 					calcCost(0,currentMap);calcCost(1,currentMap);
 					currentMap->chars[globe.playerY][globe.playerX].nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
 					//currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
@@ -2142,4 +2106,80 @@ void placeNPC(){		// weights of amount
 				
 		}
 	}
+	
+}
+
+pokemonObject createPokemon(bool isEncounter){
+
+	int randomPokemon = (rand() % pokemonDb.size() - 1) + 1;
+	pokemon p = pokemonDb.at(randomPokemon);
+	int distx, disty;
+	distx = abs(posx - 200);
+	disty = abs(posy - 200);
+	int dist = distx + disty;
+	int level, ivtotal = 0, hpiv, atkiv, defiv, spdiv, satkiv, sdefiv;
+	int gender = rand() % 2;
+	moves moveAr[4];
+	bool shiny = false;
+	if (rand() % 8192 == 1){shiny = true;}
+	if (dist <= 200)
+		level = (rand() % ((dist / 2) + 1)) + 1;
+	else
+		level = (dist - 200) / 2 + (rand() % (100 - ((dist - 200) / 2) + 1));
+	// parse stats they are in order so its easy : )
+	int values[6] = {0, 0, 0, 0, 0, 0};
+	for (long unsigned int i = 0; i < pokemon_statsDb.size(); i++)
+	{
+		if (pokemon_statsDb.at(i).pokemon_id == p.id)
+		{
+			int iv = rand() % 16;
+			if (pokemon_statsDb.at(i).stat_id == 1)
+			{
+				values[0] = pokemon_statsDb.at(i).base_stat;
+				hpiv = iv;
+			}
+			else if (pokemon_statsDb.at(i).stat_id == 2)
+			{
+				values[1] = pokemon_statsDb.at(i).base_stat;
+				atkiv = iv;
+			}
+			else if (pokemon_statsDb.at(i).stat_id == 3)
+			{
+				values[2] = pokemon_statsDb.at(i).base_stat;
+				defiv = iv;
+			}
+			else if (pokemon_statsDb.at(i).stat_id == 4)
+			{
+				values[3] = pokemon_statsDb.at(i).base_stat;
+				spdiv = iv;
+			}
+			else if (pokemon_statsDb.at(i).stat_id == 5)
+			{
+				values[4] = pokemon_statsDb.at(i).base_stat;
+				satkiv = iv;
+			}
+			else if (pokemon_statsDb.at(i).stat_id == 6)
+			{
+				values[5] = pokemon_statsDb.at(i).base_stat;
+				sdefiv = iv;
+			}
+			ivtotal += iv;
+		}
+		else if (pokemon_statsDb.at(i).pokemon_id > p.id)
+		{
+			break;
+		}
+	}
+	int movesPicked = 0;
+	std::vector<moves>possibleMoves;
+
+	for (long unsigned int i = 0; i < pokemon_movesDb.size();i++){
+		//if !encounter pick 4 otherwise pick 2
+		if(isEncounter && movesPicked >= 2){break;}
+		// moves need p_m.pid = p.sid and p_m.mmid = 1 and p_m.lvl <=  p.lvl
+		// then do p_m.mid = m.id to get acutal move : )
+		
+	}
+	return pokemonObject(p.id, p.identifier, p.species_id, level, p.base_experience,
+						 values[0], values[1], values[2], values[3], values[4], values[5], gender, ivtotal, shiny, moveAr, hpiv, atkiv, defiv, spdiv, satkiv, sdefiv);
 }
