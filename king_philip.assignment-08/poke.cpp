@@ -127,6 +127,7 @@ bool fly = false;
 int flyX;
 int flyY;
 bool inBattle;
+bool inEcounter;
 bool wonBattle;
 bool showingList;
 bool skipHeap = false;
@@ -151,6 +152,7 @@ const u32 seed = os_seed();
 engine generator( seed );
 std::uniform_int_distribution< u32 > xdistribute( 1, 79 );
 std::uniform_int_distribution< u32 > ydistribute( 1, 20);
+std::uniform_int_distribution< u32 > encounter( 0, 100);
 int main(int argc, char *argv[]){
 	globe.playerX = -9999;
 	globe.playerY = -9999;
@@ -1069,7 +1071,6 @@ void printMap(map *Map){
     	mvaddstr(17,16,"num of trainers: ");mvaddstr(17,33,str);
 		
 	}
-
 	if(fly){
 		flyX = posx+200;
 		flyY = posy+200;
@@ -1137,6 +1138,11 @@ void printMap(map *Map){
 		loadMap();
 		
 	}
+	
+	if(inEcounter){
+			mvaddstr(25,6,"bitches aint shit");
+	}
+
 	attron(COLOR_PAIR(1));
 	char posY[12];
 	int numy = posy-200;
@@ -1792,7 +1798,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								validCommand = false;
 								break;
 							case 'Q':
-								break;
+								return;
 							case 'f':
 								fly = !fly;
 								validCommand = true;
@@ -1888,6 +1894,22 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				}
 					if(fly)
 						break;
+					
+
+					//CHECK FOR LONG GRASS
+					if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[LONG])){
+						int magicNumber = encounter(generator);//0-100
+						if(magicNumber > 90){
+							inEcounter = true;
+						}
+						while(inEcounter){
+							printMap(currentMap);
+							commandShort = getch();
+							if(commandShort == KEY_ESC){
+								inEcounter = false;
+							}	
+						}
+					}
 					calcCost(0,currentMap);calcCost(1,currentMap);
 					currentMap->chars[globe.playerY][globe.playerX].nextTurn += getTileCost(currentMap->tiles[globe.playerY][globe.playerX],99);
 					//currentTime = currentMap->chars[globe.playerY][globe.playerX].nextTurn;
