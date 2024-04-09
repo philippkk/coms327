@@ -793,4 +793,9 @@ void pokemon_types::printPokemonTypes(){
     }else{std::cout<<slot;}
     std::cout<<std::endl;
 }
-
+pokemonObject::pokemonObject(int iD,int n,int sid,int lvl,int e,int h,int a,int d,int sa,int sd,int g,int iV,int s,moves am[4])
+:id(iD),name(n),species_id(sid),level(lvl),exp(e),hp(h),atk(a),def(d),satk(sa),sdef(sd),gender(g),iv(iV),shiny(s){{
+        for(int i = 0; i < 4;i++){
+            availableMoves[i] = am[i];
+        }
+}}

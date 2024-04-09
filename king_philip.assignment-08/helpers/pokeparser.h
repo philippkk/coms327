@@ -5,6 +5,8 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+
+
 class pokemon{
     private:
         
@@ -85,6 +87,16 @@ class pokemon_types{
         pokemon_types(int pid,int tid,int s);
         pokemon_types();
         void printPokemonTypes();
+};
+
+
+class pokemonObject{
+    public: 
+        int id,name,species_id,level,exp,
+        hp,atk,def,spd,satk,sdef,gender,iv;
+        bool shiny;
+        moves availableMoves[4]; //either 1 or 2 moves for encounter, if none add struggle
+        pokemonObject(int iD,int n,int sid,int lvl,int e,int h,int a,int d,int sa,int sd,int g,int iV,int s,moves am[4]);
 };
 class pokeparser{
     public:
