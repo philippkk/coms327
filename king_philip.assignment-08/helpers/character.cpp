@@ -10,5 +10,11 @@ character::character(int x,int y,char *s,
                         tile = t;
                         nextTurn = nt;
                         defeated = de;
+                        pokemon[0] = pokemonObject();
+                        pokemon[1] = pokemonObject();
+                        pokemon[2] = pokemonObject();
+                        pokemon[3] = pokemonObject();
+                        pokemon[4] = pokemonObject();
+                        pokemon[5] = pokemonObject();
                     }
 character::character(){}

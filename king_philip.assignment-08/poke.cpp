@@ -82,6 +82,7 @@ typedef class globe{
 		map *maps[401][401];
 		int playerX;
 		int playerY;
+		pokemonObject playerPokemon[6];
 }globe_m;
 
 
@@ -104,6 +105,7 @@ typedef class path {
 } path_t;
 
 character_c player;
+character_c *opponent;
 //messy global vars
 globe_m globe;
 //check left, right, top, bottom, upleft ,downleft, upright, downright
@@ -167,6 +169,12 @@ std::uniform_int_distribution< u32 > encounter( 0, 100);
 int main(int argc, char *argv[]){
 	globe.playerX = -9999;
 	globe.playerY = -9999;
+	globe.playerPokemon[0] = pokemonObject();
+    globe.playerPokemon[1] = pokemonObject();
+	globe.playerPokemon[2] = pokemonObject();
+	globe.playerPokemon[3] = pokemonObject();
+	globe.playerPokemon[4] = pokemonObject();
+	globe.playerPokemon[5] = pokemonObject();
 	commandShort =  ' ';
 	playerTurn = false;
 	pokeparser parser = pokeparser();
@@ -1004,6 +1012,31 @@ void printMap(map *Map){
 		mvaddstr(0,0,"in Battle!!\n");
 		attroff(COLOR_PAIR(1));
 		
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "            IN BATTLE WITH TRAINER               ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 19;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(19,i,ACS_HLINE);
+		}
+		mvaddch(19,15,ACS_LLCORNER);
+		mvaddch(19,64,ACS_LRCORNER);
+
+		mvaddstr(10,17,opponent->pokemon[0].name.c_str());
 	}
 	//80/21
 	if(showingList){
@@ -1596,6 +1629,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		else if(currentMap->rivalMap[nextY][nextX - 1] != INT16_MAX
 		&& currentMap->chars[nextY][nextX - 1].symbol == character_str[PLAYER]
 		&& posX > 1){
+			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
 				currentMap->chars[posY][posX].symbol = NULL;
 				printMap(currentMap);
@@ -1625,6 +1659,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		else if(currentMap->rivalMap[nextY][nextX + 1] != INT16_MAX
 		&& currentMap->chars[nextY][nextX + 1].symbol == character_str[PLAYER]
 		&& posX > 1){
+			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
 				currentMap->chars[posY][posX].symbol = NULL;
 				printMap(currentMap);
@@ -1654,6 +1689,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		else if(currentMap->rivalMap[nextY-1][nextX] != INT16_MAX
 		&& currentMap->chars[nextY-1][nextX].symbol == character_str[PLAYER]
 		&& posX > 1){
+			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
 				currentMap->chars[posY][posX].symbol = NULL;
 				printMap(currentMap);
@@ -1683,6 +1719,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		else if(currentMap->rivalMap[nextY+1][nextX] != INT16_MAX
 		&& currentMap->chars[nextY+1][nextX].symbol == character_str[PLAYER]
 		&& posX > 1){
+			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
 				currentMap->chars[posY][posX].symbol = NULL;
 				printMap(currentMap);
@@ -1973,6 +2010,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				&& currentMap->chars[playerY][playerX].symbol != character_str[PLAYER]
 				&& !currentMap->chars[playerY][playerX].defeated){	
 					inBattle = true;
+					opponent = &currentMap->chars[playerY][playerX];
 					while (inBattle)
 					{
 						printMap(currentMap);
@@ -2046,11 +2084,19 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					}
 
 					//currentTime = currentMap->chars[c->nextY][c->nextX].nextTurn;
+					//SET POKEMON HERE
+					currentMap->chars[c->nextY][c->nextX].pokemon[0] = c->pokemon[0];
+					currentMap->chars[c->nextY][c->nextX].pokemon[1] = c->pokemon[1];
+					currentMap->chars[c->nextY][c->nextX].pokemon[2] = c->pokemon[2];
+					currentMap->chars[c->nextY][c->nextX].pokemon[3] = c->pokemon[3];
+					currentMap->chars[c->nextY][c->nextX].pokemon[4] = c->pokemon[4];
+					currentMap->chars[c->nextY][c->nextX].pokemon[5] = c->pokemon[5];
 					currentMap->chars[c->nextY][c->nextX].hn =
 					heap_insert(&currentMap->localHeap, &currentMap->chars[c->nextY][c->nextX]);
 					currentMap->chars[c->posY][c->posX].symbol = NULL;				
 					break;
 				}else if(currentMap->chars[c->nextY][c->nextX].symbol == character_str[PLAYER]){
+					opponent = &currentMap->chars[c->posY][c->posX];
 					inBattle = true;
 					printMap(currentMap);
 					while (inBattle)
@@ -2073,7 +2119,15 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					}else if (!strcmp(c->symbol,character_str[EXPLORERS])){
 						setNextPace(c->posY,c->posX,c->posY,c->posX,c->dir,4);
 					}
+					
 					//currentTime = currentMap->chars[c->posY][c->posX].nextTurn;
+					//SET POKEMON HERE!
+					currentMap->chars[c->posY][c->posX].pokemon[0] = c->pokemon[0];
+					currentMap->chars[c->posY][c->posX].pokemon[1] = c->pokemon[1];
+					currentMap->chars[c->posY][c->posX].pokemon[2] = c->pokemon[2];
+					currentMap->chars[c->posY][c->posX].pokemon[3] = c->pokemon[3];
+					currentMap->chars[c->posY][c->posX].pokemon[4] = c->pokemon[4];
+					currentMap->chars[c->posY][c->posX].pokemon[5] = c->pokemon[5];
 					heap_insert(&currentMap->localHeap, &currentMap->chars[c->posY][c->posX]);
 					break;
 				}
@@ -2123,6 +2177,17 @@ void placeNPC(){		// weights of amount
 		if(numHiker < maxHiker){
 			if(currentMap->chars[y][x].symbol == NULL){
 				character hiker = character(x,y,(char*) character_str[HIKER],0,NULL,0,0);
+				hiker.pokemon[0] = createPokemon(true);
+				int numPoke = 1;
+				while(numPoke < 6){
+					int x = rand()%100;
+					if(x >= 40){
+						hiker.pokemon[numPoke] = createPokemon(true);
+						numPoke++;
+					}else{
+						break;
+					}
+				}
 				numHiker++;
 				currentMap->chars[y][x] = hiker;
 				setNextTurn(y,x,0,x,y);

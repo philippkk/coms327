@@ -1,6 +1,7 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 #include "heap.h"
+#include "pokeparser.h"
 typedef class character{
 	public:
 		heap_node_t *hn;
@@ -13,6 +14,7 @@ typedef class character{
 		char *tile;
 		int nextTurn;
 		int defeated;
+		pokemonObject pokemon[6];
         character(int x,int y,char *s,
                     int d,char *t,int nt,int de);
         character();

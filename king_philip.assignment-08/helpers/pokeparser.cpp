@@ -812,4 +812,4 @@ pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,in
         }
         
 }}
-pokemonObject::pokemonObject(){}
+pokemonObject::pokemonObject(){name = "empty";}
