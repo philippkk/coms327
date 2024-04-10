@@ -154,6 +154,7 @@ void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
 pokemonObject createPokemon(bool isEncounter);
+void levelUpPokemon(pokemonObject poke);
 int getTileCost(char *tile,int type);
 static int32_t char_cmp(const void *key, const void *with);
 
@@ -193,6 +194,8 @@ int main(int argc, char *argv[]){
 	init_pair(8, COLOR_WHITE, COLOR_BLUE);
 	init_pair(9, COLOR_WHITE, COLOR_RED);
 	init_pair(10, COLOR_WHITE, COLOR_GREEN);
+	init_pair(11, COLOR_WHITE, COLOR_RED);
+	init_pair(12, COLOR_WHITE, COLOR_BLACK);
 	heap_init(&charHeap,char_cmp,NULL);
 
 
@@ -1149,24 +1152,95 @@ void printMap(map *Map){
 	}
 	
 	if(inEcounter){
-			mvaddstr(24,6,encounteredPoke.name.c_str());
-			mvaddstr(25,0,std::to_string(encounteredPoke.id).c_str());
-			mvaddstr(25,5,std::to_string(encounteredPoke.species_id).c_str());
-			mvaddstr(25,10,std::to_string(encounteredPoke.level).c_str());
-			mvaddstr(25,15,std::to_string(encounteredPoke.currXp).c_str());
-			mvaddstr(25,20,std::to_string(encounteredPoke.currHp).c_str());
-			mvaddstr(25,25,std::to_string(encounteredPoke.curratk).c_str());
-			mvaddstr(25,30,std::to_string(encounteredPoke.currdef).c_str());
-			mvaddstr(25,35,std::to_string(encounteredPoke.currspd).c_str());
-			mvaddstr(26,0,std::to_string(encounteredPoke.currsatk).c_str());
-			mvaddstr(26,5,std::to_string(encounteredPoke.currspd).c_str());
-			mvaddstr(26,10,std::to_string(encounteredPoke.gender).c_str());
-			mvaddstr(26,15,std::to_string(encounteredPoke.iv).c_str());
-			mvaddstr(26,20,std::to_string(encounteredPoke.currHp).c_str());
-			mvaddstr(26,25,std::to_string(encounteredPoke.currXp).c_str());
 
+		//PRINTING FIRST BOX
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "        YOU ENCOUNTERED A WILD POKEMON!          ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 19;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(19,i,ACS_HLINE);
+		}
+		mvaddch(19,15,ACS_LLCORNER);
+		mvaddch(19,64,ACS_LRCORNER);
+
+			int offset = 0;
+			attron(COLOR_PAIR(11));
+			mvaddstr(7,17,encounteredPoke.name.c_str());
+			mvaddstr(7,18+ encounteredPoke.name.length(), "id:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(7,21+ encounteredPoke.name.length(), std::to_string(encounteredPoke.id).c_str());
+			//mvaddstr(7,5,std::to_string(encounteredPoke.species_id).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr(9,16,"lvl:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(9,21,std::to_string(encounteredPoke.level).c_str());
+			offset = 22+std::to_string(encounteredPoke.level).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr(9,offset,"XP:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(9,offset += 3,std::to_string(encounteredPoke.currXp).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr(10,16,"HP:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(10,19,std::to_string(encounteredPoke.currHp).c_str());
+			offset = 20 + std::to_string(encounteredPoke.currHp).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr(10,offset,"ATK:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(10,offset+=4,std::to_string(encounteredPoke.curratk).c_str());
+			offset +=std::to_string(encounteredPoke.curratk).length() + 1;
+			attron(COLOR_PAIR(11));
+			mvaddstr(10,offset,"DEF:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(10,offset+=4,std::to_string(encounteredPoke.currdef).c_str());
+			offset += 1 +std::to_string(encounteredPoke.currdef).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr(10,offset,"SPD:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(10,offset+=4,std::to_string(encounteredPoke.currspd).c_str());
+			offset += 1 + std::to_string(encounteredPoke.currspd).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr(10,offset,"sATK:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(10,offset+=5,std::to_string(encounteredPoke.currsatk).c_str());
+			offset += 1 + std::to_string(encounteredPoke.currsatk).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr(10,offset,"sDEF:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(10,offset+=5,std::to_string(encounteredPoke.currsdef).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr(11,16,"GENDER:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(11,24,std::to_string(encounteredPoke.gender).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr(12,16,"IV TOTAL:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(12,26,std::to_string(encounteredPoke.iv).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr(14,17,"MOVES:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(15,22,encounteredPoke.availableMoves[0].indentifier.c_str());
+			mvaddstr(16,22,encounteredPoke.availableMoves[1].indentifier.c_str());
+			mvaddstr(17,22,encounteredPoke.availableMoves[2].indentifier.c_str());
+			mvaddstr(18,22,encounteredPoke.availableMoves[3].indentifier.c_str());
+			attroff(COLOR_PAIR(11));
+			attroff(COLOR_PAIR(12));
 	}
-
 	attron(COLOR_PAIR(1));
 	char posY[12];
 	int numy = posy-200;
@@ -2108,7 +2182,6 @@ void placeNPC(){		// weights of amount
 	}
 	
 }
-
 pokemonObject createPokemon(bool isEncounter){
 
 	int randomPokemon = (rand() % pokemonDb.size() - 1) + 1;
@@ -2133,36 +2206,24 @@ pokemonObject createPokemon(bool isEncounter){
 		if (pokemon_statsDb.at(i).pokemon_id == p.id)
 		{
 			int iv = rand() % 16;
-			if (pokemon_statsDb.at(i).stat_id == 1)
-			{
+			if (pokemon_statsDb.at(i).stat_id == 1){
 				values[0] = pokemon_statsDb.at(i).base_stat;
-				hpiv = iv;
-			}
-			else if (pokemon_statsDb.at(i).stat_id == 2)
-			{
+				hpiv = iv;}
+			else if (pokemon_statsDb.at(i).stat_id == 2){
 				values[1] = pokemon_statsDb.at(i).base_stat;
-				atkiv = iv;
-			}
-			else if (pokemon_statsDb.at(i).stat_id == 3)
-			{
+				atkiv = iv;}
+			else if (pokemon_statsDb.at(i).stat_id == 3){
 				values[2] = pokemon_statsDb.at(i).base_stat;
-				defiv = iv;
-			}
-			else if (pokemon_statsDb.at(i).stat_id == 4)
-			{
+				defiv = iv;}
+			else if (pokemon_statsDb.at(i).stat_id == 4){
 				values[3] = pokemon_statsDb.at(i).base_stat;
-				spdiv = iv;
-			}
-			else if (pokemon_statsDb.at(i).stat_id == 5)
-			{
+				spdiv = iv;}
+			else if (pokemon_statsDb.at(i).stat_id == 5){
 				values[4] = pokemon_statsDb.at(i).base_stat;
-				satkiv = iv;
-			}
-			else if (pokemon_statsDb.at(i).stat_id == 6)
-			{
+				satkiv = iv;}
+			else if (pokemon_statsDb.at(i).stat_id == 6){
 				values[5] = pokemon_statsDb.at(i).base_stat;
-				sdefiv = iv;
-			}
+				sdefiv = iv;}
 			ivtotal += iv;
 		}
 		else if (pokemon_statsDb.at(i).pokemon_id > p.id)
@@ -2172,14 +2233,39 @@ pokemonObject createPokemon(bool isEncounter){
 	}
 	int movesPicked = 0;
 	std::vector<moves>possibleMoves;
-
+	bool foundDupe = false;
 	for (long unsigned int i = 0; i < pokemon_movesDb.size();i++){
-		//if !encounter pick 4 otherwise pick 2
-		if(isEncounter && movesPicked >= 2){break;}
 		// moves need p_m.pid = p.sid and p_m.mmid = 1 and p_m.lvl <=  p.lvl
 		// then do p_m.mid = m.id to get acutal move : )
-		
+		if(pokemon_movesDb.at(i).pokemon_id == p.species_id && pokemon_movesDb.at(i).pokemon_move_method_id == 1
+		&&pokemon_movesDb.at(i).level <= level){
+			for(int j = 0; j < possibleMoves.size();j++){
+				if(possibleMoves.at(j).id == pokemon_movesDb.at(i).move_id){
+					foundDupe = true;
+				}
+			}
+			if(!foundDupe)
+				possibleMoves.push_back(movesDb.at(pokemon_movesDb.at(i).move_id-1));
+
+			foundDupe = false;
+		}
+
+	}
+	while(possibleMoves.size() < 2){
+		//add struggle = id = 165 spot = ? probably 165
+		possibleMoves.push_back(movesDb.at(164));
+	}
+	while(movesPicked != 4){
+		//if !encounter pick 4 otherwise pick 2
+		if(isEncounter && movesPicked >= 2){break;}
+		int num = rand() % possibleMoves.size();
+		moveAr[movesPicked] = possibleMoves.at(num);
+		possibleMoves.erase(possibleMoves.begin()+num);
+		movesPicked++;
 	}
 	return pokemonObject(p.id, p.identifier, p.species_id, level, p.base_experience,
 						 values[0], values[1], values[2], values[3], values[4], values[5], gender, ivtotal, shiny, moveAr, hpiv, atkiv, defiv, spdiv, satkiv, sdefiv);
+}
+void levelUpPokemon(pokemonObject poke){
+
 }
