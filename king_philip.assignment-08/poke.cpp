@@ -1035,8 +1035,51 @@ void printMap(map *Map){
 		}
 		mvaddch(19,15,ACS_LLCORNER);
 		mvaddch(19,64,ACS_LRCORNER);
-
-		mvaddstr(10,17,opponent->pokemon[0].name.c_str());
+		int offset = 0;
+		
+		mvaddstr(7,17,"Trainer Pokemon:");
+		for(int i = 0; i < 4;i++){
+			if(opponent->pokemon[i].name == "empty"){
+				continue;
+			}
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,23+ opponent->pokemon[i].name.length(), "id:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,26+ opponent->pokemon[i].name.length(), std::to_string(opponent->pokemon[i].id).c_str());
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,22,opponent->pokemon[i].name.c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+9,16,"HP:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+9,19,std::to_string(opponent->pokemon[i].currHp).c_str());
+			offset = 20 + std::to_string(opponent->pokemon[i].currHp).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+9,offset,"ATK:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+9,offset+=4,std::to_string(opponent->pokemon[i].curratk).c_str());
+			offset +=std::to_string(opponent->pokemon[i].curratk).length() + 1;
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+9,offset,"DEF:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+9,offset+=4,std::to_string(opponent->pokemon[i].currdef).c_str());
+			offset += 1 +std::to_string(opponent->pokemon[i].currdef).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+9,offset,"SPD:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+9,offset+=4,std::to_string(opponent->pokemon[i].currspd).c_str());
+			offset += 1 + std::to_string(opponent->pokemon[i].currspd).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+9,offset,"sATK:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+9,offset+=5,std::to_string(opponent->pokemon[i].currsatk).c_str());
+			offset += 1 + std::to_string(opponent->pokemon[i].currsatk).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+9,offset,"sDEF:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+9,offset+=5,std::to_string(opponent->pokemon[i].currsdef).c_str());
+		}
+		attron(COLOR_PAIR(11));
+		attron(COLOR_PAIR(12));
 	}
 	//80/21
 	if(showingList){
@@ -2199,6 +2242,17 @@ void placeNPC(){		// weights of amount
 		if(numRival < maxRival){
 				if(currentMap->chars[y][x].symbol == NULL){
 				character rival = character(x,y,(char*) character_str[RIVAL],0,NULL,0,0);
+				rival.pokemon[0] = createPokemon(true);
+				int numPoke = 1;
+				while(numPoke < 6){
+					int x = rand()%100;
+					if(x >= 40){
+						rival.pokemon[numPoke] = createPokemon(true);
+						numPoke++;
+					}else{
+						break;
+					}
+				}
 				numRival++;
 				currentMap->chars[y][x] = rival;
 				setNextTurn(y,x,1,x,y);
@@ -2210,6 +2264,17 @@ void placeNPC(){		// weights of amount
 		if(numPacer < maxPacer){
 			if(currentMap->chars[y][x].symbol == NULL){
 				character pacer = character(x,y,(char*) character_str[PACER],rand()%4,NULL,0,0);
+				pacer.pokemon[0] = createPokemon(true);
+				int numPoke = 1;
+				while(numPoke < 6){
+					int x = rand()%100;
+					if(x >= 40){
+						pacer.pokemon[numPoke] = createPokemon(true);
+						numPoke++;
+					}else{
+						break;
+					}
+				}
 				currentMap->chars[y][x]= pacer;
 				setNextPace(y,x,y,x,pacer.dir,2);
 				numPacer++;
@@ -2220,6 +2285,17 @@ void placeNPC(){		// weights of amount
 		if(numWanderer < maxWanderer){
 			if(currentMap->chars[y][x].symbol == NULL){
 				character wanderer = character(x,y,(char*) character_str[WANDERER],rand()%4,currentMap->tiles[y][x],0,0);
+				wanderer.pokemon[0] = createPokemon(true);
+				int numPoke = 1;
+				while(numPoke < 6){
+					int x = rand()%100;
+					if(x >= 40){
+						wanderer.pokemon[numPoke] = createPokemon(true);
+						numPoke++;
+					}else{
+						break;
+					}
+				}
 				currentMap->chars[y][x]= wanderer;
 				setNextPace(y,x,y,x,wanderer.dir,3);
 				numWanderer++;
@@ -2230,6 +2306,17 @@ void placeNPC(){		// weights of amount
 		if(numSentries < maxSenteries){
 			if(currentMap->chars[y][x].symbol == NULL){
 				character sentery = character(x,y,(char*) character_str[SENTRIES],0,NULL,0,0);
+				sentery.pokemon[0] = createPokemon(true);
+				int numPoke = 1;
+				while(numPoke < 6){
+					int x = rand()%100;
+					if(x >= 40){
+						sentery.pokemon[numPoke] = createPokemon(true);
+						numPoke++;
+					}else{
+						break;
+					}
+				}
 				currentMap->chars[y][x]= sentery;
 				numSentries++;
 			}	
@@ -2237,6 +2324,17 @@ void placeNPC(){		// weights of amount
 		if(numExplorers < maxExplorers){
 			if(currentMap->chars[y][x].symbol == NULL){
 				character explorer = character(x,y,(char*) character_str[EXPLORERS],rand()%4,NULL,0,0);
+				explorer.pokemon[0] = createPokemon(true);
+				int numPoke = 1;
+				while(numPoke < 6){
+					int x = rand()%100;
+					if(x >= 40){
+						explorer.pokemon[numPoke] = createPokemon(true);
+						numPoke++;
+					}else{
+						break;
+					}
+				}
 				currentMap->chars[y][x]= explorer;
 				numExplorers++;		
 				setNextPace(y,x,y,x,explorer.dir,4);
