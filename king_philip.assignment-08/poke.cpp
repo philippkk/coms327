@@ -121,6 +121,7 @@ int currentTime = 0;
 int DEBUGCHANGENUM = 0;
 heap_t charHeap;
 char command[20];
+int selector =0;
 int commandShort;
 bool playerTurn;
 bool inMart;
@@ -132,6 +133,7 @@ bool inBattle;
 bool inEcounter;
 bool wonBattle;
 bool showingList;
+bool showingPoke;
 bool skipHeap = false;
 int trainerListOffset = 0;
 
@@ -442,6 +444,63 @@ void initMap(int a,int b,int c, int d){
 	calcCost(0,currentMap);calcCost(1,currentMap);
 	placeNPC();
 	printMap(currentMap);
+
+	
+	pokemonObject poke1 = createPokemon(true);
+	pokemonObject poke2 = createPokemon(true);
+	pokemonObject poke3 = createPokemon(true);
+	pokemonObject pokes[3] = {poke1,poke2,poke3};
+	while(globe.playerPokemon[0].name == "empty"){
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "                 PICK A POKEMON                  ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 18;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(18,i,ACS_HLINE);
+		}
+		mvaddch(18,15,ACS_LLCORNER);
+		mvaddch(18,64,ACS_LRCORNER);
+		attron(COLOR_PAIR(11));
+		for(int i = 0; i < 3; i++){
+			mvaddstr((3*i)+7,18,pokes[i].name.c_str());	
+		}
+		attroff(COLOR_PAIR(11));
+		attroff(COLOR_PAIR(12));
+		mvaddstr(17,18,"PRESS <f> , <UP/DOWN ARROW> TO SELECT");
+		mvaddch((3*selector)+7,17,'[');
+		mvaddch((3*selector)+7 ,18+ pokes[selector].name.length(),']');
+		commandShort = getch();
+		if(commandShort == 'f'){
+			globe.playerPokemon[0] = pokes[selector];
+		}
+		switch (commandShort)
+		{
+		case KEY_DOWN:
+			if (selector < 2)
+				selector++;
+			break;
+			case KEY_UP:
+			if (selector > 0)
+				selector--;
+			break;
+			case 'Q':
+				return;
+		}
+	}
 	copyMap(globe.maps[posy][posx],currentMap);
 	free(currentMap);
 }
@@ -1037,49 +1096,66 @@ void printMap(map *Map){
 		mvaddch(19,64,ACS_LRCORNER);
 		int offset = 0;
 		
-		mvaddstr(7,17,"Trainer Pokemon:");
 		for(int i = 0; i < 4;i++){
 			if(opponent->pokemon[i].name == "empty"){
 				continue;
 			}
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,23+ opponent->pokemon[i].name.length(), "id:");
+			mvaddstr((2*i)+7,23+ opponent->pokemon[i].name.length(), "id:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,26+ opponent->pokemon[i].name.length(), std::to_string(opponent->pokemon[i].id).c_str());
+			mvaddstr((2*i)+7,26+ opponent->pokemon[i].name.length(), std::to_string(opponent->pokemon[i].id).c_str());
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,22,opponent->pokemon[i].name.c_str());
+			mvaddstr((2*i)+7,22,opponent->pokemon[i].name.c_str());
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+9,16,"HP:");
+			mvaddstr((2*i)+7,27+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
+					,"lvl:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+9,19,std::to_string(opponent->pokemon[i].currHp).c_str());
+			mvaddstr((2*i)+7,31+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
+					,std::to_string(opponent->pokemon[i].level).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+7,32+ std::to_string(opponent->pokemon[i].level).length() + opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
+					,"G:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,35 + opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
+					,std::to_string(opponent->pokemon[i].gender).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+7,37+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
+					,"S:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,39+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
+					,std::to_string(opponent->pokemon[i].shiny).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,16,"HP:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,19,std::to_string(opponent->pokemon[i].currHp).c_str());
 			offset = 20 + std::to_string(opponent->pokemon[i].currHp).length();
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+9,offset,"ATK:");
+			mvaddstr((2*i)+8,offset,"ATK:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+9,offset+=4,std::to_string(opponent->pokemon[i].curratk).c_str());
+			mvaddstr((2*i)+8,offset+=4,std::to_string(opponent->pokemon[i].curratk).c_str());
 			offset +=std::to_string(opponent->pokemon[i].curratk).length() + 1;
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+9,offset,"DEF:");
+			mvaddstr((2*i)+8,offset,"DEF:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+9,offset+=4,std::to_string(opponent->pokemon[i].currdef).c_str());
+			mvaddstr((2*i)+8,offset+=4,std::to_string(opponent->pokemon[i].currdef).c_str());
 			offset += 1 +std::to_string(opponent->pokemon[i].currdef).length();
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+9,offset,"SPD:");
+			mvaddstr((2*i)+8,offset,"SPD:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+9,offset+=4,std::to_string(opponent->pokemon[i].currspd).c_str());
+			mvaddstr((2*i)+8,offset+=4,std::to_string(opponent->pokemon[i].currspd).c_str());
 			offset += 1 + std::to_string(opponent->pokemon[i].currspd).length();
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+9,offset,"sATK:");
+			mvaddstr((2*i)+8,offset,"sATK:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+9,offset+=5,std::to_string(opponent->pokemon[i].currsatk).c_str());
+			mvaddstr((2*i)+8,offset+=5,std::to_string(opponent->pokemon[i].currsatk).c_str());
 			offset += 1 + std::to_string(opponent->pokemon[i].currsatk).length();
 			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+9,offset,"sDEF:");
+			mvaddstr((2*i)+8,offset,"sDEF:");
 			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+9,offset+=5,std::to_string(opponent->pokemon[i].currsdef).c_str());
+			mvaddstr((2*i)+8,offset+=5,std::to_string(opponent->pokemon[i].currsdef).c_str());
 		}
-		attron(COLOR_PAIR(11));
-		attron(COLOR_PAIR(12));
+		attroff(COLOR_PAIR(11));
+		attroff(COLOR_PAIR(12));
 	}
 	//80/21
 	if(showingList){
@@ -1158,6 +1234,7 @@ void printMap(map *Map){
 		snprintf(str,10,"%d",numOfChars);
     	mvaddstr(17,16,"num of trainers: ");mvaddstr(17,33,str);
 		
+		
 	}
 	if(fly){
 		flyX = posx+200;
@@ -1228,7 +1305,6 @@ void printMap(map *Map){
 	}
 	
 	if(inEcounter){
-
 		//PRINTING FIRST BOX
 		mvaddch(4,15,  ACS_ULCORNER); 
 		for(int i = 16; i <64;i++){
@@ -1253,13 +1329,16 @@ void printMap(map *Map){
 		}
 		mvaddch(19,15,ACS_LLCORNER);
 		mvaddch(19,64,ACS_LRCORNER);
-
 			int offset = 0;
 			attron(COLOR_PAIR(11));
 			mvaddstr(7,17,encounteredPoke.name.c_str());
 			mvaddstr(7,18+ encounteredPoke.name.length(), "id:");
 			attron(COLOR_PAIR(12));
 			mvaddstr(7,21+ encounteredPoke.name.length(), std::to_string(encounteredPoke.id).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr(7,22+ encounteredPoke.name.length()+std::to_string(encounteredPoke.id).length(), "shiny?:");
+			attron(COLOR_PAIR(12));
+			mvaddstr(7,29+ encounteredPoke.name.length()+std::to_string(encounteredPoke.id).length(), std::to_string((int)encounteredPoke.shiny).c_str());
 			//mvaddstr(7,5,std::to_string(encounteredPoke.species_id).c_str());
 			attron(COLOR_PAIR(11));
 			mvaddstr(9,16,"lvl:");
@@ -1317,6 +1396,95 @@ void printMap(map *Map){
 			attroff(COLOR_PAIR(11));
 			attroff(COLOR_PAIR(12));
 	}
+	if(showingPoke){
+		
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "                PLAYER POKEMON                   ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 19;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		for(int i = 16; i <64;i++){
+			mvaddch(19,i,ACS_HLINE);
+		}
+		mvaddch(19,15,ACS_LLCORNER);
+		mvaddch(19,64,ACS_LRCORNER);
+		int offset = 0;
+		for(int i = 0; i < 6;i++){
+			if(globe.playerPokemon[i].name == "empty"){
+				continue;
+			}
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+7,23+ globe.playerPokemon[i].name.length(), "id:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,26+ globe.playerPokemon[i].name.length(), std::to_string(globe.playerPokemon[i].id).c_str());
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,22,globe.playerPokemon[i].name.c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+7,27+ globe.playerPokemon[i].name.length() + std::to_string(globe.playerPokemon[i].id).length()
+					,"lvl:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,31+ globe.playerPokemon[i].name.length() + std::to_string(globe.playerPokemon[i].id).length()
+					,std::to_string(globe.playerPokemon[i].level).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+7,32+ std::to_string(globe.playerPokemon[i].level).length() + globe.playerPokemon[i].name.length() + std::to_string(globe.playerPokemon[i].id).length()
+					,"G:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,35 + globe.playerPokemon[i].name.length() + std::to_string(globe.playerPokemon[i].id).length()
+					,std::to_string(globe.playerPokemon[i].gender).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+7,37+ globe.playerPokemon[i].name.length() + std::to_string(globe.playerPokemon[i].id).length()
+					,"S:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+7,39+ globe.playerPokemon[i].name.length() + std::to_string(globe.playerPokemon[i].id).length()
+					,std::to_string(globe.playerPokemon[i].shiny).c_str());
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,16,"HP:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,19,std::to_string(globe.playerPokemon[i].currHp).c_str());
+			offset = 20 + std::to_string(globe.playerPokemon[i].currHp).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,offset,"ATK:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,offset+=4,std::to_string(globe.playerPokemon[i].curratk).c_str());
+			offset +=std::to_string(globe.playerPokemon[i].curratk).length() + 1;
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,offset,"DEF:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,offset+=4,std::to_string(globe.playerPokemon[i].currdef).c_str());
+			offset += 1 +std::to_string(globe.playerPokemon[i].currdef).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,offset,"SPD:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,offset+=4,std::to_string(globe.playerPokemon[i].currspd).c_str());
+			offset += 1 + std::to_string(globe.playerPokemon[i].currspd).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,offset,"sATK:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,offset+=5,std::to_string(globe.playerPokemon[i].currsatk).c_str());
+			offset += 1 + std::to_string(globe.playerPokemon[i].currsatk).length();
+			attron(COLOR_PAIR(11));
+			mvaddstr((2*i)+8,offset,"sDEF:");
+			attron(COLOR_PAIR(12));
+			mvaddstr((2*i)+8,offset+=5,std::to_string(globe.playerPokemon[i].currsdef).c_str());
+		}
+		attroff(COLOR_PAIR(11));
+		attroff(COLOR_PAIR(12));
+
+	}
+	
 	attron(COLOR_PAIR(1));
 	char posY[12];
 	int numy = posy-200;
@@ -1894,6 +2062,21 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								validCommand = false;
 								break;
 						}
+					}else if(showingPoke){
+						switch(commandShort){
+							case 'p':
+								showingPoke = !showingPoke;
+								validCommand = false;
+								break;
+							case KEY_ESC:
+								showingPoke = false;
+								break;
+							case 'Q':
+								break;
+							default:
+								validCommand = false;
+								break;
+						}
 					}else if(inMart || inCenter){
 						if(commandShort == '<'){
 							inMart = false;
@@ -1974,6 +2157,10 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								break;
 							case 't':
 								showingList = !showingList;
+								validCommand = false;
+								break;
+							case 'p':
+								showingPoke = !showingPoke;
 								validCommand = false;
 								break;
 							case 'Q':
@@ -2402,7 +2589,7 @@ pokemonObject createPokemon(bool isEncounter){
 		// then do p_m.mid = m.id to get acutal move : )
 		if(pokemon_movesDb.at(i).pokemon_id == p.species_id && pokemon_movesDb.at(i).pokemon_move_method_id == 1
 		&&pokemon_movesDb.at(i).level <= level){
-			for(int j = 0; j < possibleMoves.size();j++){
+			for(long unsigned int j = 0; j < possibleMoves.size();j++){
 				if(possibleMoves.at(j).id == pokemon_movesDb.at(i).move_id){
 					foundDupe = true;
 				}
