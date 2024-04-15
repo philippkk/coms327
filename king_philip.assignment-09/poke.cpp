@@ -17,6 +17,20 @@
 #include "helpers/heap.h"
 #include "helpers/character.h"
 #include "helpers/pokeparser.h"
+
+
+
+
+#define COLOR_PURPLE 8
+#define COLOR_BROWN 9
+#define COLOR_DARK_BROWN 10
+#define COLOR_GRASS 11
+#define COLOR_DARK_GRASS 12
+#define COLOR_PATH 13
+#define COLOR_DARK_PATH 14
+#define COLOR_GREY 15
+#define COLOR_HP 16
+
 /* TODO
 ADD SOME CHECK IN PLAYERMOVEMENT IN TALL GRASS ~ 10%
 level of encounter 
@@ -42,7 +56,7 @@ typedef enum Tiles
 }tiles;   
 const char* tile_str[] =
 {
-	[TREE]  = "^", 
+	[TREE]  ="^", 
 	[ROCK] = "%", 
 	[ROAD] = "#", 
     [LONG] = ":", 
@@ -83,6 +97,7 @@ typedef class globe{
 		int playerX;
 		int playerY;
 		pokemonObject playerPokemon[6];
+		pokemonObject *playerCurrentPokemon;
 }globe_m;
 
 
@@ -121,7 +136,7 @@ int currentTime = 0;
 int DEBUGCHANGENUM = 0;
 heap_t charHeap;
 char command[20];
-int selector =0;
+int selector =0,batlteSelector=0;
 int commandShort;
 bool playerTurn;
 bool inMart;
@@ -130,7 +145,7 @@ bool fly = false;
 int flyX;
 int flyY;
 bool inBattle;
-bool inEcounter;
+bool inEcounter,showingBag,showingSwitchPoke,showingMoves;
 bool wonBattle;
 bool showingList;
 bool showingPoke;
@@ -157,6 +172,7 @@ void playerReturnToMapCalc(int playerX, int playerY);
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
+void handleBattle(character_c *trainer);
 pokemonObject createPokemon(bool isEncounter);
 void levelUpPokemon(pokemonObject poke);
 int getTileCost(char *tile,int type);
@@ -169,6 +185,7 @@ std::uniform_int_distribution< u32 > xdistribute( 1, 79 );
 std::uniform_int_distribution< u32 > ydistribute( 1, 20);
 std::uniform_int_distribution< u32 > encounter( 0, 100);
 int main(int argc, char *argv[]){
+
 	globe.playerX = -9999;
 	globe.playerY = -9999;
 	globe.playerPokemon[0] = pokemonObject();
@@ -177,6 +194,7 @@ int main(int argc, char *argv[]){
 	globe.playerPokemon[3] = pokemonObject();
 	globe.playerPokemon[4] = pokemonObject();
 	globe.playerPokemon[5] = pokemonObject();
+	globe.playerCurrentPokemon = &globe.playerPokemon[0];
 	commandShort =  ' ';
 	playerTurn = false;
 	pokeparser parser = pokeparser();
@@ -194,11 +212,21 @@ int main(int argc, char *argv[]){
 	curs_set(0);
 	keypad(stdscr, TRUE);
 	start_color();
-	init_pair(1, COLOR_RED, COLOR_BLACK);
+
+	init_color(COLOR_PURPLE,990,495,0);
+	init_color(COLOR_BROWN,661,537,367);
+	init_color(COLOR_DARK_BROWN,461,337,167);
+	init_color(COLOR_GRASS,151,524,179);
+	init_color(COLOR_DARK_GRASS,51,424,79);
+	init_color(COLOR_PATH,300,270,240);
+	init_color(COLOR_DARK_PATH,200,170,140);
+	init_color(COLOR_GREY,50,50,50);
+	init_color(COLOR_HP,600,150,150);
+	init_pair(1, COLOR_PURPLE, COLOR_BLACK);
 	init_pair(2, COLOR_WHITE, COLOR_BLUE);
 	init_pair(3, COLOR_GREEN, COLOR_BLACK);
 	init_pair(4, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(5, COLOR_BLACK, COLOR_MAGENTA);
+	init_pair(5, COLOR_BROWN, COLOR_DARK_BROWN);
 	init_pair(6, COLOR_WHITE, COLOR_CYAN);
 	init_pair(7, COLOR_WHITE, COLOR_BLACK);
 	init_pair(8, COLOR_WHITE, COLOR_BLUE);
@@ -206,6 +234,14 @@ int main(int argc, char *argv[]){
 	init_pair(10, COLOR_WHITE, COLOR_GREEN);
 	init_pair(11, COLOR_WHITE, COLOR_RED);
 	init_pair(12, COLOR_WHITE, COLOR_BLACK);
+	init_pair(13, COLOR_GRASS, COLOR_DARK_GRASS);
+	init_pair(14, COLOR_DARK_GRASS, COLOR_GRASS);
+	init_pair(15, COLOR_WHITE, COLOR_DARK_PATH);
+	init_pair(16, COLOR_WHITE, COLOR_GREY);
+	init_pair(17, COLOR_HP, COLOR_GREY);
+	init_pair(18, COLOR_WHITE, COLOR_HP);
+
+
 	heap_init(&charHeap,char_cmp,NULL);
 
 
@@ -952,6 +988,31 @@ void genBuildings(){
 		}
 	}
 }
+void drawBox(int x,int y,int xl,int yl,int fill){
+	if(fill)
+		attron(COLOR_PAIR(16));
+	    mvaddch(y,x,  ACS_ULCORNER); 
+		yl = y + yl;
+		xl = x + xl;
+		for(int i = x+1; i <xl;i++){
+			mvaddch(y,i,ACS_HLINE);
+		}
+		mvaddch(y,xl,  ACS_URCORNER); 
+		for(int i = y+1; i < yl;i++){
+			mvaddch(i,x,  ACS_VLINE);
+			for(int j = x+1; j < xl;j++){
+				if(fill)
+					mvaddstr(i,j," ");
+			} 
+			mvaddch(i,xl, ACS_VLINE);
+		}
+		for(int i = x; i <xl;i++){
+			mvaddch(yl,i,ACS_HLINE);
+		}
+		mvaddch(yl,x,ACS_LLCORNER);
+		mvaddch(yl,xl,ACS_LRCORNER);
+		attroff(COLOR_PAIR(16));
+}
 void printMap(map *Map){
 	int i ,j;
 	clear();
@@ -960,10 +1021,10 @@ void printMap(map *Map){
 		for(j= 0; j < MAPWIDTH; j++){
 			if(Map->chars[i][j].symbol != NULL){
 				if(!strcasecmp(character_str[PLAYER],Map->chars[i][j].symbol)){
-						attron(COLOR_PAIR(6));
+						attron(COLOR_PAIR(18));
 						attron(A_BLINK);
 						addch(*Map->chars[i][j].symbol);
-						attroff(COLOR_PAIR(6));
+						attroff(COLOR_PAIR(18));
 						attroff(A_BLINK);
 				}else{
 					attron(A_BLINK);
@@ -978,11 +1039,11 @@ void printMap(map *Map){
 				}else if(!strcmp(tile_str[ROCK],Map->tiles[i][j])){
 					attron(COLOR_PAIR(5));
 				}else if(!strcmp(tile_str[ROAD],Map->tiles[i][j])){
-					attron(COLOR_PAIR(7));
+					attron(COLOR_PAIR(15));
 				}else if(!strcmp(tile_str[LONG],Map->tiles[i][j])){
-					attron(COLOR_PAIR(3));
+					attron(COLOR_PAIR(13));
 				}else if(!strcmp(tile_str[SHORT],Map->tiles[i][j])){
-					attron(COLOR_PAIR(3));
+					attron(COLOR_PAIR(14));
 				}else if(!strcmp(tile_str[WATER],Map->tiles[i][j])){
 					attron(COLOR_PAIR(6));
 				}else if(!strcmp(tile_str[MART],Map->tiles[i][j])){
@@ -1001,6 +1062,9 @@ void printMap(map *Map){
 					attroff(COLOR_PAIR(8));
 					attroff(COLOR_PAIR(9));
 					attroff(COLOR_PAIR(10));
+					attroff(COLOR_PAIR(13));
+					attroff(COLOR_PAIR(14));
+					attroff(COLOR_PAIR(15));
 			}
 			if(j == MAPWIDTH -1){
 				addstr("\n");
@@ -1068,94 +1132,71 @@ void printMap(map *Map){
 	}
 	if(inBattle){
 		attron(COLOR_PAIR(1));
-		mvaddstr(0,0,"in Battle!!\n");
+		mvaddstr(0,0,"in battle with");
+		attron(COLOR_PAIR(8));
+		mvaddstr(0,15,opponent->symbol);
+		attron(COLOR_PAIR(1));
+		mvaddstr(0,16,"!!");
 		attroff(COLOR_PAIR(1));
+		attroff(COLOR_PAIR(8));
 		
-		mvaddch(4,15,  ACS_ULCORNER); 
-		for(int i = 16; i <64;i++){
-			mvaddch(4,i,ACS_HLINE);
-		}
-		mvaddch(4,64,  ACS_URCORNER); 
-		mvaddch(5,15,  ACS_VLINE); 
-		mvaddstr(5,16, "            IN BATTLE WITH TRAINER               ");
-		mvaddch(5,64,  ACS_VLINE); 
-		mvaddch(6,15,  ACS_LTEE); 
-		for(int i = 16; i <64;i++){
-			mvaddch(6,i,ACS_HLINE);
-		}
-		mvaddch(6,64,  ACS_RTEE); 
-		for(int i = 7; i < 19;i++){
-			mvaddch(i,15,  ACS_VLINE); 
-			mvaddstr(i,16,"                                                ");
-			mvaddch(i,64, ACS_VLINE);
-		}
-		for(int i = 16; i <64;i++){
-			mvaddch(19,i,ACS_HLINE);
-		}
-		mvaddch(19,15,ACS_LLCORNER);
-		mvaddch(19,64,ACS_LRCORNER);
-		int offset = 0;
-		
-		for(int i = 0; i < 4;i++){
-			if(opponent->pokemon[i].name == "empty"){
-				continue;
+		pokemonObject *poke = &opponent->currentPoke;
+		pokemonObject *playerPoke = globe.playerPokemon;
+
+		drawBox(0,1,79,20,0);//whole box
+		drawBox(2,2,37,4,1);//trainer box	
+			attron(COLOR_PAIR(17));
+			mvaddstr(3,4,poke->name.c_str());
+			attroff(COLOR_PAIR(17));
+			attron(COLOR_PAIR(16));
+			mvaddstr(3,5 + poke->name.length(),"lvl.");
+			mvaddstr(3,9 + poke->name.length(),std::to_string(poke->level).c_str());
+			if(poke->shiny){
+				mvaddstr(3,9 + poke->name.length() + 4 ,"*");
 			}
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+7,23+ opponent->pokemon[i].name.length(), "id:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+7,26+ opponent->pokemon[i].name.length(), std::to_string(opponent->pokemon[i].id).c_str());
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+7,22,opponent->pokemon[i].name.c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+7,27+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
-					,"lvl:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+7,31+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
-					,std::to_string(opponent->pokemon[i].level).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+7,32+ std::to_string(opponent->pokemon[i].level).length() + opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
-					,"G:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+7,35 + opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
-					,std::to_string(opponent->pokemon[i].gender).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+7,37+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
-					,"S:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+7,39+ opponent->pokemon[i].name.length() + std::to_string(opponent->pokemon[i].id).length()
-					,std::to_string(opponent->pokemon[i].shiny).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,16,"HP:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,19,std::to_string(opponent->pokemon[i].currHp).c_str());
-			offset = 20 + std::to_string(opponent->pokemon[i].currHp).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,offset,"ATK:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,offset+=4,std::to_string(opponent->pokemon[i].curratk).c_str());
-			offset +=std::to_string(opponent->pokemon[i].curratk).length() + 1;
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,offset,"DEF:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,offset+=4,std::to_string(opponent->pokemon[i].currdef).c_str());
-			offset += 1 +std::to_string(opponent->pokemon[i].currdef).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,offset,"SPD:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,offset+=4,std::to_string(opponent->pokemon[i].currspd).c_str());
-			offset += 1 + std::to_string(opponent->pokemon[i].currspd).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,offset,"sATK:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,offset+=5,std::to_string(opponent->pokemon[i].currsatk).c_str());
-			offset += 1 + std::to_string(opponent->pokemon[i].currsatk).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr((2*i)+8,offset,"sDEF:");
-			attron(COLOR_PAIR(12));
-			mvaddstr((2*i)+8,offset+=5,std::to_string(opponent->pokemon[i].currsdef).c_str());
-		}
-		attroff(COLOR_PAIR(11));
-		attroff(COLOR_PAIR(12));
+			mvaddstr(4,4,"HP:");
+			mvaddstr(5,4,"[");mvaddstr(5,37,"]"); //BAR SIZE IS 32
+			double ratio = (poke->currHp)/(double)poke->hp; //gets percentage
+			ratio = ratio *32;
+			ratio = std::ceil(ratio);
+			for(int i = 0;i < ratio;i++){
+				attron(COLOR_PAIR(17));
+				mvaddstr(5,i+5,"#");
+				attroff(COLOR_PAIR(17));
+			}
+		drawBox(40,8,37,4,1);//player box
+			attron(COLOR_PAIR(17));
+			mvaddstr(9,42,playerPoke->name.c_str());
+			attroff(COLOR_PAIR(17));
+			attron(COLOR_PAIR(16));
+			mvaddstr(9,43 + playerPoke->name.length(),"lvl.");
+			mvaddstr(9,47 + playerPoke->name.length(),std::to_string(playerPoke->level).c_str());
+			if(playerPoke->shiny){
+				mvaddstr(9,47 + playerPoke->name.length() + 4 ,"*");
+			}
+			mvaddstr(10,42,"HP:");
+			mvaddstr(11,42,"[");mvaddstr(11,75,"]"); //BAR SIZE IS 32
+			ratio = (playerPoke->currHp)/(double)playerPoke->hp; //gets percentage
+			ratio = ratio *32;
+			ratio = std::ceil(ratio);
+			for(int i = 0;i < ratio;i++){
+				attron(COLOR_PAIR(17));
+				mvaddstr(11,i+43,"#");
+				attroff(COLOR_PAIR(17));
+			}
+		drawBox(2,14,75,6,1);//action box
+			attron(COLOR_PAIR(16));
+			mvaddstr(17,4,"What will ");
+			attron(COLOR_PAIR(17));
+			mvaddstr(17,14,playerPoke->name.c_str());
+			attron(COLOR_PAIR(16));
+			mvaddstr(17,15 +playerPoke->name.length(),"do?");
+		 	mvaddstr(16,40,"[FIGHT]");
+			mvaddstr(16,60,"[BAG]");
+			mvaddstr(18,40,"[RUN]");
+			mvaddstr(18,60,"[POKEMON]");
+		attroff(COLOR_PAIR(16));
+		
 	}
 	//80/21
 	if(showingList){
@@ -1303,7 +1344,6 @@ void printMap(map *Map){
 		loadMap();
 		
 	}
-	
 	if(inEcounter){
 		//PRINTING FIRST BOX
 		mvaddch(4,15,  ACS_ULCORNER); 
@@ -1842,15 +1882,9 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& posX > 1){
 			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
-				currentMap->chars[posY][posX].symbol = NULL;
-				printMap(currentMap);
 				while (inBattle)
 				{
-					commandShort = getch();
-					if(commandShort == KEY_ESC){
-						inBattle = false;
-						currentMap->chars[nextY][nextX].defeated = true;
-					}			
+					handleBattle(opponent);		
 				}
 				nextx = posX;
 				nexty = posY;
@@ -1872,15 +1906,9 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& posX > 1){
 			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
-				currentMap->chars[posY][posX].symbol = NULL;
-				printMap(currentMap);
 				while (inBattle)
 				{
-					commandShort = getch();
-					if(commandShort == KEY_ESC){
-						inBattle = false;
-						currentMap->chars[nextY][nextX].defeated = true;
-					}			
+					handleBattle(opponent);		
 				}
 				nextx = posX;
 				nexty = posY;
@@ -1902,15 +1930,9 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& posX > 1){
 			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
-				currentMap->chars[posY][posX].symbol = NULL;
-				printMap(currentMap);
 				while (inBattle)
 				{
-					commandShort = getch();
-					if(commandShort == KEY_ESC){
-						inBattle = false;
-						currentMap->chars[nextY][nextX].defeated = true;
-					}			
+					handleBattle(opponent);		
 				}
 				nextx = posX;
 				nexty = posY;
@@ -1932,15 +1954,9 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 		&& posX > 1){
 			opponent = &currentMap->chars[posY][posX];
 			inBattle = true;
-				currentMap->chars[posY][posX].symbol = NULL;
-				printMap(currentMap);
 				while (inBattle)
 				{
-					commandShort = getch();
-					if(commandShort == KEY_ESC){
-						inBattle = false;
-						currentMap->chars[nextY][nextX].defeated = true;
-					}			
+					handleBattle(opponent);		
 				}
 				nextx = posX;
 				nexty = posY;
@@ -2239,17 +2255,12 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				&& currentMap->chars[playerY][playerX].symbol != NULL
 				&& currentMap->chars[playerY][playerX].symbol != character_str[PLAYER]
 				&& !currentMap->chars[playerY][playerX].defeated){	
-					inBattle = true;
 					opponent = &currentMap->chars[playerY][playerX];
+					inBattle = true;
 					while (inBattle)
 					{
-						printMap(currentMap);
-						commandShort = getch();
-						if(commandShort == KEY_ESC){
-							inBattle = false;
-							currentMap->chars[playerY][playerX].defeated = true;
-						}			
-					}	
+						handleBattle(opponent);		
+					}
 				}
 				else{
 					player.posX = globe.playerX;
@@ -2328,14 +2339,9 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 				}else if(currentMap->chars[c->nextY][c->nextX].symbol == character_str[PLAYER]){
 					opponent = &currentMap->chars[c->posY][c->posX];
 					inBattle = true;
-					printMap(currentMap);
 					while (inBattle)
 					{
-						commandShort = getch();
-						if(commandShort == KEY_ESC){
-							inBattle = false;
-							currentMap->chars[c->posY][c->posX].defeated = true;
-						}			
+						handleBattle(opponent);		
 					}
 				}else{
 					if(!strcmp(c->symbol,character_str[HIKER])){
@@ -2408,6 +2414,7 @@ void placeNPC(){		// weights of amount
 			if(currentMap->chars[y][x].symbol == NULL){
 				character hiker = character(x,y,(char*) character_str[HIKER],0,NULL,0,0);
 				hiker.pokemon[0] = createPokemon(true);
+				hiker.currentPoke = hiker.pokemon[0];
 				int numPoke = 1;
 				while(numPoke < 6){
 					int x = rand()%100;
@@ -2430,6 +2437,7 @@ void placeNPC(){		// weights of amount
 				if(currentMap->chars[y][x].symbol == NULL){
 				character rival = character(x,y,(char*) character_str[RIVAL],0,NULL,0,0);
 				rival.pokemon[0] = createPokemon(true);
+				rival.currentPoke = rival.pokemon[0];
 				int numPoke = 1;
 				while(numPoke < 6){
 					int x = rand()%100;
@@ -2452,6 +2460,7 @@ void placeNPC(){		// weights of amount
 			if(currentMap->chars[y][x].symbol == NULL){
 				character pacer = character(x,y,(char*) character_str[PACER],rand()%4,NULL,0,0);
 				pacer.pokemon[0] = createPokemon(true);
+				pacer.currentPoke = pacer.pokemon[0];
 				int numPoke = 1;
 				while(numPoke < 6){
 					int x = rand()%100;
@@ -2473,6 +2482,7 @@ void placeNPC(){		// weights of amount
 			if(currentMap->chars[y][x].symbol == NULL){
 				character wanderer = character(x,y,(char*) character_str[WANDERER],rand()%4,currentMap->tiles[y][x],0,0);
 				wanderer.pokemon[0] = createPokemon(true);
+				wanderer.currentPoke = wanderer.pokemon[0];
 				int numPoke = 1;
 				while(numPoke < 6){
 					int x = rand()%100;
@@ -2494,6 +2504,7 @@ void placeNPC(){		// weights of amount
 			if(currentMap->chars[y][x].symbol == NULL){
 				character sentery = character(x,y,(char*) character_str[SENTRIES],0,NULL,0,0);
 				sentery.pokemon[0] = createPokemon(true);
+				sentery.currentPoke = sentery.pokemon[0];
 				int numPoke = 1;
 				while(numPoke < 6){
 					int x = rand()%100;
@@ -2512,6 +2523,7 @@ void placeNPC(){		// weights of amount
 			if(currentMap->chars[y][x].symbol == NULL){
 				character explorer = character(x,y,(char*) character_str[EXPLORERS],rand()%4,NULL,0,0);
 				explorer.pokemon[0] = createPokemon(true);
+				explorer.currentPoke = explorer.pokemon[0];
 				int numPoke = 1;
 				while(numPoke < 6){
 					int x = rand()%100;
@@ -2618,4 +2630,38 @@ pokemonObject createPokemon(bool isEncounter){
 }
 void levelUpPokemon(pokemonObject poke){
 
+}
+void handleBattle(character_c *trainer){
+	for(int i = 0; i < 6;i++){ //get first poke with hp
+		if(trainer->pokemon[i].name != "empty"){
+			if(trainer->pokemon[i].hp > 0){
+				trainer->currentPoke = trainer->pokemon[i];
+				break;
+			}
+		}
+	}
+	if(globe.playerCurrentPokemon->hp <= 0){
+		for(int i = 0; i < 6;i++){ //get first poke with hp
+			if(globe.playerPokemon[i].name != "empty"){
+				if(globe.playerPokemon[i].hp > 0){
+					globe.playerCurrentPokemon = &globe.playerPokemon[i];
+					break;
+				}
+			}
+			if(i == 5){//player all dead
+				inBattle = false;
+				return;
+			}
+		}
+	}			
+	printMap(currentMap);
+	commandShort = getch();
+	if (commandShort == KEY_ESC)
+	{
+		inBattle = false;
+		trainer->defeated = true;
+	}else if(commandShort == 'Q'){
+		inBattle = false;
+		return;
+	}
 }

@@ -797,6 +797,7 @@ pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,in
         currXp = e;
         if(level > 1){
             currHp = ((((h+hpiv)*2) * level)/100)+level+10;
+            hp = currHp;
             curratk = ((((a+atkiv)*2) * level)/100)+5;
             currdef = ((((d+defiv)*2) * level)/100)+5;
             currspd = ((((speed+spdiv)*2) * level)/100)+5;
@@ -804,6 +805,7 @@ pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,in
             currsdef = ((((sd+sdefiv)*2) * level)/100)+5;
         }else{
             currHp = h + hiv;
+            hp = h + hiv;
             curratk = a + atkiv;
             currdef = d + div;
             currspd = s + spdiv;
