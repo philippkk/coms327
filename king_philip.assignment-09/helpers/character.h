@@ -14,7 +14,7 @@ typedef class character{
 		char *tile;
 		int nextTurn;
 		int defeated;
-		pokemonObject currentPoke;
+		pokemonObject *currentPoke;
 		pokemonObject pokemon[6];
         character(int x,int y,char *s,
                     int d,char *t,int nt,int de);
