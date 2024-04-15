@@ -32,11 +32,7 @@
 #define COLOR_HP 16
 
 /* TODO
-ADD SOME CHECK IN PLAYERMOVEMENT IN TALL GRASS ~ 10%
-level of encounter 
-	dist < 200 = lvl 1 - (distance/2)
-	dist >= 200 = lvl (distance -200)/2 - 100
-encounter has knows 2 or less moves depending on level
+
 */
 
 using u32    = uint_least32_t; 
@@ -159,6 +155,9 @@ std::vector<pokemon_moves> pokemon_movesDb;
 std::vector<moves> movesDb;
 std::vector<pokemon_stats> pokemon_statsDb;
 std::vector<stats> statsDb;
+std::vector<pokemon_types> pokemon_typesDb;
+std::vector<type_names> type_namesDb;
+
 
 pokemonObject encounteredPoke;
 
@@ -204,6 +203,8 @@ int main(int argc, char *argv[]){
 	movesDb = parser.parseMoves();
 	pokemon_statsDb = parser.parsePokemonStats();
 	statsDb = parser.parseStats();
+	pokemon_typesDb = parser.parsePokemonTypes();
+	type_namesDb = parser.parseTypeNames();
 	std::cout << "loading..."<<std::endl;
 	pokemon_movesDb = parser.parsePokemonMoves();
 	std::cout << "done"<<std::endl;
@@ -518,7 +519,7 @@ void initMap(int a,int b,int c, int d){
 		}
 		attroff(COLOR_PAIR(11));
 		attroff(COLOR_PAIR(12));
-		mvaddstr(17,18,"PRESS <f> , <UP/DOWN ARROW> TO SELECT");
+		mvaddstr(17,18,"PRESS <f> , <k/j> TO SELECT");
 		mvaddch((3*selector)+7,17,'[');
 		mvaddch((3*selector)+7 ,18+ pokes[selector].name.length(),']');
 		commandShort = getch();
@@ -527,11 +528,11 @@ void initMap(int a,int b,int c, int d){
 		}
 		switch (commandShort)
 		{
-		case KEY_DOWN:
+		case 'j':
 			if (selector < 2)
 				selector++;
 			break;
-			case KEY_UP:
+			case 'k':
 			if (selector > 0)
 				selector--;
 			break;
@@ -1144,7 +1145,7 @@ void printMap(map *Map){
 		attroff(COLOR_PAIR(8));
 		
 		pokemonObject poke = *opponent->currentPoke;
-		pokemonObject *playerPoke = globe.playerPokemon;
+		pokemonObject *playerPoke = globe.playerCurrentPokemon;
 
 		drawBox(0,1,79,20,0);//whole box
 		drawBox(2,2,37,4,1);//trainer box	
@@ -1157,7 +1158,8 @@ void printMap(map *Map){
 			if(poke.shiny){
 				mvaddstr(3,9 + poke.name.length() + 4 ,"*");
 			}
-			mvaddstr(4,4,std::to_string(opponent->currentPoke->currHp).c_str());
+			mvaddstr(4,8,std::to_string(opponent->currentPoke->currHp).c_str());
+			mvaddstr(4,4,"HP:");
 			//mvaddstr(4,10,std::to_string(debugInt).c_str());
 			mvaddstr(5,4,"[");mvaddstr(5,37,"]"); //BAR SIZE IS 32
 			double ratio = (poke.currHp)/(double)poke.hp; //gets percentage
@@ -1178,6 +1180,7 @@ void printMap(map *Map){
 			if(playerPoke->shiny){
 				mvaddstr(9,47 + playerPoke->name.length() + 4 ,"*");
 			}
+			mvaddstr(10,46,std::to_string(playerPoke->currHp).c_str());
 			mvaddstr(10,42,"HP:");
 			mvaddstr(11,42,"[");mvaddstr(11,75,"]"); //BAR SIZE IS 32
 			ratio = (playerPoke->currHp)/(double)playerPoke->hp; //gets percentage
@@ -1196,25 +1199,62 @@ void printMap(map *Map){
 				mvaddstr(17,14,playerPoke->name.c_str());
 				attron(COLOR_PAIR(16));
 				mvaddstr(17,15 +playerPoke->name.length(),"do?");
-				mvaddstr(16,40,"[FIGHT]");
-				mvaddstr(16,60,"[BAG]");
-				mvaddstr(18,40,"[RUN]");
-				mvaddstr(18,60,"[POKEMON]");
-				switch (battleSelector)
-				{
-					case 0:
-					mvaddstr(16,38,"->[FIGHT]<-");
-						break;
-					case 1:
-					mvaddstr(16,58,"->[BAG]<-");
-						break;
-					case 2:
-					mvaddstr(18,38,"->[RUN]<-");
-						break;
-					case 3:
-					mvaddstr(18,58,"->[POKEMON]<-");
-						break;
+			
+				if(showingMoves){
+					std::string move1,move2,move3,move4;
+					move1 = playerPoke->availableMoves[0].indentifier;
+					move2 = playerPoke->availableMoves[1].indentifier;
+					move3 = playerPoke->availableMoves[2].indentifier;
+					move4 = playerPoke->availableMoves[3].indentifier;
+					mvaddstr(16,40,move1.c_str());
+					mvaddstr(16,60,move2.c_str());
+					mvaddstr(18,40,move3.c_str());
+					mvaddstr(18,60,move4.c_str());
+					switch (battleSelector)
+					{
+						case 0:
+						move1 = "->"+playerPoke->availableMoves[0].indentifier+"<-";
+						mvaddstr(16,38,move1.c_str());
+							break;
+						case 1:
+						move2 = "->"+playerPoke->availableMoves[1].indentifier+"<-";
+						mvaddstr(16,58,move2.c_str());
+							break;
+						case 2:
+						move3 = "->"+playerPoke->availableMoves[2].indentifier+"<-";
+						mvaddstr(18,38,move3.c_str());
+							break;
+						case 3:
+						move4 = "->"+playerPoke->availableMoves[3].indentifier+"<-";
+						mvaddstr(18,58,move4.c_str());
+							break;
+					}
+				}else if(showingBag){
+					mvaddstr(16,40,"[bag]");
+				}else if(showingSwitchPoke){
+					mvaddstr(16,40,"[swithch poke]");
+				}else{
+					mvaddstr(16,40,"[FIGHT]");
+					mvaddstr(16,60,"[BAG]");
+					mvaddstr(18,40,"[RUN]");
+					mvaddstr(18,60,"[POKEMON]");
+					switch (battleSelector)
+					{
+						case 0:
+						mvaddstr(16,38,"->[FIGHT]<-");
+							break;
+						case 1:
+						mvaddstr(16,58,"->[BAG]<-");
+							break;
+						case 2:
+						mvaddstr(18,38,"->[RUN]<-");
+							break;
+						case 3:
+						mvaddstr(18,58,"->[POKEMON]<-");
+							break;
+					}
 				}
+				
 			}else{
 				//other trainer did something text
 			}
@@ -2634,8 +2674,28 @@ pokemonObject createPokemon(bool isEncounter){
 		possibleMoves.erase(possibleMoves.begin()+num);
 		movesPicked++;
 	}
+	
+	std::string type = "empty";
+	std::string type2 = "empty";
+	for(long unsigned int i = 0; i < pokemon_typesDb.size();i++){
+		if(pokemon_typesDb.at(i).pokemon_id == p.id){
+			for(long unsigned int j = 0; j < type_namesDb.size();j++){
+				if(pokemon_typesDb.at(i).type_id == type_namesDb.at(j).type_id
+				&& type_namesDb.at(j).local_language_id == 9){
+					if(type == "empty"){
+						type = type_namesDb.at(j).name;
+					}else{
+						type2 = type_namesDb.at(j).name;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	
 	return pokemonObject(p.id, p.identifier, p.species_id, level, p.base_experience,
-						 values[0], values[1], values[2], values[3], values[4], values[5], gender, ivtotal, shiny, moveAr, hpiv, atkiv, defiv, spdiv, satkiv, sdefiv);
+						 values[0], values[1], values[2], values[3], values[4], values[5], gender, ivtotal, shiny, moveAr, hpiv, atkiv, defiv, spdiv, satkiv, sdefiv,type,type2);
 }
 void levelUpPokemon(pokemonObject poke){
 
@@ -2693,36 +2753,53 @@ void handleBattle(character_c &trainer,int encounter){
 		battleSelector = 0;
 		playerBattleTurn = true;
 		return;
-	}else if(commandShort == KEY_UP){		
+	}else if(commandShort == 'k'){		
 		if(battleSelector > 0 ){
 			battleSelector--;
 		}
-	}else if(commandShort == KEY_DOWN){
+	}else if(commandShort == 'j'){
 
 		if(battleSelector < 3){
 			battleSelector++;
 		}
 	}else if(commandShort == 'f' || commandShort == 'F'){
 		//select the thing its on
-		switch (battleSelector)
+		if(showingMoves){
+			showingMoves = !showingMoves;
+			//DO MOVE AND DAMAGE CALC HERE
+		}else if(showingBag){
+			showingBag = !showingBag;
+		}else if(showingSwitchPoke){
+			showingSwitchPoke = !showingSwitchPoke;	
+		}
+		else{
+			switch (battleSelector)
 				{
 					case 0:
-					trainer.currentPoke->currHp -= 1;
-					debugInt++;
+					showingMoves = !showingMoves;
+					battleSelector = 0;
 					//fight
 						break;
 					case 1:
 					//bag
+					showingBag = !showingBag;
+					battleSelector = 0;
 						break;
 					case 2://run
-					if(encounter)
+					if(encounter){
 						inEcounter = false;
+						inBattle = false;
 						battleSelector = 0;
 						playerBattleTurn = true;
-						break;
+					}
+						return;
 					case 3:
+					showingSwitchPoke = !showingSwitchPoke;
+					battleSelector = 0;
 					//pokemon
 						break;
 				}	
+		}
+
 	}
 }

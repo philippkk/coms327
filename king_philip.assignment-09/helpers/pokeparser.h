@@ -95,9 +95,11 @@ class pokemonObject{
         int id,species_id,level,exp,
         hp,atk,def,spd,satk,sdef,gender,iv,currHp,currXp,hpiv,atkiv,defiv,spdiv,satkiv,sdefiv,curratk,currdef,currspd,currsatk,currsdef;
         std::string name;
+        std::string type;
+        std::string type2;
         bool shiny;
         moves availableMoves[4]; //either 1 or 2 moves for encounter, if none add struggle
-        pokemonObject(int iD,std::string  n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4],int hiv,int aiv,int div,int spiv,int saiv,int sdiv);
+        pokemonObject(int iD,std::string  n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4],int hiv,int aiv,int div,int spiv,int saiv,int sdiv,std::string typeName,std::string typeName2);
         pokemonObject();
 };
 class pokeparser{

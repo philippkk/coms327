@@ -788,8 +788,10 @@ void pokemon_types::printPokemonTypes(){
     }else{std::cout<<slot;}
     std::cout<<std::endl;
 }
-pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4],int hiv,int aiv,int div,int spiv,int saiv,int sdiv)
+pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,int a,int d,int speed,int sa,int sd,int g,int iV,bool s,moves am[4],int hiv,int aiv,int div,int spiv,int saiv,int sdiv,std::string typeName,std::string typeName2)
 :id(iD),species_id(sid),level(lvl),exp(e),hp(h),atk(a),def(d),spd(speed),satk(sa),sdef(sd),gender(g),iv(iV),hpiv(hiv),atkiv(aiv),defiv(div),spdiv(spiv),satkiv(saiv),sdefiv(sdiv),name(n),shiny(s){{
+        type = typeName;
+        type2 = typeName2;
         for(int i = 0; i < 4;i++){
             availableMoves[i] = am[i];
         }
