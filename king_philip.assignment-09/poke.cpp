@@ -136,7 +136,7 @@ int currentTime = 0;
 int DEBUGCHANGENUM = 0;
 heap_t charHeap;
 char command[20];
-int selector =0,batlteSelector=0;
+int selector =0,battleSelector=0;
 int commandShort;
 bool playerTurn;
 bool inMart;
@@ -172,7 +172,7 @@ void playerReturnToMapCalc(int playerX, int playerY);
 void calcCost(int type,map *Map);//0 = hiker 1 = rival
 void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]);
 void placeNPC();
-void handleBattle(character_c *trainer);
+void handleBattle(character_c *trainer,int encounter);
 pokemonObject createPokemon(bool isEncounter);
 void levelUpPokemon(pokemonObject poke);
 int getTileCost(char *tile,int type);
@@ -221,7 +221,7 @@ int main(int argc, char *argv[]){
 	init_color(COLOR_PATH,300,270,240);
 	init_color(COLOR_DARK_PATH,200,170,140);
 	init_color(COLOR_GREY,50,50,50);
-	init_color(COLOR_HP,600,150,150);
+	init_color(COLOR_HP,900,350,350);
 	init_pair(1, COLOR_PURPLE, COLOR_BLACK);
 	init_pair(2, COLOR_WHITE, COLOR_BLUE);
 	init_pair(3, COLOR_GREEN, COLOR_BLACK);
@@ -1015,7 +1015,7 @@ void drawBox(int x,int y,int xl,int yl,int fill){
 }
 void printMap(map *Map){
 	int i ,j;
-	clear();
+	erase();
 	addstr("\n");
 	for(i = 0; i < MAPHEIGHT; i++)
 		for(j= 0; j < MAPWIDTH; j++){
@@ -1132,6 +1132,7 @@ void printMap(map *Map){
 	}
 	if(inBattle){
 		attron(COLOR_PAIR(1));
+		mvaddstr(23,30,"PRESS F TO SELECT");
 		mvaddstr(0,0,"in battle with");
 		attron(COLOR_PAIR(8));
 		mvaddstr(0,15,opponent->symbol);
@@ -1195,8 +1196,22 @@ void printMap(map *Map){
 			mvaddstr(16,60,"[BAG]");
 			mvaddstr(18,40,"[RUN]");
 			mvaddstr(18,60,"[POKEMON]");
+			switch (battleSelector)
+			{
+				case 0:
+				mvaddstr(16,38,"->[FIGHT]<-");
+					break;
+				case 1:
+				mvaddstr(16,58,"->[BAG]<-");
+					break;
+				case 2:
+				mvaddstr(18,38,"->[RUN]<-");
+					break;
+				case 3:
+				mvaddstr(18,58,"->[POKEMON]<-");
+					break;
+			}
 		attroff(COLOR_PAIR(16));
-		
 	}
 	//80/21
 	if(showingList){
@@ -1345,96 +1360,87 @@ void printMap(map *Map){
 		
 	}
 	if(inEcounter){
-		//PRINTING FIRST BOX
-		mvaddch(4,15,  ACS_ULCORNER); 
-		for(int i = 16; i <64;i++){
-			mvaddch(4,i,ACS_HLINE);
-		}
-		mvaddch(4,64,  ACS_URCORNER); 
-		mvaddch(5,15,  ACS_VLINE); 
-		mvaddstr(5,16, "        YOU ENCOUNTERED A WILD POKEMON!          ");
-		mvaddch(5,64,  ACS_VLINE); 
-		mvaddch(6,15,  ACS_LTEE); 
-		for(int i = 16; i <64;i++){
-			mvaddch(6,i,ACS_HLINE);
-		}
-		mvaddch(6,64,  ACS_RTEE); 
-		for(int i = 7; i < 19;i++){
-			mvaddch(i,15,  ACS_VLINE); 
-			mvaddstr(i,16,"                                                ");
-			mvaddch(i,64, ACS_VLINE);
-		}
-		for(int i = 16; i <64;i++){
-			mvaddch(19,i,ACS_HLINE);
-		}
-		mvaddch(19,15,ACS_LLCORNER);
-		mvaddch(19,64,ACS_LRCORNER);
-			int offset = 0;
-			attron(COLOR_PAIR(11));
-			mvaddstr(7,17,encounteredPoke.name.c_str());
-			mvaddstr(7,18+ encounteredPoke.name.length(), "id:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(7,21+ encounteredPoke.name.length(), std::to_string(encounteredPoke.id).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr(7,22+ encounteredPoke.name.length()+std::to_string(encounteredPoke.id).length(), "shiny?:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(7,29+ encounteredPoke.name.length()+std::to_string(encounteredPoke.id).length(), std::to_string((int)encounteredPoke.shiny).c_str());
-			//mvaddstr(7,5,std::to_string(encounteredPoke.species_id).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr(9,16,"lvl:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(9,21,std::to_string(encounteredPoke.level).c_str());
-			offset = 22+std::to_string(encounteredPoke.level).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr(9,offset,"XP:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(9,offset += 3,std::to_string(encounteredPoke.currXp).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr(10,16,"HP:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(10,19,std::to_string(encounteredPoke.currHp).c_str());
-			offset = 20 + std::to_string(encounteredPoke.currHp).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr(10,offset,"ATK:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(10,offset+=4,std::to_string(encounteredPoke.curratk).c_str());
-			offset +=std::to_string(encounteredPoke.curratk).length() + 1;
-			attron(COLOR_PAIR(11));
-			mvaddstr(10,offset,"DEF:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(10,offset+=4,std::to_string(encounteredPoke.currdef).c_str());
-			offset += 1 +std::to_string(encounteredPoke.currdef).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr(10,offset,"SPD:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(10,offset+=4,std::to_string(encounteredPoke.currspd).c_str());
-			offset += 1 + std::to_string(encounteredPoke.currspd).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr(10,offset,"sATK:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(10,offset+=5,std::to_string(encounteredPoke.currsatk).c_str());
-			offset += 1 + std::to_string(encounteredPoke.currsatk).length();
-			attron(COLOR_PAIR(11));
-			mvaddstr(10,offset,"sDEF:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(10,offset+=5,std::to_string(encounteredPoke.currsdef).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr(11,16,"GENDER:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(11,24,std::to_string(encounteredPoke.gender).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr(12,16,"IV TOTAL:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(12,26,std::to_string(encounteredPoke.iv).c_str());
-			attron(COLOR_PAIR(11));
-			mvaddstr(14,17,"MOVES:");
-			attron(COLOR_PAIR(12));
-			mvaddstr(15,22,encounteredPoke.availableMoves[0].indentifier.c_str());
-			mvaddstr(16,22,encounteredPoke.availableMoves[1].indentifier.c_str());
-			mvaddstr(17,22,encounteredPoke.availableMoves[2].indentifier.c_str());
-			mvaddstr(18,22,encounteredPoke.availableMoves[3].indentifier.c_str());
-			attroff(COLOR_PAIR(11));
-			attroff(COLOR_PAIR(12));
+				attron(COLOR_PAIR(1));
+				mvaddstr(23,30,"PRESS F TO SELECT");
+		mvaddstr(0,0,"in battle with a wild");
+		attron(COLOR_PAIR(8));
+		mvaddstr(0,22,encounteredPoke.name.c_str());
+		attron(COLOR_PAIR(1));
+		mvaddstr(0,22+encounteredPoke.name.length(),"!!");
+		attroff(COLOR_PAIR(1));
+		attroff(COLOR_PAIR(8));
+		
+		pokemonObject *poke = &encounteredPoke;
+		pokemonObject *playerPoke = globe.playerPokemon;
+
+		drawBox(0,1,79,20,0);//whole box
+		drawBox(2,2,37,4,1);//trainer box	
+			attron(COLOR_PAIR(17));
+			mvaddstr(3,4,poke->name.c_str());
+			attroff(COLOR_PAIR(17));
+			attron(COLOR_PAIR(16));
+			mvaddstr(3,5 + poke->name.length(),"lvl.");
+			mvaddstr(3,9 + poke->name.length(),std::to_string(poke->level).c_str());
+			if(poke->shiny){
+				mvaddstr(3,9 + poke->name.length() + 4 ,"*");
+			}
+			mvaddstr(4,4,"HP:");
+			mvaddstr(5,4,"[");mvaddstr(5,37,"]"); //BAR SIZE IS 32
+			double ratio = (poke->currHp)/(double)poke->hp; //gets percentage
+			ratio = ratio *32;
+			ratio = std::ceil(ratio);
+			for(int i = 0;i < ratio;i++){
+				attron(COLOR_PAIR(17));
+				mvaddstr(5,i+5,"#");
+				attroff(COLOR_PAIR(17));
+			}
+		drawBox(40,8,37,4,1);//player box
+			attron(COLOR_PAIR(17));
+			mvaddstr(9,42,playerPoke->name.c_str());
+			attroff(COLOR_PAIR(17));
+			attron(COLOR_PAIR(16));
+			mvaddstr(9,43 + playerPoke->name.length(),"lvl.");
+			mvaddstr(9,47 + playerPoke->name.length(),std::to_string(playerPoke->level).c_str());
+			if(playerPoke->shiny){
+				mvaddstr(9,47 + playerPoke->name.length() + 4 ,"*");
+			}
+			mvaddstr(10,42,"HP:");
+			mvaddstr(11,42,"[");mvaddstr(11,75,"]"); //BAR SIZE IS 32
+			ratio = (playerPoke->currHp)/(double)playerPoke->hp; //gets percentage
+			ratio = ratio *32;
+			ratio = std::ceil(ratio);
+			for(int i = 0;i < ratio;i++){
+				attron(COLOR_PAIR(17));
+				mvaddstr(11,i+43,"#");
+				attroff(COLOR_PAIR(17));
+			}
+		drawBox(2,14,75,6,1);//action box
+			attron(COLOR_PAIR(16));
+			mvaddstr(17,4,"What will ");
+			attron(COLOR_PAIR(17));
+			mvaddstr(17,14,playerPoke->name.c_str());
+			attron(COLOR_PAIR(16));
+			mvaddstr(17,15 +playerPoke->name.length(),"do?");
+		 	mvaddstr(16,40,"[FIGHT]");
+			mvaddstr(16,60,"[BAG]");
+			mvaddstr(18,40,"[RUN]");
+			mvaddstr(18,60,"[POKEMON]");
+			switch (battleSelector)
+			{
+				case 0:
+				mvaddstr(16,38,"->[FIGHT]<-");
+					break;
+				case 1:
+				mvaddstr(16,58,"->[BAG]<-");
+					break;
+				case 2:
+				mvaddstr(18,38,"->[RUN]<-");
+					break;
+				case 3:
+				mvaddstr(18,58,"->[POKEMON]<-");
+					break;
+			}
+		attroff(COLOR_PAIR(16));
 	}
 	if(showingPoke){
 		
@@ -1884,7 +1890,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 			inBattle = true;
 				while (inBattle)
 				{
-					handleBattle(opponent);		
+					handleBattle(opponent,0);	
 				}
 				nextx = posX;
 				nexty = posY;
@@ -1908,7 +1914,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 			inBattle = true;
 				while (inBattle)
 				{
-					handleBattle(opponent);		
+					handleBattle(opponent,0);	
 				}
 				nextx = posX;
 				nexty = posY;
@@ -1932,7 +1938,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 			inBattle = true;
 				while (inBattle)
 				{
-					handleBattle(opponent);		
+					handleBattle(opponent,0);	
 				}
 				nextx = posX;
 				nexty = posY;
@@ -1956,7 +1962,7 @@ void setNextPace(int nextY,int nextX,int posY, int posX,int dir,int type){
 			inBattle = true;
 				while (inBattle)
 				{
-					handleBattle(opponent);		
+					handleBattle(opponent,0);	
 				}
 				nextx = posX;
 				nexty = posY;
@@ -2259,7 +2265,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					inBattle = true;
 					while (inBattle)
 					{
-						handleBattle(opponent);		
+						handleBattle(opponent,0);	
 					}
 				}
 				else{
@@ -2284,11 +2290,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 
 						}
 						while(inEcounter){							
-							printMap(currentMap);
-							commandShort = getch();
-							if(commandShort == KEY_ESC){
-								inEcounter = false;
-							}	
+							handleBattle(c,1);
 						}
 					
 					calcCost(0,currentMap);calcCost(1,currentMap);
@@ -2341,7 +2343,7 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 					inBattle = true;
 					while (inBattle)
 					{
-						handleBattle(opponent);		
+						handleBattle(opponent,0);	
 					}
 				}else{
 					if(!strcmp(c->symbol,character_str[HIKER])){
@@ -2631,12 +2633,14 @@ pokemonObject createPokemon(bool isEncounter){
 void levelUpPokemon(pokemonObject poke){
 
 }
-void handleBattle(character_c *trainer){
-	for(int i = 0; i < 6;i++){ //get first poke with hp
-		if(trainer->pokemon[i].name != "empty"){
-			if(trainer->pokemon[i].hp > 0){
-				trainer->currentPoke = trainer->pokemon[i];
-				break;
+void handleBattle(character_c *trainer,int encounter){
+	if(!encounter){
+		for(int i = 0; i < 6;i++){ //get first poke with hp
+			if(trainer->pokemon[i].name != "empty"){
+				if(trainer->pokemon[i].hp > 0){
+					trainer->currentPoke = trainer->pokemon[i];
+					break;
+				}
 			}
 		}
 	}
@@ -2650,6 +2654,7 @@ void handleBattle(character_c *trainer){
 			}
 			if(i == 5){//player all dead
 				inBattle = false;
+				inEcounter = false;
 				return;
 			}
 		}
@@ -2659,9 +2664,24 @@ void handleBattle(character_c *trainer){
 	if (commandShort == KEY_ESC)
 	{
 		inBattle = false;
-		trainer->defeated = true;
+		inEcounter = false;
+		battleSelector = 0;
+		if(!encounter)
+			trainer->defeated = true;
+		return;
 	}else if(commandShort == 'Q'){
 		inBattle = false;
+		inEcounter = false;
+		battleSelector = 0;
 		return;
+	}else if(commandShort == KEY_UP){		
+		if(battleSelector > 0 ){
+			battleSelector--;
+		}
+	}else if(commandShort == KEY_DOWN){
+
+		if(battleSelector < 3){
+			battleSelector++;
+		}
 	}
 }
