@@ -17,7 +17,7 @@ Description:
 	The world and player pos will be shown on the bottom left
 
 	User will be prompted to first select a starter pokemon (random pokemon from database)
-	Press <f> to select and the UP/DOWN arrow to move cursor
+	Press <f> to select and the j/k to move cursor
 
 	Characters:
 		@ = player
@@ -60,13 +60,19 @@ Description:
 
 	Battle:
 		when colliding with a trainer a battle will start
-		indicated by "in Battle!" in top of screen as well as
-		a pop up with all pokemon and stats that the trainer has
-		Press 'Esc' to leave
-		Trainer will be considered defeated and will not move after.
-		This makes you need strategy to not block your path ways.
+		options:
+			fight:
+				pick one of your pokemons moves to attack the other
+			bag:
+				use a revive on a dead pokemon
+				use a potion to heal 20 hp
+				use a pokeball (ONLY IN ENCOUNTER)
+			run:
+				only in encounter
+			pokemon:
+				switch pokemon
 	
 	Encounter:
 		while walking in tall grass, ':', the player has a 60% chance to encounter a wild pokemon
-		A pop up menu will show all stats of the wild pokemon
-		press 'ESC' to leave
+		The same mechanics are used from the trainer battle other than the chance to run as well as catch
+		the wild pokemon. the pokemon will always be caught until you have a max party.
