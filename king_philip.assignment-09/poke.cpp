@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cctype>
 #include <ncurses.h>
+#include <climits>
 #include <unistd.h>
 #include <random>
 #include <inttypes.h>
@@ -1025,7 +1026,7 @@ void printMap(map *Map){
 	int i ,j;
 	erase();
 	addstr("\n");
-	for(i = 0; i < MAPHEIGHT; i++)
+	for(i = 0; i < MAPHEIGHT; i++){
 		for(j= 0; j < MAPWIDTH; j++){
 			if(Map->chars[i][j].symbol != NULL){
 				if(!strcasecmp(character_str[PLAYER],Map->chars[i][j].symbol)){
@@ -1078,7 +1079,7 @@ void printMap(map *Map){
 				addstr("\n");
 			}
 		}
-
+	}
 		if(fly){
 		flyX = posx+200;
 		flyY = posy+200;
@@ -3029,6 +3030,13 @@ void handleBattle(character_c &trainer,int encounter){
 				return;
 			}
 		}
+	}else{
+		if(encounteredPoke.currHp <= 0 ){
+			inEcounter = false;
+				battleSelector = 0;
+				playerBattleTurn = true;
+				return;
+		}
 	}
 	if(globe.playerCurrentPokemon->currHp <= 0){
 		for(int i = 0; i < 6;i++){ //get first poke with hp
@@ -3057,6 +3065,9 @@ void handleBattle(character_c &trainer,int encounter){
 		inEcounter = false;
 		battleSelector = 0;
 		playerBattleTurn = true;
+		showingBag = false;
+		showingMoves = false;
+		showingSwitchPoke = false;
 		if(!encounter)
 			trainer.defeated = true;
 		return;
@@ -3106,7 +3117,6 @@ void handleBattle(character_c &trainer,int encounter){
 						return;
 					}
 				}
-				showingSwitchPoke = true;
 				battleMessage = globe.playerCurrentPokemon->name + " fainted! :(";
 				printMap(currentMap);
 			}
@@ -3135,13 +3145,29 @@ void handleBattle(character_c &trainer,int encounter){
 						break;
 					case 2:
 					if(encounter){
-						//catch poke
+						for(int i = 0;i<6;i++){
+							if(globe.playerPokemon[i].name == "empty"){
+								globe.playerPokemon[i] = encounteredPoke;
+								battleMessage = encounteredPoke.name + " has been caught!!";
+								printMap(currentMap);
+								pokeballs--;
+								inEcounter = false;
+								break;
+							}
+							if(i == 5){
+								battleMessage = encounteredPoke.name + " ran away!! :(";
+								printMap(currentMap);
+								inEcounter = false;
+							}
+						}
+						battleSelector = 0;
 					}
+					showingBag = false;
 					break;
 				}	
 		}else if(showingSwitchPoke){
 			if(!reviving){
-				if(globe.playerPokemon[battleSelector].currHp > 0){
+				if(globe.playerPokemon[battleSelector].currHp > 0 && globe.playerPokemon[battleSelector].name != "empty"){
 					globe.playerCurrentPokemon = &globe.playerPokemon[battleSelector];
 					printMap(currentMap);
 					if(!encounter)
@@ -3151,7 +3177,7 @@ void handleBattle(character_c &trainer,int encounter){
 					battleSelector = 0;
 				}
 			}else{
-				if(globe.playerPokemon[battleSelector].currHp <= 0){
+				if(globe.playerPokemon[battleSelector].currHp <= 0 && globe.playerPokemon[battleSelector].name != "empty"){
 					globe.playerPokemon[battleSelector].currHp = globe.playerPokemon[battleSelector].hp;
 					revives--;
 					if(!encounter)
