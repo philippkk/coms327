@@ -150,6 +150,9 @@ int trainerListOffset = 0;
 
 int debugInt = 0;
 
+int revives=5,potions=5,pokeballs=5;
+bool reviving = false;
+
 std::vector<pokemon> pokemonDb;
 std::vector<pokemon_moves> pokemon_movesDb;
 std::vector<moves> movesDb;
@@ -158,6 +161,8 @@ std::vector<stats> statsDb;
 std::vector<pokemon_types> pokemon_typesDb;
 std::vector<type_names> type_namesDb;
 
+
+std::string battleMessage = "empty";
 
 pokemonObject encounteredPoke;
 
@@ -1074,6 +1079,101 @@ void printMap(map *Map){
 			}
 		}
 
+		if(fly){
+		flyX = posx+200;
+		flyY = posy+200;
+		attron(COLOR_PAIR(1));
+		fly = false;
+		commandShort = ' ';
+		bool validFly = false;
+		char posY[12];
+		int numy = posy-200;
+		snprintf(posY,sizeof(posY),"%d",numy);
+		mvaddstr(22,26,"Y:");
+		mvaddstr(22,28,posY);
+		char posX[12];
+		int numx = posx -200;
+		snprintf(posX,sizeof(posX),"%d",numx);
+		mvaddstr(22,20,"X:");
+		mvaddstr(22,22,posX);
+		mvaddstr(22,32,"world pos");
+		echo();
+		curs_set(1);
+		while(!validFly){
+			mvaddstr(22,0,"fly to? ");
+			mvaddstr(23,8," x y ");
+			char format[] = " %d %d";
+			mvscanw(22,8,format,&flyX,&flyY);
+
+			if(flyX >= -200 && flyX <= 200
+			&& flyY >= -200 && flyY <= 200){
+				validFly = true;
+				mvaddstr(23,0,"            ");
+			}else{
+				mvaddstr(22,0,"            ");
+				mvaddstr(23,0,"Invalid fly!");
+			}
+		}
+		globe.maps[posy][posx]->chars[globe.playerY][globe.playerX].symbol = NULL;
+		noecho();
+		curs_set(0);
+		//movement here
+		posx = flyX + 200;
+		posy = flyY + 200;
+		if(globe.maps[posy][posx] != NULL){
+				bool genPlayer = false;
+				int playerX,playerY;
+			while(!genPlayer){
+					playerX = rand() % 70; playerX+=5;  
+				playerY = rand() % 15; playerY+=2;
+				if(!strcmp(globe.maps[posy][posx]->tiles[playerY][playerX], tile_str[ROAD])){
+					player.posX = playerX;
+					player.posY = playerY;
+					globe.playerX = playerX;
+					globe.playerY = playerY;
+					//globe.maps[posy][posx]->chars[playerY][playerX] = player;
+					genPlayer = true;
+					playerReturnToMapCalc(playerX,playerY);
+				}
+			}
+		}else{
+			globe.playerX = -9999;
+			globe.playerY = -9999;
+		}
+	
+		skipHeap = true;
+		//mvaddstr(22,0,"                     ");
+		loadMap();
+		
+	}
+	attron(COLOR_PAIR(1));
+	char posY[12];
+	int numy = posy-200;
+	snprintf(posY,sizeof(posY),"%d",numy);
+	mvaddstr(22,6,"Y:");
+	mvaddstr(22,8,posY);
+	char posX[12];
+	int numx = posx -200;
+	snprintf(posX,sizeof(posX),"%d",numx);
+	mvaddstr(22,0,"X:");
+	mvaddstr(22,2,posX);
+	mvaddstr(22,12,"world pos");
+	attroff(COLOR_PAIR(1));
+	attron(COLOR_PAIR(3));
+	char pposY[12];
+	snprintf(pposY,sizeof(pposY),"%d",globe.playerY);
+	mvaddstr(23,6,"Y:");
+	mvaddstr(23,8,pposY);
+	char pposX[12];
+	snprintf(pposX,sizeof(pposX),"%d",globe.playerX);
+	mvaddstr(23,0,"X:");
+	mvaddstr(23,12,"player pos");
+	mvaddstr(23,2,pposX);
+	attroff(COLOR_PAIR(3));
+	attron(COLOR_PAIR(6));
+	mvaddstr(22,30,"command: ");
+	mvaddch(22,38,commandShort);
+	attroff(COLOR_PAIR(6));
 	if(inMart){
 		attron(COLOR_PAIR(1));
 		mvaddstr(0,0,"in pokemart!\n");
@@ -1097,9 +1197,12 @@ void printMap(map *Map){
 			mvaddstr(i,16,"                                                ");
 			mvaddch(i,64, ACS_VLINE);
 		}
+		mvaddstr(8,16, "          all suppplies are restored!          ");
 		for(int i = 16; i <64;i++){
 			mvaddch(18,i,ACS_HLINE);
 		}
+				
+
 		mvaddch(18,15,ACS_LLCORNER);
 		mvaddch(18,64,ACS_LRCORNER);
 	}
@@ -1116,6 +1219,7 @@ void printMap(map *Map){
 		mvaddch(4,64,  ACS_URCORNER); 
 		mvaddch(5,15,  ACS_VLINE); 
 		mvaddstr(5,16, "                   PokeCenter                    ");
+		
 		mvaddch(5,64,  ACS_VLINE); 
 		mvaddch(6,15,  ACS_LTEE); 
 		for(int i = 16; i <64;i++){
@@ -1127,6 +1231,8 @@ void printMap(map *Map){
 			mvaddstr(i,16,"                                                ");
 			mvaddch(i,64, ACS_VLINE);
 		}
+		
+		mvaddstr(8,16, "            all pokemon are healed!            ");
 		for(int i = 16; i <64;i++){
 			mvaddch(18,i,ACS_HLINE);
 		}
@@ -1193,13 +1299,23 @@ void printMap(map *Map){
 			}
 		drawBox(2,14,75,6,1);//action box
 			if(playerBattleTurn){
+				if(battleMessage != "empty"){
+					attron(COLOR_PAIR(16));
+					mvaddstr(17,4,battleMessage.c_str());
+					refresh();
+					usleep(1000000);
+					battleMessage = "empty";
+					printMap(currentMap);
+				}else{
+					attron(COLOR_PAIR(16));
+					mvaddstr(17,4,"What will ");
+					attron(COLOR_PAIR(17));
+					mvaddstr(17,14,playerPoke->name.c_str());
+					attron(COLOR_PAIR(16));
+					mvaddstr(17,15 +playerPoke->name.length(),"do?");
+				}
+				
 				attron(COLOR_PAIR(16));
-				mvaddstr(17,4,"What will ");
-				attron(COLOR_PAIR(17));
-				mvaddstr(17,14,playerPoke->name.c_str());
-				attron(COLOR_PAIR(16));
-				mvaddstr(17,15 +playerPoke->name.length(),"do?");
-			
 				if(showingMoves){
 					std::string move1,move2,move3,move4;
 					move1 = playerPoke->availableMoves[0].indentifier;
@@ -1230,10 +1346,73 @@ void printMap(map *Map){
 							break;
 					}
 				}else if(showingBag){
-					mvaddstr(16,40,"[bag]");
+					std::string r,p,pb;
+					r = std::to_string(revives) + "x revives";
+					p = std::to_string(potions) + "x potions";
+					pb = std::to_string(pokeballs) + "x pokeballs";
+					mvaddstr(16,40,r.c_str());
+					mvaddstr(17,40,p.c_str());
+					mvaddstr(18,40,pb.c_str());
+					switch (battleSelector)
+					{
+						case 0:
+						r= "->" + r + "<-";
+						mvaddstr(16,38,r.c_str());
+							break;
+						case 1:
+						p= "->" + p + "<-";
+						mvaddstr(17,38,p.c_str());
+							break;
+						case 2:
+						pb= "->" + pb + "<-";
+						mvaddstr(18,38,pb.c_str());
+							break;
+					}
 				}else if(showingSwitchPoke){
-					mvaddstr(16,40,"[swithch poke]");
+					std::string poke1,poke2,poke3,poke4,poke5,poke6;
+					poke1 = globe.playerPokemon[0].name.c_str();
+					poke2 = globe.playerPokemon[1].name.c_str();
+					poke3 = globe.playerPokemon[2].name.c_str();
+					poke4 = globe.playerPokemon[3].name.c_str();
+					poke5 = globe.playerPokemon[4].name.c_str();
+					poke6 = globe.playerPokemon[5].name.c_str();
+					mvaddstr(16,35,globe.playerPokemon[0].name.c_str());
+					mvaddstr(16,55,globe.playerPokemon[1].name.c_str());
+					mvaddstr(17,35,globe.playerPokemon[2].name.c_str());
+					mvaddstr(17,55,globe.playerPokemon[3].name.c_str());
+					mvaddstr(18,35,globe.playerPokemon[4].name.c_str());
+					mvaddstr(18,55,globe.playerPokemon[5].name.c_str());	
+					switch (battleSelector)
+					{
+						case 0:
+						poke1= "->" + poke1 + "<-";
+						mvaddstr(16,33,poke1.c_str());
+							break;
+						case 1:
+						poke2= "->" + poke2 + "<-";
+						mvaddstr(16,53,poke2.c_str());
+							break;
+						case 2:
+						poke3= "->" + poke3 + "<-";
+						mvaddstr(17,33,poke3.c_str());
+							break;
+						case 3:
+						poke4= "->" + poke4 + "<-";
+						mvaddstr(17,53,poke4.c_str());
+							break;
+						case 4:
+						poke5= "->" + poke5 + "<-";
+						mvaddstr(18,33,poke5.c_str());
+							break;	
+						case 5:
+						poke6= "->" + poke6 + "<-";
+						mvaddstr(18,53,poke6.c_str());
+							break;
+					}
+					
+					
 				}else{
+					attron(COLOR_PAIR(16));
 					mvaddstr(16,40,"[FIGHT]");
 					mvaddstr(16,60,"[BAG]");
 					mvaddstr(18,40,"[RUN]");
@@ -1339,73 +1518,7 @@ void printMap(map *Map){
 		
 		
 	}
-	if(fly){
-		flyX = posx+200;
-		flyY = posy+200;
-		attron(COLOR_PAIR(1));
-		fly = false;
-		commandShort = ' ';
-		bool validFly = false;
-		char posY[12];
-		int numy = posy-200;
-		snprintf(posY,sizeof(posY),"%d",numy);
-		mvaddstr(22,26,"Y:");
-		mvaddstr(22,28,posY);
-		char posX[12];
-		int numx = posx -200;
-		snprintf(posX,sizeof(posX),"%d",numx);
-		mvaddstr(22,20,"X:");
-		mvaddstr(22,22,posX);
-		mvaddstr(22,32,"world pos");
-		echo();
-		curs_set(1);
-		while(!validFly){
-			mvaddstr(22,0,"fly to? ");
-			mvaddstr(23,8," x y ");
-			char format[] = " %d %d";
-			mvscanw(22,8,format,&flyX,&flyY);
 
-			if(flyX >= -200 && flyX <= 200
-			&& flyY >= -200 && flyY <= 200){
-				validFly = true;
-				mvaddstr(23,0,"            ");
-			}else{
-				mvaddstr(22,0,"            ");
-				mvaddstr(23,0,"Invalid fly!");
-			}
-		}
-		globe.maps[posy][posx]->chars[globe.playerY][globe.playerX].symbol = NULL;
-		noecho();
-		curs_set(0);
-		//movement here
-		posx = flyX + 200;
-		posy = flyY + 200;
-		if(globe.maps[posy][posx] != NULL){
-				bool genPlayer = false;
-				int playerX,playerY;
-			while(!genPlayer){
-					playerX = rand() % 70; playerX+=5;  
-				playerY = rand() % 15; playerY+=2;
-				if(!strcmp(globe.maps[posy][posx]->tiles[playerY][playerX], tile_str[ROAD])){
-					player.posX = playerX;
-					player.posY = playerY;
-					globe.playerX = playerX;
-					globe.playerY = playerY;
-					//globe.maps[posy][posx]->chars[playerY][playerX] = player;
-					genPlayer = true;
-					playerReturnToMapCalc(playerX,playerY);
-				}
-			}
-		}else{
-			globe.playerX = -9999;
-			globe.playerY = -9999;
-		}
-	
-		skipHeap = true;
-		//mvaddstr(22,0,"                     ");
-		loadMap();
-		
-	}
 	if(inEcounter){
 				attron(COLOR_PAIR(1));
 				mvaddstr(23,30,"PRESS F TO SELECT");
@@ -1431,7 +1544,9 @@ void printMap(map *Map){
 			if(poke.shiny){
 				mvaddstr(3,9 + poke.name.length() + 4 ,"*");
 			}
+			mvaddstr(4,8,std::to_string(poke.currHp).c_str());
 			mvaddstr(4,4,"HP:");
+			//mvaddstr(4,10,std::to_string(debugInt).c_str());
 			mvaddstr(5,4,"[");mvaddstr(5,37,"]"); //BAR SIZE IS 32
 			double ratio = (poke.currHp)/(double)poke.hp; //gets percentage
 			ratio = ratio *32;
@@ -1451,6 +1566,7 @@ void printMap(map *Map){
 			if(playerPoke->shiny){
 				mvaddstr(9,47 + playerPoke->name.length() + 4 ,"*");
 			}
+			mvaddstr(10,46,std::to_string(playerPoke->currHp).c_str());
 			mvaddstr(10,42,"HP:");
 			mvaddstr(11,42,"[");mvaddstr(11,75,"]"); //BAR SIZE IS 32
 			ratio = (playerPoke->currHp)/(double)playerPoke->hp; //gets percentage
@@ -1462,30 +1578,144 @@ void printMap(map *Map){
 				attroff(COLOR_PAIR(17));
 			}
 		drawBox(2,14,75,6,1);//action box
-			attron(COLOR_PAIR(16));
-			mvaddstr(17,4,"What will ");
-			attron(COLOR_PAIR(17));
-			mvaddstr(17,14,playerPoke->name.c_str());
-			attron(COLOR_PAIR(16));
-			mvaddstr(17,15 +playerPoke->name.length(),"do?");
-		 	mvaddstr(16,40,"[FIGHT]");
-			mvaddstr(16,60,"[BAG]");
-			mvaddstr(18,40,"[RUN]");
-			mvaddstr(18,60,"[POKEMON]");
-			switch (battleSelector)
-			{
-				case 0:
-				mvaddstr(16,38,"->[FIGHT]<-");
-					break;
-				case 1:
-				mvaddstr(16,58,"->[BAG]<-");
-					break;
-				case 2:
-				mvaddstr(18,38,"->[RUN]<-");
-					break;
-				case 3:
-				mvaddstr(18,58,"->[POKEMON]<-");
-					break;
+			if(playerBattleTurn){
+				if(battleMessage != "empty"){
+					attron(COLOR_PAIR(16));
+					mvaddstr(17,4,battleMessage.c_str());
+					refresh();
+					usleep(1000000);
+					battleMessage = "empty";
+					printMap(currentMap);
+				}else{
+					attron(COLOR_PAIR(16));
+					mvaddstr(17,4,"What will ");
+					attron(COLOR_PAIR(17));
+					mvaddstr(17,14,playerPoke->name.c_str());
+					attron(COLOR_PAIR(16));
+					mvaddstr(17,15 +playerPoke->name.length(),"do?");
+				}
+				
+				attron(COLOR_PAIR(16));
+				if(showingMoves){
+					std::string move1,move2,move3,move4;
+					move1 = playerPoke->availableMoves[0].indentifier;
+					move2 = playerPoke->availableMoves[1].indentifier;
+					move3 = playerPoke->availableMoves[2].indentifier;
+					move4 = playerPoke->availableMoves[3].indentifier;
+					mvaddstr(16,40,move1.c_str());
+					mvaddstr(16,60,move2.c_str());
+					mvaddstr(18,40,move3.c_str());
+					mvaddstr(18,60,move4.c_str());
+					switch (battleSelector)
+					{
+						case 0:
+						move1 = "->"+playerPoke->availableMoves[0].indentifier+"<-";
+						mvaddstr(16,38,move1.c_str());
+							break;
+						case 1:
+						move2 = "->"+playerPoke->availableMoves[1].indentifier+"<-";
+						mvaddstr(16,58,move2.c_str());
+							break;
+						case 2:
+						move3 = "->"+playerPoke->availableMoves[2].indentifier+"<-";
+						mvaddstr(18,38,move3.c_str());
+							break;
+						case 3:
+						move4 = "->"+playerPoke->availableMoves[3].indentifier+"<-";
+						mvaddstr(18,58,move4.c_str());
+							break;
+					}
+				}else if(showingBag){
+					std::string r,p,pb;
+					r = std::to_string(revives) + "x revives";
+					p = std::to_string(potions) + "x potions";
+					pb = std::to_string(pokeballs) + "x pokeballs";
+					mvaddstr(16,40,r.c_str());
+					mvaddstr(17,40,p.c_str());
+					mvaddstr(18,40,pb.c_str());
+					switch (battleSelector)
+					{
+						case 0:
+						r= "->" + r + "<-";
+						mvaddstr(16,38,r.c_str());
+							break;
+						case 1:
+						p= "->" + p + "<-";
+						mvaddstr(17,38,p.c_str());
+							break;
+						case 2:
+						pb= "->" + pb + "<-";
+						mvaddstr(18,38,pb.c_str());
+							break;
+					}
+				}else if(showingSwitchPoke){
+					std::string poke1,poke2,poke3,poke4,poke5,poke6;
+					poke1 = globe.playerPokemon[0].name.c_str();
+					poke2 = globe.playerPokemon[1].name.c_str();
+					poke3 = globe.playerPokemon[2].name.c_str();
+					poke4 = globe.playerPokemon[3].name.c_str();
+					poke5 = globe.playerPokemon[4].name.c_str();
+					poke6 = globe.playerPokemon[5].name.c_str();
+					mvaddstr(16,35,globe.playerPokemon[0].name.c_str());
+					mvaddstr(16,55,globe.playerPokemon[1].name.c_str());
+					mvaddstr(17,35,globe.playerPokemon[2].name.c_str());
+					mvaddstr(17,55,globe.playerPokemon[3].name.c_str());
+					mvaddstr(18,35,globe.playerPokemon[4].name.c_str());
+					mvaddstr(18,55,globe.playerPokemon[5].name.c_str());	
+					switch (battleSelector)
+					{
+						case 0:
+						poke1= "->" + poke1 + "<-";
+						mvaddstr(16,33,poke1.c_str());
+							break;
+						case 1:
+						poke2= "->" + poke2 + "<-";
+						mvaddstr(16,53,poke2.c_str());
+							break;
+						case 2:
+						poke3= "->" + poke3 + "<-";
+						mvaddstr(17,33,poke3.c_str());
+							break;
+						case 3:
+						poke4= "->" + poke4 + "<-";
+						mvaddstr(17,53,poke4.c_str());
+							break;
+						case 4:
+						poke5= "->" + poke5 + "<-";
+						mvaddstr(18,33,poke5.c_str());
+							break;	
+						case 5:
+						poke6= "->" + poke6 + "<-";
+						mvaddstr(18,53,poke6.c_str());
+							break;
+					}
+					
+					
+				}else{
+					attron(COLOR_PAIR(16));
+					mvaddstr(16,40,"[FIGHT]");
+					mvaddstr(16,60,"[BAG]");
+					mvaddstr(18,40,"[RUN]");
+					mvaddstr(18,60,"[POKEMON]");
+					switch (battleSelector)
+					{
+						case 0:
+						mvaddstr(16,38,"->[FIGHT]<-");
+							break;
+						case 1:
+						mvaddstr(16,58,"->[BAG]<-");
+							break;
+						case 2:
+						mvaddstr(18,38,"->[RUN]<-");
+							break;
+						case 3:
+						mvaddstr(18,58,"->[POKEMON]<-");
+							break;
+					}
+				}
+				
+			}else{
+				//other trainer did something text
 			}
 		attroff(COLOR_PAIR(16));
 	}
@@ -1578,34 +1808,6 @@ void printMap(map *Map){
 
 	}
 	
-	attron(COLOR_PAIR(1));
-	char posY[12];
-	int numy = posy-200;
-	snprintf(posY,sizeof(posY),"%d",numy);
-	mvaddstr(22,6,"Y:");
-	mvaddstr(22,8,posY);
-	char posX[12];
-	int numx = posx -200;
-	snprintf(posX,sizeof(posX),"%d",numx);
-	mvaddstr(22,0,"X:");
-	mvaddstr(22,2,posX);
-	mvaddstr(22,12,"world pos");
-	attroff(COLOR_PAIR(1));
-	attron(COLOR_PAIR(3));
-	char pposY[12];
-	snprintf(pposY,sizeof(pposY),"%d",globe.playerY);
-	mvaddstr(23,6,"Y:");
-	mvaddstr(23,8,pposY);
-	char pposX[12];
-	snprintf(pposX,sizeof(pposX),"%d",globe.playerX);
-	mvaddstr(23,0,"X:");
-	mvaddstr(23,12,"player pos");
-	mvaddstr(23,2,pposX);
-	attroff(COLOR_PAIR(3));
-	attron(COLOR_PAIR(6));
-	mvaddstr(22,30,"command: ");
-	mvaddch(22,38,commandShort);
-	attroff(COLOR_PAIR(6));
 	refresh();
 }
 map* createMap() {
@@ -2212,10 +2414,21 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								playerX--;
 								break;
 							case '>':
-								if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[CENTER]))
+								if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[CENTER])){
 									inCenter = true;
-								if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[MART]))
+									for(int i = 0;i < 6;i++){
+										if(globe.playerPokemon[i].name != "empty"){
+											globe.playerPokemon[i].currHp = globe.playerPokemon[i].hp;										}
+									}
+								}
+								if(!strcmp(currentMap->tiles[globe.playerY][globe.playerX],tile_str[MART])){
 									inMart = true;
+									//resupply
+									revives = 5;
+									potions = 5;
+									pokeballs = 5;
+									
+								}
 								validCommand = false;
 								break;
 							case '.':
@@ -2700,6 +2913,104 @@ pokemonObject createPokemon(bool isEncounter){
 void levelUpPokemon(pokemonObject poke){
 
 }
+int calcDamage(moves pokeMove,pokemonObject attacker,pokemonObject defender){
+	int result = 0;
+	int crit = rand()%255;
+	double critValue = 1;
+	if(crit <= (attacker.spd/2)){critValue = 1.5;}	
+	double random = rand()%15;random+=85;
+	random /= 100;
+	random = round(random);
+	double stab = 1;
+	if(attacker.type == defender.type || attacker.type == defender.type2
+	||attacker.type2 == defender.type || attacker.type2 == defender.type2){
+		stab = 1.5;
+	}
+	int power = pokeMove.power;
+	if(power == INT_MAX){power = 1;}
+	result = ((((((2*attacker.level)/5)+2) * power * (attacker.curratk/defender.currdef))/50)+2)*critValue*random*stab;
+	return result;
+}
+void playerMove(pokemonObject &poke,int moveIndex,bool skipPlayer){
+	std::string message1,message2;
+
+	bool trainerHit = true;
+	bool playerHit = true;
+	int move = rand() % 2;
+	int trainerChance = rand() % 100;
+	int playerChance = rand()%100;
+	
+	if(trainerChance <= poke.availableMoves[move].accuracy){
+		message1 = poke.name + " used " +poke.availableMoves[move].indentifier+"!";
+	}else{
+		message1 = poke.name + " missed!";
+		trainerHit = false;
+	}
+	if(playerChance <= globe.playerCurrentPokemon->availableMoves[moveIndex].accuracy && !skipPlayer){
+		message2 = globe.playerCurrentPokemon->name + " used " +globe.playerCurrentPokemon->availableMoves[moveIndex].indentifier+"!";
+	}else if(skipPlayer){
+		message2 = "player used item/switched poke";
+		playerHit = false;
+	}else{
+		message2 = globe.playerCurrentPokemon->name + "missed!";
+		playerHit = false;
+	}
+	
+	
+	if(globe.playerCurrentPokemon->availableMoves[moveIndex].priority >= poke.availableMoves[move].priority){
+		if(globe.playerCurrentPokemon->availableMoves[moveIndex].priority== poke.availableMoves[move].priority){
+			if(globe.playerCurrentPokemon->spd >= poke.spd){
+				battleMessage = message2;
+				if(playerHit)
+					poke.currHp -= calcDamage(globe.playerCurrentPokemon->availableMoves[moveIndex],*globe.playerCurrentPokemon,poke);
+				if(poke.currHp <= 0){return;}
+				printMap(currentMap);
+				battleMessage = message1;
+				if(trainerHit)
+					globe.playerCurrentPokemon->currHp -= calcDamage(poke.availableMoves[move],poke,*globe.playerCurrentPokemon);
+				if(globe.playerCurrentPokemon->currHp <= 0){return;}
+				printMap(currentMap);
+			}else{
+				battleMessage = message1;
+				if(trainerHit)
+					globe.playerCurrentPokemon->currHp -= calcDamage(poke.availableMoves[move],poke,*globe.playerCurrentPokemon);
+				if(globe.playerCurrentPokemon->currHp <= 0){return;}
+				printMap(currentMap);
+				battleMessage = message2;
+				if(playerHit)
+					poke.currHp -= calcDamage(globe.playerCurrentPokemon->availableMoves[moveIndex],*globe.playerCurrentPokemon,poke);
+				if(poke.currHp <= 0){return;}
+				printMap(currentMap);
+			}
+		}else{
+			battleMessage = message2;
+			if(playerHit)
+				poke.currHp -= calcDamage(globe.playerCurrentPokemon->availableMoves[moveIndex],*globe.playerCurrentPokemon,poke);
+			if(poke.currHp <= 0){return;}
+			printMap(currentMap);
+			battleMessage = message1;
+			if(trainerHit)
+				globe.playerCurrentPokemon->currHp -= calcDamage(poke.availableMoves[move],poke,*globe.playerCurrentPokemon);
+			if(globe.playerCurrentPokemon->currHp <= 0){return;}
+			printMap(currentMap);
+		}
+	}else{
+		battleMessage = message1;
+		if(trainerHit)
+			globe.playerCurrentPokemon->currHp -= calcDamage(poke.availableMoves[move],poke,*globe.playerCurrentPokemon);
+		if(globe.playerCurrentPokemon->currHp <= 0){return;}
+		printMap(currentMap);
+		battleMessage = message2;
+		if(playerHit)
+			poke.currHp -= calcDamage(globe.playerCurrentPokemon->availableMoves[moveIndex],*globe.playerCurrentPokemon,poke);
+		if(poke.currHp <= 0){return;}
+		printMap(currentMap);	
+	}
+
+	
+	
+
+}
 void handleBattle(character_c &trainer,int encounter){
 	if(!encounter){
 		for(int i = 0; i < 6;i++){ //get first poke with hp
@@ -2719,15 +3030,17 @@ void handleBattle(character_c &trainer,int encounter){
 			}
 		}
 	}
-	if(globe.playerCurrentPokemon->hp <= 0){
+	if(globe.playerCurrentPokemon->currHp <= 0){
 		for(int i = 0; i < 6;i++){ //get first poke with hp
 			if(globe.playerPokemon[i].name != "empty"){
-				if(globe.playerPokemon[i].hp > 0){
+				if(globe.playerPokemon[i].currHp > 0){
 					globe.playerCurrentPokemon = &globe.playerPokemon[i];
 					break;
 				}
 			}
 			if(i == 5){//player all dead
+				battleMessage = "all your pokemon are dead lol";
+				printMap(currentMap);
 				inBattle = false;
 				inEcounter = false;
 				battleSelector = 0;
@@ -2752,24 +3065,103 @@ void handleBattle(character_c &trainer,int encounter){
 		inEcounter = false;
 		battleSelector = 0;
 		playerBattleTurn = true;
+		battleMessage = "empty";
 		return;
 	}else if(commandShort == 'k'){		
 		if(battleSelector > 0 ){
 			battleSelector--;
 		}
 	}else if(commandShort == 'j'){
-
-		if(battleSelector < 3){
-			battleSelector++;
+		if(showingSwitchPoke){
+			if(battleSelector < 5){
+				battleSelector++;
+			}
+		}else{
+			if(battleSelector < 3){
+				battleSelector++;
+			}
 		}
+		
 	}else if(commandShort == 'f' || commandShort == 'F'){
 		//select the thing its on
 		if(showingMoves){
 			showingMoves = !showingMoves;
-			//DO MOVE AND DAMAGE CALC HERE
+			if(!encounter)
+				playerMove(*trainer.currentPoke,battleSelector,false);
+			else
+				playerMove(encounteredPoke,battleSelector,false);
+			if(globe.playerCurrentPokemon->currHp <= 0){ 
+				for(int i = 0; i < 6;i++){ //get first poke with hp
+					if(globe.playerPokemon[i].name != "empty"){
+						if(globe.playerPokemon[i].currHp > 0){
+							break;
+						}
+					}
+					if(i == 5){//player all dead
+						inBattle = false;
+						inEcounter = false;
+						battleSelector = 0;
+						playerBattleTurn = true;
+						battleMessage = "empty";
+						return;
+					}
+				}
+				showingSwitchPoke = true;
+				battleMessage = globe.playerCurrentPokemon->name + " fainted! :(";
+				printMap(currentMap);
+			}
+			battleSelector = 0;
 		}else if(showingBag){
-			showingBag = !showingBag;
+			switch (battleSelector)
+				{
+					case 0:
+					reviving = true;
+					showingBag = false;
+					showingSwitchPoke = true;
+						break;
+					case 1:
+					//potion
+					globe.playerCurrentPokemon->currHp += 20;
+					potions--;
+					if(globe.playerCurrentPokemon->currHp > globe.playerCurrentPokemon->hp){
+						globe.playerCurrentPokemon->currHp = globe.playerCurrentPokemon->hp;
+					}
+					if(!encounter)
+						playerMove(*trainer.currentPoke,battleSelector,true);
+					else
+						playerMove(encounteredPoke,battleSelector,true);
+					showingBag = false;
+					battleSelector = 0;
+						break;
+					case 2:
+					if(encounter){
+						//catch poke
+					}
+					break;
+				}	
 		}else if(showingSwitchPoke){
+			if(!reviving){
+				if(globe.playerPokemon[battleSelector].currHp > 0){
+					globe.playerCurrentPokemon = &globe.playerPokemon[battleSelector];
+					printMap(currentMap);
+					if(!encounter)
+						playerMove(*trainer.currentPoke,battleSelector,true);
+					else
+						playerMove(encounteredPoke,battleSelector,true);
+					battleSelector = 0;
+				}
+			}else{
+				if(globe.playerPokemon[battleSelector].currHp <= 0){
+					globe.playerPokemon[battleSelector].currHp = globe.playerPokemon[battleSelector].hp;
+					revives--;
+					if(!encounter)
+						playerMove(*trainer.currentPoke,battleSelector,true);
+					else
+						playerMove(encounteredPoke,battleSelector,true);
+					battleSelector = 0;
+				}
+				reviving = false;
+			}
 			showingSwitchPoke = !showingSwitchPoke;	
 		}
 		else{
@@ -2788,11 +3180,11 @@ void handleBattle(character_c &trainer,int encounter){
 					case 2://run
 					if(encounter){
 						inEcounter = false;
-						inBattle = false;
 						battleSelector = 0;
+						battleMessage = "empty";
 						playerBattleTurn = true;
 					}
-						return;
+					break;
 					case 3:
 					showingSwitchPoke = !showingSwitchPoke;
 					battleSelector = 0;
