@@ -142,7 +142,8 @@ bool fly = false;
 int flyX;
 int flyY;
 bool inBattle;
-bool inEcounter,showingBag,showingSwitchPoke,showingMoves,playerBattleTurn = true;
+int bagSelector = 0;
+bool inEcounter,showingOverworldbag,showingBag,showingSwitchPoke,showingMoves,playerBattleTurn = true;
 bool wonBattle;
 bool showingList;
 bool showingPoke;
@@ -1175,6 +1176,86 @@ void printMap(map *Map){
 	mvaddstr(22,30,"command: ");
 	mvaddch(22,38,commandShort);
 	attroff(COLOR_PAIR(6));
+	if(showingOverworldbag){
+		attron(COLOR_PAIR(1));
+		mvaddstr(0,0,"Pick pokemon to heal!!\n");
+		attroff(COLOR_PAIR(1));
+				//PRINTING FIRST BOX
+		mvaddch(4,15,  ACS_ULCORNER); 
+		for(int i = 16; i <64;i++){
+			mvaddch(4,i,ACS_HLINE);
+		}
+		mvaddch(4,64,  ACS_URCORNER); 
+		mvaddch(5,15,  ACS_VLINE); 
+		mvaddstr(5,16, "                       Bag                       ");
+		mvaddch(5,64,  ACS_VLINE); 
+		mvaddch(6,15,  ACS_LTEE); 
+		for(int i = 16; i <64;i++){
+			mvaddch(6,i,ACS_HLINE);
+		}
+		mvaddch(6,64,  ACS_RTEE); 
+		for(int i = 7; i < 18;i++){
+			mvaddch(i,15,  ACS_VLINE); 
+			mvaddstr(i,16,"                                                ");
+			mvaddch(i,64, ACS_VLINE);
+		}
+		std::string p = std::to_string(potions) + "x Potions";
+		mvaddstr(7,16,p.c_str());
+		mvaddstr(17,16,"Press <f> to select, <k/j> up/down");
+		std::string poke1,poke2,poke3,poke4,poke5,poke6;
+		for(int i = 0; i < 6; i ++){
+			if(globe.playerPokemon[i].name == "empty"){
+				globe.playerPokemon[i].currHp = 0;
+			}
+		}
+		poke1 = globe.playerPokemon[0].name + " HP:" + std::to_string(globe.playerPokemon[0].currHp);
+		poke2 = globe.playerPokemon[1].name + " HP:" + std::to_string(globe.playerPokemon[1].currHp);
+		poke3 = globe.playerPokemon[2].name + " HP:" + std::to_string(globe.playerPokemon[2].currHp);
+		poke4 = globe.playerPokemon[3].name + " HP:" + std::to_string(globe.playerPokemon[3].currHp);
+		poke5 = globe.playerPokemon[4].name + " HP:" + std::to_string(globe.playerPokemon[4].currHp);
+		poke6 = globe.playerPokemon[5].name + " HP:" + std::to_string(globe.playerPokemon[5].currHp);
+		mvaddstr(9,20,poke1.c_str());
+		mvaddstr(10,20,poke2.c_str());
+		mvaddstr(11,20,poke3.c_str());
+		mvaddstr(12,20,poke4.c_str());
+		mvaddstr(13,20,poke5.c_str());
+		mvaddstr(14,20,poke6.c_str());
+		switch(bagSelector){
+			case 0:
+			poke1 = "->" + poke1 + "<-";
+			mvaddstr(9,18,poke1.c_str());
+			break;
+			case 1:
+			poke2 = "->" + poke2 + "<-";
+			mvaddstr(10,18,poke2.c_str());
+			break;
+			case 2:
+			poke3 = "->" + poke3 + "<-";
+			mvaddstr(11,18,poke3.c_str());
+			break;
+			case 3:
+			poke4 = "->" + poke4 + "<-";
+			mvaddstr(12,18,poke4.c_str());
+			break;
+			case 4:
+			poke5 = "->" + poke5 + "<-";
+			mvaddstr(13,18,poke5.c_str());
+			break;
+			case 5:
+			poke6 = "->" + poke6 + "<-";
+			mvaddstr(14,18,poke6.c_str());
+			break;
+		}
+
+
+		for(int i = 16; i <64;i++){
+			mvaddch(18,i,ACS_HLINE);
+		}
+				
+
+		mvaddch(18,15,ACS_LLCORNER);
+		mvaddch(18,64,ACS_LRCORNER);
+	}
 	if(inMart){
 		attron(COLOR_PAIR(1));
 		mvaddstr(0,0,"in pokemart!\n");
@@ -2349,6 +2430,99 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								validCommand = false;
 								break;
 						}
+					}else if(showingOverworldbag){
+						printMap(currentMap);
+						switch(commandShort){
+							case 'B':
+								showingOverworldbag = !showingOverworldbag;
+								validCommand = false;
+								break;
+							case KEY_ESC:
+								showingOverworldbag = false;
+								break;
+							case 'f':
+								validCommand = false;
+								switch(bagSelector){
+									case 0:
+										if(globe.playerPokemon[0].name != "empty"
+										&& globe.playerPokemon[0].currHp < globe.playerPokemon[0].hp){
+											globe.playerPokemon[0].currHp += 20;
+											if(globe.playerPokemon[0].currHp > globe.playerPokemon[0].hp){
+												globe.playerPokemon[0].currHp = globe.playerPokemon[0].hp;
+											}
+											potions--;
+										}
+									break;
+									case 1:
+										if(globe.playerPokemon[1].name != "empty"
+										&& globe.playerPokemon[1].currHp < globe.playerPokemon[1].hp){
+											globe.playerPokemon[1].currHp += 20;
+											if(globe.playerPokemon[1].currHp > globe.playerPokemon[1].hp){
+												globe.playerPokemon[1].currHp = globe.playerPokemon[1].hp;
+											}
+											potions--;
+										}
+									break;
+									case 2:
+										if(globe.playerPokemon[2].name != "empty"
+										&& globe.playerPokemon[2].currHp < globe.playerPokemon[2].hp){
+											globe.playerPokemon[2].currHp += 20;
+											if(globe.playerPokemon[2].currHp > globe.playerPokemon[2].hp){
+												globe.playerPokemon[2].currHp = globe.playerPokemon[2].hp;
+											}
+											potions--;
+										}
+									break;
+									case 3:
+										if(globe.playerPokemon[3].name != "empty"
+										&& globe.playerPokemon[3].currHp < globe.playerPokemon[3].hp){
+											globe.playerPokemon[3].currHp += 20;
+											if(globe.playerPokemon[3].currHp > globe.playerPokemon[3].hp){
+												globe.playerPokemon[3].currHp = globe.playerPokemon[3].hp;
+											}
+											potions--;
+										}
+									break;
+									case 4:
+										if(globe.playerPokemon[4].name != "empty"
+										&& globe.playerPokemon[4].currHp < globe.playerPokemon[4].hp){
+											globe.playerPokemon[4].currHp += 20;
+											if(globe.playerPokemon[4].currHp > globe.playerPokemon[4].hp){
+												globe.playerPokemon[4].currHp = globe.playerPokemon[4].hp;
+											}
+											potions--;
+										}
+									break;
+									case 5:
+										if(globe.playerPokemon[5].name != "empty"
+										&& globe.playerPokemon[5].currHp < globe.playerPokemon[5].hp){
+											globe.playerPokemon[5].currHp += 20;
+											if(globe.playerPokemon[5].currHp > globe.playerPokemon[5].hp){
+												globe.playerPokemon[5].currHp = globe.playerPokemon[5].hp;
+											}
+											potions--;
+										}
+									break;
+								}
+							break;
+							case 'k':
+								if(bagSelector > 0 ){
+									bagSelector--;
+								}
+								validCommand = false;
+							break;
+							case 'j':
+								if(bagSelector < 5){
+									bagSelector ++;
+								}
+								validCommand = false;
+							break;
+							case 'Q':
+								break;
+							default:
+								validCommand = false;
+								break;
+						}
 					}else if(inMart || inCenter){
 						if(commandShort == '<'){
 							inMart = false;
@@ -2438,6 +2612,10 @@ void handleNPC(character_c chars[MAPHEIGHT][MAPWIDTH]){
 								break;
 							case ' ':
 								break;
+							case 'B':
+								showingOverworldbag = !showingOverworldbag;
+								validCommand = false;
+							break;
 							case 't':
 								showingList = !showingList;
 								validCommand = false;

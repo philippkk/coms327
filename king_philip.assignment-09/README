@@ -33,6 +33,7 @@ Description:
 		Press 'Q' to exit game while not in battle.
 		Press 'f' to open fly menu
 		Press 'p' to open pokemon menu
+		Press 'B' to open bag menu
 
 	Menus:
 		Press 't' to open trainer menu. Trainer menu will show all trainers on map,

@@ -797,7 +797,6 @@ pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,in
         }
         //calc level stats and set to curr<stat> base stat will be stored in <stat>
         currXp = e;
-        if(level > 1){
             currHp = ((((h+hpiv)*2) * level)/100)+level+10;
             hp = currHp;
             curratk = ((((a+atkiv)*2) * level)/100)+5;
@@ -805,15 +804,6 @@ pokemonObject::pokemonObject(int iD,std::string n,int sid,int lvl,int e,int h,in
             currspd = ((((speed+spdiv)*2) * level)/100)+5;
             currsatk = ((((sa+satkiv)*2) * level)/100)+5;
             currsdef = ((((sd+sdefiv)*2) * level)/100)+5;
-        }else{
-            currHp = h + hiv;
-            hp = h + hiv;
-            curratk = a + atkiv;
-            currdef = d + div;
-            currspd = s + spdiv;
-            currsatk = sa + satkiv;
-            currsdef = sd + sdefiv; 
-        }
         
 }}
 pokemonObject::pokemonObject(){name = "empty";}
